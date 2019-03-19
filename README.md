@@ -3,6 +3,12 @@ A system that recommends photos based on previous photos you liked
 
 This will be a horizontally-scalable version of https://github.com/euan-forrester/photo-recommender-poc, built to handle many users simultaneously.
 
+Initially this will use the Flickr API, since it's the only one I know of where the API exposes lists of images that users favorited.
+
+It looks like imgur also has a similar API, but you have to be logged in as each user in order to see their favorites: https://api.imgur.com/endpoints/account
+
+Instagram deprecated their API that allowed access to users' likes on Apr 4 2018: https://www.instagram.com/developer/changelog/
+
 I plan to use:
 - Kubernetes: https://kubernetes.io/ and https://aws.amazon.com/eks/ 
 - Kafka: https://kafka.apache.org/ and https://aws.amazon.com/msk/
