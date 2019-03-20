@@ -1,0 +1,1 @@
+Terraform project structure based on: https://medium.com/henngeblog/terraform-sane-practices-project-structure-c4347c1bc0f1
