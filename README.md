@@ -38,12 +38,19 @@ Then create an IAM user within that account. This user will need to have various
 
 Copy the file `terraform/aws_credentials.example` to `terraform/aws_credentials` and copy the new user's AWS key and secret key into the new file you just created.
 
+Copy the file `terraform/terraform.tfvars.example` to `terraform/terraform.tfvars` and enter the CIDR of your local machine/network
+
 ### Run terraform
 
 Note that this will create infrastructure within your AWS account and could result in billing charges from AWS
 
+Note: Run terraform with the environment variable `TF_LOG=1` to help debug permissions issues.
+
+For convenience we will create a symlink to our `terraform.tfvars` file. You can also import these variables from the command line when you run terraform if you prefer.
+
 ```
-cd terraform/puller-flickr/dev
+cd terraform/dev
+ln -s ../terraform.tfvars terraform.tfvars
 terraform init
 terraform plan
 terraform apply

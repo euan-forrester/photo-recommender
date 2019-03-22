@@ -1,0 +1,1 @@
+This is all taken from the sample in the terraform documentation: https://learn.hashicorp.com/terraform/aws/eks-intro
