@@ -60,4 +60,3 @@ TODO:
 
 - Move config over to AWS Parameter Store
 - Autofill the elasticache endpoint/port into the appropriate parameter
-- Consider putting security group(s) in terraform. How to specify user's IP address? .tfvars file?
