@@ -1,2 +1,2 @@
-variable "region" { default = "ca-central-1" }
+variable "region" { default = "us-west-2" }
 variable "environment" { default = "dev" }
