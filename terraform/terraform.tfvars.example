@@ -1,0 +1,2 @@
+# Replace this with the CIDR to your local machine/network
+local_machine_cidr = "A.B.C.D/32"
