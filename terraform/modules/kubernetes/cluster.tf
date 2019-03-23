@@ -1,4 +1,4 @@
-resource "aws_eks_cluster" "kunernetes" {
+resource "aws_eks_cluster" "kubernetes" {
     name            = "${var.cluster_name}"
     role_arn        = "${aws_iam_role.kubernetes-cluster.arn}"
 

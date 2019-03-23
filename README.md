@@ -24,10 +24,11 @@ I plan to use:
 
 First we need to create the infrastructure that the various parts of the system will run on
 
-### Install terraform
+### Install packages
 
 ```
 brew install terraform
+brew install kubectl
 ```
 
 ### Create an AWS account
