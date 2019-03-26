@@ -1,4 +1,4 @@
-module "dev" {
+module "kubernetes" {
     source = "../kubernetes"
 
     cluster_name = "puller-flickr-${var.environment}"

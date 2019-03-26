@@ -1,4 +1,4 @@
-module "dev" {
+module "puller-flickr" {
     source = "../modules/puller-flickr"
 
     environment = "dev"
