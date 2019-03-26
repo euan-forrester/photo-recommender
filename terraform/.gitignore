@@ -3,3 +3,4 @@ terraform.tfvars
 terraform.*.tfvars
 terraform.tfstate*
 aws_credentials
+output/

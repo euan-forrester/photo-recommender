@@ -3,3 +3,7 @@ variable "memcached_node_type" {}
 variable "memcached_num_cache_nodes" {}
 variable "memcached_az_mode" {}
 variable "local_machine_cidr" {}
+variable "kubernetes_node_type" {}
+variable "kubernetes_cluster_min_size" {}
+variable "kubernetes_cluster_max_size" {}
+variable "kubernetes_cluster_desired_size" {}
