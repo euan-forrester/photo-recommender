@@ -29,8 +29,6 @@ First we need to create the infrastructure that the various parts of the system 
 
 ```
 brew install terraform
-brew install kubectl
-brew install aws-iam-authenticator
 ```
 
 ### Create an AWS account
@@ -40,8 +38,6 @@ Go to https://aws.amazon.com/ and click on "Create an AWS Account"
 Then create an IAM user within that account. This user will need to have various permissions to create different kinds of infrastructure.
 
 Copy the file `terraform/aws_credentials.example` to `terraform/aws_credentials` and copy the new user's AWS key and secret key into the new file you just created.
-
-`aws-iam-authenticator` (used by `kubectl`) requires that you either pass in AWS credentials via environment variables, or else have your credentials in `~/.aws/credentials`. So if you wish, you can copy the contents of the file above into there as well. Or you could consider adding them there as a named profile. See https://github.com/kubernetes-sigs/aws-iam-authenticator for more details.
 
 Copy the file `terraform/terraform.tfvars.example` to `terraform/terraform.tfvars` and enter the CIDR of your local machine/network
 
@@ -59,26 +55,6 @@ ln -s ../terraform.tfvars terraform.tfvars
 terraform init
 terraform plan
 terraform apply
-```
-
-### Configure kubernetes
-
-Then we need to do some kubernetes configuration:
-
-Note that if you search the `terraform.tfstate` file created by `terraform apply` above for the names we're looking for (`kubeconfig` etc.) then you can find the module path listed there.
-
-```
-mkdir ~/.kube
-mkdir output/
-terraform output -module=puller-flickr.kubernetes kubeconfig > ~/.kube/config
-terraform output -module=puller-flickr.kubernetes config_map_aws_auth > output/config_map_aws_auth.yaml
-kubectl apply -f output/config_map_aws_auth.yaml
-```
-
-and verify that the nodes are joining the cluster:
-
-```
-kubectl get nodes --watch
 ```
 
 TODO:
