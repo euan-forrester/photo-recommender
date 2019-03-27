@@ -11,7 +11,7 @@ Initially this will use the Flickr API, since it's the only one I know of where 
 - 500px: Their API is no longer free: https://support.500px.com/hc/en-us/articles/360002435653-API- Their API did appear to have the concept of "votes" which might be similar: https://github.com/500px/legacy-api-documentation/tree/master/endpoints/photo 
 
 I plan to use:
-- Kubernetes: https://kubernetes.io/ and https://aws.amazon.com/eks/ 
+- Elastic Container Service https://aws.amazon.com/ecs/
 - Kafka: https://kafka.apache.org/ and https://aws.amazon.com/msk/
 - Clickhouse: https://clickhouse.yandex/
 - Terraform: https://www.terraform.io/

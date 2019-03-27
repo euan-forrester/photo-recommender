@@ -2,6 +2,8 @@ module "puller-flickr" {
     source = "../modules/puller-flickr"
 
     environment = "dev"
+    region = "${var.region}"
+    availability_zone = "${var.availability_zone}"
 
     memcached_node_type = "cache.t2.micro"
     memcached_num_cache_nodes = 2
@@ -9,8 +11,8 @@ module "puller-flickr" {
 
     local_machine_cidr = "${var.local_machine_cidr}"
 
-    kubernetes_node_type = "t2.micro"
-    kubernetes_cluster_min_size = 1
-    kubernetes_cluster_max_size = 2
-    kubernetes_cluster_desired_size = 2
+    ecs_node_type = "t2.micro"
+    ecs_cluster_min_size = 1
+    ecs_cluster_max_size = 2
+    ecs_cluster_desired_size = 2
 }
