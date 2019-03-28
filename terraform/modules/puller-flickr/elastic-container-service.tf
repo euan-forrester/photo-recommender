@@ -7,9 +7,9 @@ module "elastic-container-service" {
     availability_zone = "${var.availability_zone}"
 
     local_machine_cidr = "${var.local_machine_cidr}"
-    node_type = "${var.ecs_node_type}"
+    local_machine_public_key = "${var.local_machine_public_key}"
+    
+    instance_type = "${var.ecs_instance_type}"
 
-    cluster_min_size = "${var.ecs_cluster_min_size}"
-    cluster_max_size = "${var.ecs_cluster_max_size}"
     cluster_desired_size = "${var.ecs_cluster_desired_size}"
 }

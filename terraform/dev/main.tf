@@ -10,9 +10,8 @@ module "puller-flickr" {
     memcached_az_mode = "cross-az"
 
     local_machine_cidr = "${var.local_machine_cidr}"
+    local_machine_public_key = "${var.local_machine_public_key}"
 
-    ecs_node_type = "t2.micro"
-    ecs_cluster_min_size = 1
-    ecs_cluster_max_size = 2
+    ecs_instance_type = "t2.micro"
     ecs_cluster_desired_size = 2
 }

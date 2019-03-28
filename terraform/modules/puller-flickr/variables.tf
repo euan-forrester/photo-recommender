@@ -5,7 +5,6 @@ variable "memcached_node_type" {}
 variable "memcached_num_cache_nodes" {}
 variable "memcached_az_mode" {}
 variable "local_machine_cidr" {}
-variable "ecs_node_type" {}
-variable "ecs_cluster_min_size" {}
-variable "ecs_cluster_max_size" {}
+variable "ecs_instance_type" {}
 variable "ecs_cluster_desired_size" {}
+variable "local_machine_public_key" {}

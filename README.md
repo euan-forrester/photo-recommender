@@ -37,9 +37,12 @@ Go to https://aws.amazon.com/ and click on "Create an AWS Account"
 
 Then create an IAM user within that account. This user will need to have various permissions to create different kinds of infrastructure.
 
-Copy the file `terraform/aws_credentials.example` to `terraform/aws_credentials` and copy the new user's AWS key and secret key into the new file you just created.
+Copy the file `terraform/aws_credentials.example` to `terraform/aws_credentials`
+- Copy the new user's AWS key and secret key into the new file you just created.
 
-Copy the file `terraform/terraform.tfvars.example` to `terraform/terraform.tfvars` and enter the CIDR of your local machine/network
+Copy the file `terraform/terraform.tfvars.example` to `terraform/terraform.tfvars` 
+- Enter the CIDR of your local machine/network
+- Copy your ssh public key (contained in `~/.ssh/id_rsa.pub`. If that file doesn't exist, run `ssh-keygen -t rsa` to generate it)
 
 ### Run terraform
 
