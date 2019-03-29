@@ -14,4 +14,6 @@ module "puller-flickr" {
 
     ecs_instance_type = "t2.micro"
     ecs_cluster_desired_size = 2
+    ecs_cluster_min_size = 2
+    ecs_cluster_max_size = 2
 }

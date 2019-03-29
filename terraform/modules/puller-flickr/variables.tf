@@ -7,4 +7,6 @@ variable "memcached_az_mode" {}
 variable "local_machine_cidr" {}
 variable "ecs_instance_type" {}
 variable "ecs_cluster_desired_size" {}
+variable "ecs_cluster_min_size" {}
+variable "ecs_cluster_max_size" {}
 variable "local_machine_public_key" {}

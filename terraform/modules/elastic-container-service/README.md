@@ -1,4 +1,4 @@
-Note this was all taken from the examples at
+Note this was all based on the examples at
 
 http://blog.shippable.com/create-a-container-cluster-using-terraform-with-aws-part-1
 

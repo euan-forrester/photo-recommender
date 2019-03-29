@@ -8,8 +8,10 @@ module "elastic-container-service" {
 
     local_machine_cidr = "${var.local_machine_cidr}"
     local_machine_public_key = "${var.local_machine_public_key}"
-    
+
     instance_type = "${var.ecs_instance_type}"
 
     cluster_desired_size = "${var.ecs_cluster_desired_size}"
+    cluster_min_size = "${var.ecs_cluster_min_size}"
+    cluster_max_size = "${var.ecs_cluster_max_size}"
 }
