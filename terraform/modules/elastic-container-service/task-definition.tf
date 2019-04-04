@@ -3,7 +3,9 @@ data "aws_ecs_task_definition" "my_task" {
     task_definition = "${aws_ecs_task_definition.my_task.family}"
 }
 
-# NOTE: to debug issues with this JSON, try targetting this specific resource when running terraform. e.g. `terraform plan -target=module.puller-flickr.elastic-container-service.aws_ecs_task_definition`. Otherwise you will get a generic and confusing error message
+# NOTE: to debug issues with this JSON, try targetting this specific resource when running terraform. 
+# Otherwise you will get a generic and confusing error message.
+# e.g. `terraform plan -target=module.puller-flickr.elastic-container-service.aws_ecs_task_definition`. 
 
 resource "aws_ecs_task_definition" "my_task" {
     family                = "${var.cluster_name}"
