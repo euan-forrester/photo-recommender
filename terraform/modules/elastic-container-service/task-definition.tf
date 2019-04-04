@@ -12,17 +12,17 @@ resource "aws_ecs_task_definition" "my_task" {
     container_definitions = <<DEFINITION
 [
   {
-    "name": "puller-flickr-dev",
-    "image": "puller-flickr-dev",
+    "name": "${var.cluster_name}",
+    "image": "${var.cluster_name}",
     "essential": true,
     "portMappings": [
       {
-        "containerPort": 80,
-        "hostPort": 80
+        "containerPort": 22,
+        "hostPort": 22
       }
     ],
-    "memory": 500,
-    "cpu": 1
+    "memory": ${var.instances_memory},
+    "cpu": ${var.instances_cpu}
   }
 ]
 DEFINITION
