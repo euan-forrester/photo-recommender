@@ -1,7 +1,6 @@
 module "elastic-container-service" {
     source = "../elastic-container-service"
 
-    environment = "${var.environment}"
     cluster_name = "puller-flickr-${var.environment}"
     region = "${var.region}"
     availability_zone = "${var.availability_zone}"
@@ -14,4 +13,8 @@ module "elastic-container-service" {
     cluster_desired_size = "${var.ecs_cluster_desired_size}"
     cluster_min_size = "${var.ecs_cluster_min_size}"
     cluster_max_size = "${var.ecs_cluster_max_size}"
+
+    instances_desired_count = "${var.ecs_instances_desired_count}"
+    instances_memory = "${var.ecs_instances_memory}"
+    instances_cpu = "${var.ecs_instances_cpu}"
 }

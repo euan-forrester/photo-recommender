@@ -20,7 +20,7 @@ resource "aws_key_pair" "local_machine" {
 }
 
 resource "aws_launch_configuration" "ecs-launch-configuration" {
-    name                        = "ecs-launch-configuration-${var.environment}"
+    name                        = "ecs-launch-configuration-${var.cluster_name}"
     image_id                    = "${data.aws_ami.ubuntu.id}"
     instance_type               = "${var.instance_type}"
     iam_instance_profile        = "${aws_iam_instance_profile.ecs-instance-profile.id}"
@@ -45,7 +45,7 @@ resource "aws_launch_configuration" "ecs-launch-configuration" {
 }
 
 resource "aws_autoscaling_group" "ecs-autoscaling-group" {
-    name                        = "ecs-autoscaling-group-${var.environment}"
+    name                        = "ecs-autoscaling-group-${var.cluster_name}"
     max_size                    = "${var.cluster_max_size}"
     min_size                    = "${var.cluster_min_size}"
     desired_capacity            = "${var.cluster_desired_size}"

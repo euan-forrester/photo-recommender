@@ -10,3 +10,6 @@ variable "ecs_cluster_desired_size" {}
 variable "ecs_cluster_min_size" {}
 variable "ecs_cluster_max_size" {}
 variable "local_machine_public_key" {}
+variable "ecs_instances_desired_count" {}
+variable "ecs_instances_memory" {}
+variable "ecs_instances_cpu" {}

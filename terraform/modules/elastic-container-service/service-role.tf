@@ -1,5 +1,5 @@
 resource "aws_iam_role" "ecs-service-role" {
-    name                = "ecs-service-role-${var.environment}"
+    name                = "ecs-service-role-${var.cluster_name}"
     path                = "/"
     assume_role_policy  = "${data.aws_iam_policy_document.ecs-service-policy.json}"
 }

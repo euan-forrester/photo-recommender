@@ -1,7 +1,7 @@
 resource "aws_vpc" "ecs" {
     cidr_block = "200.0.0.0/16"
     tags {
-        Name = "ecs-vpc-${var.environment}"
+        Name = "ecs-vpc-${var.cluster_name}"
     }
 }
 
@@ -9,7 +9,7 @@ resource "aws_vpc" "ecs" {
 resource "aws_internet_gateway" "ecs" {
     vpc_id = "${aws_vpc.ecs.id}"
     tags {
-        Name = "ecs-internet-gateway-${var.environment}"
+        Name = "ecs-internet-gateway-${var.cluster_name}"
     }
 }
 
@@ -19,7 +19,7 @@ resource "aws_subnet" "ecs-public-subnet-0-0" {
     cidr_block = "200.0.0.0/24"
     availability_zone = "${var.availability_zone}"
     tags {
-        Name = "ecs-public-subnet0-0-0-${var.environment}"
+        Name = "ecs-public-subnet0-0-0-${var.cluster_name}"
     }
 }
 
@@ -31,7 +31,7 @@ resource "aws_route_table" "ecs-public-subnet-0-0-routing-table" {
         gateway_id = "${aws_internet_gateway.ecs.id}"
     }
     tags {
-        Name = "public-subnet-0-0-routing-table-${var.environment}"
+        Name = "public-subnet-0-0-routing-table-${var.cluster_name}"
     }
 }
 
@@ -44,7 +44,7 @@ resource "aws_route_table_association" "ecs-public-subnet-0-0-routing-table-asso
 # ECS Instance Security group
 
 resource "aws_security_group" "ecs" {
-    name = "security-group-ecs-${var.environment}"
+    name = "security-group-ecs-${var.cluster_name}"
     description = "Test public access security group"
     vpc_id = "${aws_vpc.ecs.id}"
 
@@ -68,6 +68,6 @@ resource "aws_security_group" "ecs" {
     }
 
     tags { 
-        Name = "security-group-ecs-${var.environment}"
+        Name = "security-group-ecs-${var.cluster_name}"
     }
 }

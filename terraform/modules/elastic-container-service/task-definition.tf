@@ -1,17 +1,17 @@
-data "aws_ecs_task_definition" "task" {
-    task_definition = "${aws_ecs_task_definition.task.family}"
+data "aws_ecs_task_definition" "my_task" {
+    depends_on = [ "aws_ecs_task_definition.my_task" ] # https://github.com/terraform-providers/terraform-provider-aws/issues/1274
+    task_definition = "${aws_ecs_task_definition.my_task.family}"
 }
 
-resource "aws_ecs_task_definition" "task" {
-    family                = "${var.cluser_name}"
+# NOTE: to debug issues with this JSON, try targetting this specific resource when running terraform. e.g. `terraform plan -target=module.puller-flickr.elastic-container-service.aws_ecs_task_definition`. Otherwise you will get a generic and confusing error message
+
+resource "aws_ecs_task_definition" "my_task" {
+    family                = "${var.cluster_name}"
     container_definitions = <<DEFINITION
 [
   {
-    "name": "wordpress",
-    "links": [
-      "mysql"
-    ],
-    "image": "wordpress",
+    "name": "puller-flickr-dev",
+    "image": "puller-flickr-dev",
     "essential": true,
     "portMappings": [
       {
@@ -20,29 +20,29 @@ resource "aws_ecs_task_definition" "task" {
       }
     ],
     "memory": 500,
-    "cpu": 10
-  },
-  {
-    "environment": [
-      {
-        "name": "MYSQL_ROOT_PASSWORD",
-        "value": "password"
-      }
-    ],
-    "name": "mysql",
-    "image": "mysql",
-    "cpu": 10,
-    "memory": 500,
-    "essential": true
+    "cpu": 1
   }
 ]
 DEFINITION
+
+    # Considering putting this in if we see this stuff getting rebuilt every run when we don't want to. 
+    # Note then that there will be an extra step when we change the task definition: https://github.com/terraform-providers/terraform-provider-aws/issues/1274
+    #lifecycle {
+    #    ignore_changes = [
+    #      "container_definitions" # if template file changed, do nothing, believe that human's changes are source of truth
+    #    ]
+    #}
 }
 
 resource "aws_ecs_service" "ecs-service" {
     name            = "ecs-service"
-    iam_role        = "${aws_iam_role.ecs-service-role.name}"
     cluster         = "${aws_ecs_cluster.ecs-cluster.id}"
-    task_definition = "${aws_ecs_task_definition.wordpress.family}:${max("${aws_ecs_task_definition.wordpress.revision}", "${data.aws_ecs_task_definition.wordpress.revision}")}"
-    desired_count   = "${var.cluster_desired_size}"
+    task_definition = "${aws_ecs_task_definition.my_task.family}:${max("${aws_ecs_task_definition.my_task.revision}", "${data.aws_ecs_task_definition.my_task.revision}")}"
+    desired_count   = "${var.instances_desired_count}"
+
+    # Considering putting this in if we see this stuff getting rebuilt every run when we don't want to. 
+    # Note then that there will be an extra step when we change the task definition: https://github.com/terraform-providers/terraform-provider-aws/issues/1274
+    #lifecycle {
+    #    ignore_changes = ["task_definition"] # the same here, do nothing if it was already installed
+    #}
 }
