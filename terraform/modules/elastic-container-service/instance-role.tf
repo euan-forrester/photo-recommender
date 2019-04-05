@@ -6,7 +6,9 @@ resource "aws_iam_role" "ecs-instance-role" {
 
 data "aws_iam_policy_document" "ecs-instance-policy" {
     statement {
-        actions = ["sts:AssumeRole"]
+        actions = [
+            "sts:AssumeRole"
+        ]
 
         principals {
             type        = "Service"

@@ -17,4 +17,5 @@ module "elastic-container-service" {
     instances_desired_count = "${var.ecs_instances_desired_count}"
     instances_memory = "${var.ecs_instances_memory}"
     instances_cpu = "${var.ecs_instances_cpu}"
+    instances_log_retention_days = "${var.ecs_instances_log_retention_days}"
 }

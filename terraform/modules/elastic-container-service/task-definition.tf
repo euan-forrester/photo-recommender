@@ -3,9 +3,20 @@ data "aws_ecs_task_definition" "my_task" {
     task_definition = "${aws_ecs_task_definition.my_task.family}"
 }
 
+data "aws_caller_identity" "current" {
+  
+}
+
+resource "aws_cloudwatch_log_group" "log_group" {
+  name = "${var.cluster_name}"
+  retention_in_days = "${var.instances_log_retention_days}"
+}
+
 # NOTE: to debug issues with this JSON, try targetting this specific resource when running terraform. 
 # Otherwise you will get a generic and confusing error message.
 # e.g. `terraform plan -target=module.puller-flickr.elastic-container-service.aws_ecs_task_definition`. 
+
+# TODO: Consider sending all logs to a single region so they can all be viewed together
 
 resource "aws_ecs_task_definition" "my_task" {
     family                = "${var.cluster_name}"
@@ -13,16 +24,19 @@ resource "aws_ecs_task_definition" "my_task" {
 [
   {
     "name": "${var.cluster_name}",
-    "image": "${var.cluster_name}",
+    "image": "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.region}.amazonaws.com/${var.cluster_name}:latest",
     "essential": true,
-    "portMappings": [
-      {
-        "containerPort": 80,
-        "hostPort": 80
-      }
-    ],
     "memory": ${var.instances_memory},
-    "cpu": ${var.instances_cpu}
+    "cpu": ${var.instances_cpu},
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-datetime-format": "%Y-%m-%d %H:%M:%S.%f %z",
+        "awslogs-region": "${var.region}",
+        "awslogs-group": "${aws_cloudwatch_log_group.log_group.name}",
+        "awslogs-stream-prefix": "${var.cluster_name}"
+      }
+    }
   }
 ]
 DEFINITION
