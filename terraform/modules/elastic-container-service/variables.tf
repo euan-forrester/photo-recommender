@@ -10,3 +10,4 @@ variable "local_machine_public_key" {}
 variable "instances_desired_count" {}
 variable "instances_memory" {}
 variable "instances_cpu" {}
+variable "instances_log_retention_days" {}

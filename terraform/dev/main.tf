@@ -17,6 +17,7 @@ module "puller-flickr" {
     ecs_cluster_min_size = 2
     ecs_cluster_max_size = 2
     ecs_instances_desired_count = 2
-    ecs_instances_memory = 500
+    ecs_instances_memory = 256
     ecs_instances_cpu = 1
+    ecs_instances_log_retention_days = 7
 }

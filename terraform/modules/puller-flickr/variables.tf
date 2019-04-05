@@ -13,3 +13,4 @@ variable "local_machine_public_key" {}
 variable "ecs_instances_desired_count" {}
 variable "ecs_instances_memory" {}
 variable "ecs_instances_cpu" {}
+variable "ecs_instances_log_retention_days" {}
