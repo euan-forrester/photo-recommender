@@ -17,8 +17,8 @@ resource "aws_ecs_task_definition" "my_task" {
     "essential": true,
     "portMappings": [
       {
-        "containerPort": 22,
-        "hostPort": 22
+        "containerPort": 80,
+        "hostPort": 80
       }
     ],
     "memory": ${var.instances_memory},
