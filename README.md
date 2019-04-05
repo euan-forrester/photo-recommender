@@ -11,7 +11,8 @@ Initially this will use the Flickr API, since it's the only one I know of where 
 - 500px: Their API is no longer free: https://support.500px.com/hc/en-us/articles/360002435653-API- Their API did appear to have the concept of "votes" which might be similar: https://github.com/500px/legacy-api-documentation/tree/master/endpoints/photo 
 
 I plan to use:
-- Kubernetes: https://kubernetes.io/ and https://aws.amazon.com/eks/ 
+- Elastic Container Service: https://aws.amazon.com/ecs/ and Elastic Container Registry: https://aws.amazon.com/ecr/
+- CodeBuild: https://aws.amazon.com/codebuild/
 - Kafka: https://kafka.apache.org/ and https://aws.amazon.com/msk/
 - Clickhouse: https://clickhouse.yandex/
 - Terraform: https://www.terraform.io/
@@ -29,9 +30,9 @@ First we need to create the infrastructure that the various parts of the system 
 
 ```
 brew install terraform
-brew install kubectl
-brew install aws-iam-authenticator
 ```
+
+
 
 ### Create an AWS account
 
@@ -39,11 +40,12 @@ Go to https://aws.amazon.com/ and click on "Create an AWS Account"
 
 Then create an IAM user within that account. This user will need to have various permissions to create different kinds of infrastructure.
 
-Copy the file `terraform/aws_credentials.example` to `terraform/aws_credentials` and copy the new user's AWS key and secret key into the new file you just created.
+Copy the file `terraform/aws_credentials.example` to `terraform/aws_credentials`
+- Copy the new user's AWS key and secret key into the new file you just created.
 
-`aws-iam-authenticator` (used by `kubectl`) requires that you either pass in AWS credentials via environment variables, or else have your credentials in `~/.aws/credentials`. So if you wish, you can copy the contents of the file above into there as well. Or you could consider adding them there as a named profile. See https://github.com/kubernetes-sigs/aws-iam-authenticator for more details.
-
-Copy the file `terraform/terraform.tfvars.example` to `terraform/terraform.tfvars` and enter the CIDR of your local machine/network
+Copy the file `terraform/terraform.tfvars.example` to `terraform/terraform.tfvars` 
+- Enter the CIDR of your local machine/network
+- Copy your ssh public key (contained in `~/.ssh/id_rsa.pub`. If that file doesn't exist, run `ssh-keygen -t rsa` to generate it)
 
 ### Run terraform
 
@@ -61,27 +63,29 @@ terraform plan
 terraform apply
 ```
 
-### Configure kubernetes
+## Manual steps to push our docker image to ECR
 
-Then we need to do some kubernetes configuration:
+Install docker: https://docs.docker.com/install/
 
-Note that if you search the `terraform.tfstate` file created by `terraform apply` above for the names we're looking for (`kubeconfig` etc.) then you can find the module path listed there.
+Install the AWS CLI: https://docs.aws.amazon.com/cli/latest/userguide/install-bundle.html
 
-```
-mkdir ~/.kube
-mkdir output/
-terraform output -module=puller-flickr.kubernetes kubeconfig > ~/.kube/config
-terraform output -module=puller-flickr.kubernetes config_map_aws_auth > output/config_map_aws_auth.yaml
-kubectl apply -f output/config_map_aws_auth.yaml
-```
-
-and verify that the nodes are joining the cluster:
+Copy `terraform/aws_credentials` to `~/.aws/credentials`
 
 ```
-kubectl get nodes --watch
+docker build ../../puller-flickr
+docker tag puller-flickr <URI of puller-flickr-dev repository in ECR: use AWS console to find>
+aws ecr get-login --region us-west-2
+```
+
+Copy the output of the last command to log into the ECR repository (it may need some minor modification if you get an error message such as `unknown shorthand flag: 'e' in -e`)
+
+```
+docker push <URI of puller-flicker-dev repository in ECR>
 ```
 
 TODO:
 
 - Move config over to AWS Parameter Store
 - Autofill the elasticache endpoint/port into the appropriate parameter
+- Have ECS running in > 1 availability zone (see examples in the links in the README in the elastic-container-service module)
+- Make a build pipeline
