@@ -3,3 +3,7 @@ local_machine_cidr = "A.B.C.D/32"
 
 # Replace this with the public key for your local machine, to allow it to log into EC2 instances
 local_machine_public_key = "ssh-rsa blahblahblah a@b.com"
+
+flickr_api_key = ""
+flickr_secret_key = "" 
+flickr_user_id = ""

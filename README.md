@@ -32,8 +32,6 @@ First we need to create the infrastructure that the various parts of the system 
 brew install terraform
 ```
 
-
-
 ### Create an AWS account
 
 Go to https://aws.amazon.com/ and click on "Create an AWS Account"
@@ -46,6 +44,8 @@ Copy the file `terraform/aws_credentials.example` to `terraform/aws_credentials`
 Copy the file `terraform/terraform.tfvars.example` to `terraform/terraform.tfvars` 
 - Enter the CIDR of your local machine/network
 - Copy your ssh public key (contained in `~/.ssh/id_rsa.pub`. If that file doesn't exist, run `ssh-keygen -t rsa` to generate it)
+- Fill in your Flickr API key and secret: https://www.flickr.com/services/apps/create/apply
+- Fill in your numerical Flickr user ID. You may need to get your numerical ID from: http://idgettr.com/
 
 ### Run terraform
 
