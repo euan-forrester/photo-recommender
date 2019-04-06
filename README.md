@@ -32,8 +32,6 @@ First we need to create the infrastructure that the various parts of the system 
 brew install terraform
 ```
 
-
-
 ### Create an AWS account
 
 Go to https://aws.amazon.com/ and click on "Create an AWS Account"
@@ -46,6 +44,8 @@ Copy the file `terraform/aws_credentials.example` to `terraform/aws_credentials`
 Copy the file `terraform/terraform.tfvars.example` to `terraform/terraform.tfvars` 
 - Enter the CIDR of your local machine/network
 - Copy your ssh public key (contained in `~/.ssh/id_rsa.pub`. If that file doesn't exist, run `ssh-keygen -t rsa` to generate it)
+- Fill in your Flickr API key and secret: https://www.flickr.com/services/apps/create/apply
+- Fill in your numerical Flickr user ID. You may need to get your numerical ID from: http://idgettr.com/
 
 ### Run terraform
 
@@ -71,21 +71,22 @@ Install the AWS CLI: https://docs.aws.amazon.com/cli/latest/userguide/install-bu
 
 Copy `terraform/aws_credentials` to `~/.aws/credentials`
 
+Log into your docker repository:
+
+```
+eval "$(aws ecr get-login --no-include-email --region us-west-2)"
+```
+
+Then build and push your image:
+
 ```
 docker build ../../puller-flickr
-docker tag puller-flickr <URI of puller-flickr-dev repository in ECR: use AWS console to find>
-aws ecr get-login --region us-west-2
-```
-
-Copy the output of the last command to log into the ECR repository (it may need some minor modification if you get an error message such as `unknown shorthand flag: 'e' in -e`)
-
-```
+docker images
+docker tag <ID of image you just built> <URI of puller-flickr-dev repository in ECR: use AWS console to find>
 docker push <URI of puller-flicker-dev repository in ECR>
 ```
 
 TODO:
 
-- Move config over to AWS Parameter Store
-- Autofill the elasticache endpoint/port into the appropriate parameter
 - Have ECS running in > 1 availability zone (see examples in the links in the README in the elastic-container-service module)
 - Make a build pipeline
