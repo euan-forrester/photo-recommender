@@ -3,7 +3,7 @@ data "aws_ecs_task_definition" "my_task" {
     task_definition = "${aws_ecs_task_definition.my_task.family}"
 }
 
-data "aws_caller_identity" "current" {
+data "aws_caller_identity" "ecs_task_definition" {
   
 }
 
@@ -21,7 +21,7 @@ resource "aws_kms_key" "logs" {
       "Sid" : "Enable IAM User Permissions",
       "Effect" : "Allow",
       "Principal" : {
-        "AWS" : "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+        "AWS" : "arn:aws:iam::${data.aws_caller_identity.ecs_task_definition.account_id}:root"
       },
       "Action" : "kms:*",
       "Resource" : "*"
@@ -61,10 +61,14 @@ resource "aws_ecs_task_definition" "my_task" {
 [
   {
     "name": "${var.cluster_name}",
-    "image": "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.region}.amazonaws.com/${var.cluster_name}:latest",
+    "image": "${data.aws_caller_identity.ecs_task_definition.account_id}.dkr.ecr.${var.region}.amazonaws.com/${var.cluster_name}:latest",
     "essential": true,
     "memory": ${var.instances_memory},
     "cpu": ${var.instances_cpu},
+    "environment": [
+      { "name": "ENVIRONMENT", "value": "${var.environment}" },
+      { "name": "AWS_DEFAULT_REGION", "value": "${var.region}" }
+    ],
     "logConfiguration": {
       "logDriver": "awslogs",
       "options": {

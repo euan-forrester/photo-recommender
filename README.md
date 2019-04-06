@@ -71,21 +71,22 @@ Install the AWS CLI: https://docs.aws.amazon.com/cli/latest/userguide/install-bu
 
 Copy `terraform/aws_credentials` to `~/.aws/credentials`
 
+Log into your docker repository:
+
+```
+eval "$(aws ecr get-login --no-include-email --region us-west-2)"
+```
+
+Then build and push your image:
+
 ```
 docker build ../../puller-flickr
-docker tag puller-flickr <URI of puller-flickr-dev repository in ECR: use AWS console to find>
-aws ecr get-login --region us-west-2
-```
-
-Copy the output of the last command to log into the ECR repository (it may need some minor modification if you get an error message such as `unknown shorthand flag: 'e' in -e`)
-
-```
+docker images
+docker tag <ID of image you just built> <URI of puller-flickr-dev repository in ECR: use AWS console to find>
 docker push <URI of puller-flicker-dev repository in ECR>
 ```
 
 TODO:
 
-- Move config over to AWS Parameter Store
-- Autofill the elasticache endpoint/port into the appropriate parameter
 - Have ECS running in > 1 availability zone (see examples in the links in the README in the elastic-container-service module)
 - Make a build pipeline

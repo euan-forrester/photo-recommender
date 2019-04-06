@@ -1,5 +1,6 @@
 variable "cluster_name" {}
 variable "region" {}
+variable "environment" {}
 variable "availability_zone" {}
 variable "local_machine_cidr" {}
 variable "instance_type" {}
@@ -11,3 +12,4 @@ variable "instances_desired_count" {}
 variable "instances_memory" {}
 variable "instances_cpu" {}
 variable "instances_log_retention_days" {}
+variable "instances_extra_policy_arn" {}
