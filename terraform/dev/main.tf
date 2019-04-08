@@ -28,4 +28,12 @@ module "puller-flickr" {
     flickr_api_retries = 3
     flickr_api_favorites_max_per_call = 500
     flickr_api_favorites_max_to_get = 1000
+
+    ingester_queue_url = "${module.ingester_database.ingester_queue_url}"
+}
+
+module "ingester_database" {
+    source = "../modules/ingester-database"
+
+    environment = "dev"
 }
