@@ -29,7 +29,8 @@ module "puller-flickr" {
     flickr_api_favorites_max_per_call = 500
     flickr_api_favorites_max_to_get = 1000
 
-    ingester_queue_url = "${module.ingester_database.ingester_queue_url}"
+    output_queue_url = "${module.ingester_database.ingester_queue_url}"
+    output_queue_batch_size = 10
 }
 
 module "ingester_database" {

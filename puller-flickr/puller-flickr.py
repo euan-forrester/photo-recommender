@@ -6,6 +6,7 @@ import argparse
 import logging
 import os
 import boto3
+import json
 
 # Read in commandline arguments
 
@@ -31,6 +32,8 @@ flickr_api_max_favorites_to_get     = None
 flickr_user_id                      = None
 memcached_location                  = None
 memcached_ttl                       = None
+output_queue_url                    = None
+output_queue_batch_size             = None
 
 if not "ENVIRONMENT" in os.environ:
     logging.info("Did not find ENVIRONMENT environment variable, running in development mode and loading config from config files.")
@@ -50,6 +53,8 @@ if not "ENVIRONMENT" in os.environ:
     flickr_user_id                      = config.get(CONFIG_FILE_ENVIRONMENT, "flickr.user.id")
     memcached_location                  = config.get(CONFIG_FILE_ENVIRONMENT, "memcached.location")
     memcached_ttl                       = config.getint(CONFIG_FILE_ENVIRONMENT, "memcached.ttl")
+    output_queue_url                    = config.get(CONFIG_FILE_ENVIRONMENT, "output.queue.url")
+    output_queue_batch_size             = config.getint(CONFIG_FILE_ENVIRONMENT, "output.queue.batchsize")
 
 else:
     ENVIRONMENT = os.environ.get('ENVIRONMENT')
@@ -66,42 +71,37 @@ else:
     flickr_user_id                      = ssm.get_parameter(Name='/%s/puller-flickr/flickr-user-id'                         % ENVIRONMENT)['Parameter']['Value']
     memcached_location                  = ssm.get_parameter(Name='/%s/puller-flickr/memcached-location'                     % ENVIRONMENT)['Parameter']['Value']
     memcached_ttl                       = int(ssm.get_parameter(Name='/%s/puller-flickr/memcached-ttl'                      % ENVIRONMENT)['Parameter']['Value'])
-
-    logging.info("Found flickr api key %s" % (flickr_api_key))
-    logging.info("Found flickr api secret %s" % (flickr_api_secret))
-    logging.info("Found memcached location %s" % (memcached_location))
-    logging.info("Found memcached ttl %d" % (memcached_ttl))
+    output_queue_url                    = ssm.get_parameter(Name='/%s/puller-flickr/output_queue_url'                       % ENVIRONMENT)['Parameter']['Value']
+    output_queue_batch_size             = int(ssm.get_parameter(Name='/%s/puller-flickr/output_queue_batch_size'            % ENVIRONMENT)['Parameter']['Value'])
 
 # Call Flickr to my favorites, and the favorites of the users who created them
 
 flickrapi = FlickrApiWrapper(flickr_api_key, flickr_api_secret, memcached_location, memcached_ttl, flickr_api_retries)
 
-# To locate photos that the user may find interesting, we first build a set of "neighbors" to this user.
-# A "neighbor" is someone who took a photo that the user favorited.
-# We will then assign a score to each of these neighbors, and use those scores to assign scores to their favorite photos.
-# The highest-scored of these photos will be shown to the original user.
+# We will need to build a set of "neighbors" to our user. A "neighbor" is someone who took a photo that the user favorited.
+# We will use each neighbor's photos to assign a score to that neighbor, which we will then use to assign a score to each of their favorites.
 
 logging.info("Getting my favourites")
 
 my_favorites = flickrapi.get_favorites(flickr_user_id, flickr_api_max_favorites_per_call, flickr_api_max_favorites_to_get)
-my_favorite_ids = set()
-all_neighbor_favorite_photo_ids = {}
+favorite_photos = {}
 
 my_neighbors = {}
 
 for photo in my_favorites:
-    logging.debug("Found favourite photo ", photo)
-    my_favorite_ids.add(photo['id'])
+    logging.debug("Found photo I favorited: ", photo)
+    
+    if photo['id'] not in favorite_photos:
+        favorite_photos[photo['id']] = { 'favorited_by': flickr_user_id, 'image_url': photo.get('url_l', photo.get('url_m', '')), 'id': photo['id'], 'owner': photo['owner'] }
+    
     if photo['owner'] not in my_neighbors:
         my_neighbors[photo['owner']] = { 'user_id': photo['owner'] }
 
-logging.debug("Found neighbors: ", my_neighbors)
+logging.debug("Found list of neighbors: ", my_neighbors)
 
 # To calculate the score of each neighbour we need to know its favourites
 
 for neighbor_id in my_neighbors:
-
-    my_neighbors[neighbor_id]['favorite_ids'] = set()
 
     logging.info("Getting favorites of neighbor %s" % (my_neighbors[neighbor_id]['user_id']))
 
@@ -110,5 +110,49 @@ for neighbor_id in my_neighbors:
     for photo in neighbor_favorites:
         logging.debug("Found neighbor favourite photo ", photo)
 
-        my_neighbors[neighbor_id]['favorite_ids'].add(photo['id'])
-        all_neighbor_favorite_photo_ids[photo['id']] = { 'score': 0, 'image_url': photo.get('url_l', photo.get('url_m', '')), 'id': photo['id'], 'user': photo['owner'] }
+        if photo['id'] not in favorite_photos: # If we already added the photo as favorited by us, don't overwrite that with one of our neighbors instead
+            favorite_photos[photo['id']] = { 'favorited_by': my_neighbors[neighbor_id]['user_id'], 'image_url': photo.get('url_l', photo.get('url_m', '')), 'id': photo['id'], 'owner': photo['owner'] }
+
+# Output all of the photos we found to our queue
+
+logging.info("Found %d photos to send to queue %s in batches of %d" % (len(favorite_photos), output_queue_url, output_queue_batch_size))
+
+def send_batch(current_batch):
+
+    response = sqs.send_message_batch(
+        QueueUrl=output_queue_url,
+        Entries=current_batch
+    )
+
+    if len(current_batch) == len(response['Successful']):
+        logging.info("All %d messages in batch sent successfully" % (len(current_batch)))
+    else:
+        logging.warn("%d messages in batch of %d were not sent successfully" % (len(response['Failed']), len(current_batch)))
+
+        for failed_message in response['Failed']:
+            logging.warn("Failed message: ", failed_message)
+
+        # TODO: Increment a metric that we can alert on
+
+sqs = boto3.client('sqs') 
+
+current_batch = []
+
+for photo in favorite_photos:
+
+    message = {
+        'Id': str(len(current_batch)),
+        'MessageBody': json.dumps(photo)
+    }
+
+    current_batch.append(message)
+
+    if len(current_batch) >= output_queue_batch_size:
+
+        send_batch(current_batch)
+
+        current_batch = []
+
+send_batch(current_batch) # Send any remaining items that didn't make a full batch
+
+# TODO: Make a shared class that contains the message format

@@ -5,4 +5,4 @@ RUN pip install flickrapi
 RUN pip install python-memcached
 RUN pip install django
 RUN pip install boto3
-CMD [ "python", "./puller-flickr.py", "-d" ]
+CMD [ "python", "./puller-flickr.py" ]

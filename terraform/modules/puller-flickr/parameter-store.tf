@@ -62,9 +62,16 @@ resource "aws_ssm_parameter" "memcached_location" {
     value       = "${aws_elasticache_cluster.memcached.cluster_address}:${aws_elasticache_cluster.memcached.port}"
 }
 
-resource "aws_ssm_parameter" "ingester_queue_url" {
-    name        = "/${var.environment}/puller-flickr/ingester_queue_url"
+resource "aws_ssm_parameter" "output_queue_url" {
+    name        = "/${var.environment}/puller-flickr/output_queue_url"
     description = "URL of the queue to put favorites data into for later ingestion into the database"
     type        = "String"
-    value       = "${var.ingester_queue_url}"
+    value       = "${var.output_queue_url}"
+}
+
+resource "aws_ssm_parameter" "output_queue_batch_size" {
+    name        = "/${var.environment}/puller-flickr/output_queue_batch_size"
+    description = "Number of items to put on the output queue in a single batch"
+    type        = "String"
+    value       = "${var.output_queue_batch_size}"
 }
