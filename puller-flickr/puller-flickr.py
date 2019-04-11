@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+import sys
+sys.path.insert(0, '../common')
+
 import configparser
 from flickrapiwrapper import FlickrApiWrapper
 import argparse
@@ -7,6 +10,7 @@ import logging
 import os
 import boto3
 import json
+from ingesterqueueitem import IngesterQueueItem
 
 # Read in commandline arguments
 
@@ -92,15 +96,14 @@ for photo in my_favorites:
     logging.debug("Found photo I favorited: ", photo)
     
     if photo['id'] not in favorite_photos:
-        favorite_photos[photo['id']] = { 'favorited_by': flickr_user_id, 'image_url': photo.get('url_l', photo.get('url_m', '')), 'id': photo['id'], 'owner': photo['owner'] }
-    
+        favorite_photos[photo['id']] = IngesterQueueItem(favorited_by=flickr_user_id, image_id=photo['id'], image_url=photo.get('url_l', photo.get('url_m', '')), owner=photo['owner'])
+
     if photo['owner'] not in my_neighbors:
         my_neighbors[photo['owner']] = { 'user_id': photo['owner'] }
 
 logging.debug("Found list of neighbors: ", my_neighbors)
 
 # To calculate the score of each neighbour we need to know its favourites
-
 for neighbor_id in my_neighbors:
 
     logging.info("Getting favorites of neighbor %s" % (my_neighbors[neighbor_id]['user_id']))
@@ -111,7 +114,7 @@ for neighbor_id in my_neighbors:
         logging.debug("Found neighbor favourite photo ", photo)
 
         if photo['id'] not in favorite_photos: # If we already added the photo as favorited by us, don't overwrite that with one of our neighbors instead
-            favorite_photos[photo['id']] = { 'favorited_by': my_neighbors[neighbor_id]['user_id'], 'image_url': photo.get('url_l', photo.get('url_m', '')), 'id': photo['id'], 'owner': photo['owner'] }
+            favorite_photos[photo['id']] = IngesterQueueItem(favorited_by=my_neighbors[neighbor_id]['user_id'], image_id=photo['id'], image_url=photo.get('url_l', photo.get('url_m', '')), owner=photo['owner'])
 
 # Output all of the photos we found to our queue
 
@@ -142,7 +145,7 @@ for photo in favorite_photos:
 
     message = {
         'Id': str(len(current_batch)),
-        'MessageBody': json.dumps(photo)
+        'MessageBody': favorite_photos[photo].to_json()
     }
 
     current_batch.append(message)
@@ -154,5 +157,3 @@ for photo in favorite_photos:
         current_batch = []
 
 send_batch(current_batch) # Send any remaining items that didn't make a full batch
-
-# TODO: Make a shared class that contains the message format
