@@ -80,7 +80,7 @@ eval "$(aws ecr get-login --no-include-email --region us-west-2)"
 Then build and push your image:
 
 ```
-docker build -f ../../puller-flickr/Dockerfile ../..
+docker build -f ../../src/puller-flickr/Dockerfile ../../src
 docker images
 docker tag <ID of image you just built> <URI of puller-flickr-dev repository in ECR: use AWS console to find>
 docker push <URI of puller-flicker-dev repository in ECR>
