@@ -1,8 +1,10 @@
 FROM python:3
-ADD puller-flickr.py /
-ADD flickrapiwrapper.py /
+ADD puller-flickr/puller-flickr.py /puller-flickr/
+ADD puller-flickr/flickrapiwrapper.py /puller-flickr/
+ADD common/ingesterqueueitem.py /common/
 RUN pip install flickrapi
 RUN pip install python-memcached
 RUN pip install django
 RUN pip install boto3
-CMD [ "python", "./puller-flickr.py", "-d" ]
+RUN pip install jsonpickle
+CMD [ "python", "./puller-flickr/puller-flickr.py" ]

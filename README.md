@@ -11,13 +11,13 @@ Initially this will use the Flickr API, since it's the only one I know of where 
 - 500px: Their API is no longer free: https://support.500px.com/hc/en-us/articles/360002435653-API- Their API did appear to have the concept of "votes" which might be similar: https://github.com/500px/legacy-api-documentation/tree/master/endpoints/photo 
 
 I plan to use:
+- Terraform: https://www.terraform.io/
 - Elastic Container Service: https://aws.amazon.com/ecs/ and Elastic Container Registry: https://aws.amazon.com/ecr/
 - CodeBuild: https://aws.amazon.com/codebuild/
-- Kafka: https://kafka.apache.org/ and https://aws.amazon.com/msk/
-- Clickhouse: https://clickhouse.yandex/
-- Terraform: https://www.terraform.io/
-- Ansible: https://www.ansible.com/
-- Random other parts of AWS like ElastiCache, Parameter Store, CloudWatch, and Centralized Logging
+- SQS for the initial stab at data injestion, but consider changing to Kafka https://aws.amazon.com/msk/ or Kinesis https://aws.amazon.com/kinesis/
+- RDS for the initial stab at data storage, but consider changing to Clickhouse: https://clickhouse.yandex/ or Redshift https://aws.amazon.com/redshift/
+- Random other parts of AWS like ElastiCache, Parameter Store, CloudWatch. and Key Management Service
+- Maybe building a fancy Centralized Logging thing: https://aws.amazon.com/solutions/centralized-logging/
 - Vue.js: https://vuejs.org/
 
 # Instructions
@@ -80,7 +80,7 @@ eval "$(aws ecr get-login --no-include-email --region us-west-2)"
 Then build and push your image:
 
 ```
-docker build ../../puller-flickr
+docker build -f ../../puller-flickr/Dockerfile ../..
 docker images
 docker tag <ID of image you just built> <URI of puller-flickr-dev repository in ECR: use AWS console to find>
 docker push <URI of puller-flicker-dev repository in ECR>
