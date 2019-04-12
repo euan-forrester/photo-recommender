@@ -48,6 +48,14 @@ resource "aws_iam_policy" "ecs-instance-puller-flickr-extra-policy" {
       ],
       "Effect": "Allow",
       "Resource": "${aws_kms_key.parameter_secrets.arn}"
+    },
+    {
+      "Action": [
+        "sqs:SendMessageBatch",
+        "sqs:SendMessage"
+      ],
+      "Effect": "Allow",
+      "Resource": "${var.output_queue_arn}"
     }
   ]
 }

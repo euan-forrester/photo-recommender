@@ -1,7 +1,7 @@
 FROM python:3
-ADD puller-flickr.py /puller-flickr/
-ADD flickrapiwrapper.py /puller-flickr/
-ADD ../common/ingester-queue-item.py /common/
+ADD puller-flickr/puller-flickr.py /puller-flickr/
+ADD puller-flickr/flickrapiwrapper.py /puller-flickr/
+ADD common/ingesterqueueitem.py /common/
 RUN pip install flickrapi
 RUN pip install python-memcached
 RUN pip install django

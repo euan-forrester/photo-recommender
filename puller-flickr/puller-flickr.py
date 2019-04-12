@@ -103,6 +103,7 @@ for photo in my_favorites:
 
 logging.debug("Found list of neighbors: ", my_neighbors)
 
+
 # To calculate the score of each neighbour we need to know its favourites
 for neighbor_id in my_neighbors:
 

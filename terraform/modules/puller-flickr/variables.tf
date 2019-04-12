@@ -22,4 +22,5 @@ variable "flickr_api_retries" {}
 variable "flickr_api_favorites_max_per_call" {}
 variable "flickr_api_favorites_max_to_get" {}
 variable "output_queue_url" {}
+variable "output_queue_arn" {}
 variable "output_queue_batch_size" {}
