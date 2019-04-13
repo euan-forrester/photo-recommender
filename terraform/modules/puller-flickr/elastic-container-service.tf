@@ -4,7 +4,8 @@ module "elastic-container-service" {
     cluster_name = "puller-flickr-${var.environment}"
     region = "${var.region}"
     environment = "${var.environment}"
-    availability_zone = "${var.availability_zone}"
+    vpc_id = "${var.vpc_id}"
+    vpc_public_subnet_ids = "${var.vpc_public_subnet_ids}"
 
     local_machine_cidr = "${var.local_machine_cidr}"
     local_machine_public_key = "${var.local_machine_public_key}"

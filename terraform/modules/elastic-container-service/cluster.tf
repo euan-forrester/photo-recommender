@@ -33,7 +33,7 @@ resource "aws_autoscaling_group" "ecs-autoscaling-group" {
     max_size                    = "${var.cluster_max_size}"
     min_size                    = "${var.cluster_min_size}"
     desired_capacity            = "${var.cluster_desired_size}"
-    vpc_zone_identifier         = ["${aws_subnet.ecs-public-subnet-0-0.id}"]
+    vpc_zone_identifier         = ["${var.vpc_public_subnet_ids}"]
     launch_configuration        = "${aws_launch_configuration.ecs-launch-configuration.name}"
     health_check_type           = "ELB"
 }

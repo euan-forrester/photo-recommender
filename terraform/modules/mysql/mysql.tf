@@ -5,6 +5,15 @@ resource "aws_kms_key" "mysql_encryption" {
     deletion_window_in_days = 7
 }
 
+resource "aws_db_subnet_group" "subnet_group" {
+    name       = "subnet-group-${var.database_name}-${var.environment}"
+    subnet_ids = ["${var.vpc_public_subnet_ids}"]
+
+    tags = {
+        Name = "subnet-group-${var.database_name}-${var.environment}"
+    }
+}
+
 resource "aws_db_instance" "mysql_database" {
 
     instance_class                  = "${var.instance_type}"
@@ -25,7 +34,7 @@ resource "aws_db_instance" "mysql_database" {
     allow_major_version_upgrade     = false
     apply_immediately               = true
     auto_minor_version_upgrade      = true
-    backup_retention_period         = 7
+    backup_retention_period         = "${var.backup_retention_period_days}"
     copy_tags_to_snapshot           = true
     deletion_protection             = false
 
@@ -37,6 +46,8 @@ resource "aws_db_instance" "mysql_database" {
     password                        = "${var.database_password}"
 
     publicly_accessible             = false
+    db_subnet_group_name            = "${aws_db_subnet_group.subnet_group.name}"
+    vpc_security_group_ids          = [ "${aws_security_group.rds.id}" ]
 
     tags = {
         Environment = "${var.environment}"

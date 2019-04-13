@@ -1,9 +1,20 @@
+module "vpc" {
+    source = "../modules/vpc"
+
+    vpc_name = "photo-recommender"
+    environment = "dev"
+    availability_zone_1 = "${var.availability_zone_1}"
+    availability_zone_2 = "${var.availability_zone_2}"
+}
+
 module "puller-flickr" {
     source = "../modules/puller-flickr"
 
     environment = "dev"
     region = "${var.region}"
-    availability_zone = "${var.availability_zone}"
+
+    vpc_id = "${module.vpc.vpc_id}"
+    vpc_public_subnet_ids = "${module.vpc.vpc_public_subnet_ids}"
 
     memcached_node_type = "cache.t2.micro"
     memcached_num_cache_nodes = 2
@@ -37,13 +48,17 @@ module "puller-flickr" {
 module "ingester_database" {
     source = "../modules/ingester-database"
 
-    environment = "dev"
+    environment             = "dev"
+    vpc_id                  = "${module.vpc.vpc_id}"
+    vpc_public_subnet_ids   = "${module.vpc.vpc_public_subnet_ids}"
+    local_machine_cidr      = "${var.local_machine_cidr}"
 
     mysql_database_name     = "favorites"
     mysql_instance_type     = "db.t2.small" # db.t2.micro doesn't support encryption at rest
     mysql_storage_type      = "standard" # Magnetic storage; min size 5GB
     mysql_database_size_gb  = 5
     mysql_multi_az          = true
+    mysql_backup_retention_period_days = 3
 
     mysql_database_password = "${var.database_password_dev}"
 }
