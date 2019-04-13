@@ -46,6 +46,7 @@ Copy the file `terraform/terraform.tfvars.example` to `terraform/terraform.tfvar
 - Copy your ssh public key (contained in `~/.ssh/id_rsa.pub`. If that file doesn't exist, run `ssh-keygen -t rsa` to generate it)
 - Fill in your Flickr API key and secret: https://www.flickr.com/services/apps/create/apply
 - Fill in your numerical Flickr user ID. You may need to get your numerical ID from: http://idgettr.com/
+- Fill in a master password for the various databases
 
 ### Run terraform
 
@@ -90,3 +91,5 @@ TODO:
 
 - Have ECS running in > 1 availability zone (see examples in the links in the README in the elastic-container-service module)
 - Make a build pipeline
+- Have queues in > 1 availabilty zone
+- Metrics and alarms

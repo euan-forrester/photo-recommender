@@ -4,3 +4,10 @@ resource "aws_ssm_parameter" "queue_url" {
     type        = "String"
     value       = "${module.sqs_queue.queue_url}"
 }
+
+resource "aws_ssm_parameter" "database_endpoint" {
+    name        = "/${var.environment}/ingester-database/database-endpoint"
+    description = "Endpoint of the database into which we ingest data from the queue"
+    type        = "String"
+    value       = "${module.mysql.database_endpoint}"
+}
