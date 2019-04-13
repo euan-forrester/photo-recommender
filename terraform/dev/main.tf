@@ -17,10 +17,10 @@ module "puller-flickr" {
     ecs_cluster_desired_size = 1
     ecs_cluster_min_size = 1
     ecs_cluster_max_size = 2
-    ecs_instances_desired_count = 1
+    ecs_instances_desired_count = 0
     ecs_instances_memory = 256
     ecs_instances_cpu = 1
-    ecs_instances_log_retention_days = 7
+    ecs_instances_log_retention_days = 1
 
     flickr_api_key = "${var.flickr_api_key}"
     flickr_secret_key = "${var.flickr_secret_key}"
@@ -38,4 +38,12 @@ module "ingester_database" {
     source = "../modules/ingester-database"
 
     environment = "dev"
+
+    mysql_database_name     = "favorites"
+    mysql_instance_type     = "db.t2.small" # db.t2.micro doesn't support encryption at rest
+    mysql_storage_type      = "standard" # Magnetic storage; min size 5GB
+    mysql_database_size_gb  = 5
+    mysql_multi_az          = true
+
+    mysql_database_password = "${var.database_password_dev}"
 }
