@@ -45,7 +45,7 @@ resource "aws_db_instance" "mysql_database" {
     username                        = "${var.database_name}_${var.environment}"
     password                        = "${var.database_password}"
 
-    publicly_accessible             = false
+    publicly_accessible             = true
     db_subnet_group_name            = "${aws_db_subnet_group.subnet_group.name}"
     vpc_security_group_ids          = [ "${aws_security_group.rds.id}" ]
 
