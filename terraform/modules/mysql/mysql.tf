@@ -5,12 +5,12 @@ resource "aws_kms_key" "mysql_encryption" {
     deletion_window_in_days = 7
 }
 
-resource "aws_db_subnet_group" "subnet_group" {
-    name       = "subnet-group-${var.database_name}-${var.environment}"
+resource "aws_db_subnet_group" "public_subnet_group" {
+    name       = "db-subnet-group-${var.database_name}-${var.environment}"
     subnet_ids = ["${var.vpc_public_subnet_ids}"]
 
     tags = {
-        Name = "subnet-group-${var.database_name}-${var.environment}"
+        Name = "db-subnet-group-${var.database_name}-${var.environment}"
     }
 }
 
@@ -46,7 +46,7 @@ resource "aws_db_instance" "mysql_database" {
     password                        = "${var.database_password}"
 
     publicly_accessible             = true
-    db_subnet_group_name            = "${aws_db_subnet_group.subnet_group.name}"
+    db_subnet_group_name            = "${aws_db_subnet_group.public_subnet_group.name}"
     vpc_security_group_ids          = [ "${aws_security_group.rds.id}" ]
 
     tags = {

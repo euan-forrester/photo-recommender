@@ -93,4 +93,3 @@ TODO:
 - Make a build pipeline
 - Have queues in > 1 availabilty zone
 - Metrics and alarms
-- Move ElastiCache instances into VPC?
