@@ -94,3 +94,4 @@ TODO:
 - Make a build pipeline
 - Have queues in > 1 availabilty zone
 - Metrics and alarms
+- Consider moving MySQL passwords into config files rather than passing on command line from terraform script
