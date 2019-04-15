@@ -53,7 +53,6 @@ module "ingester_database" {
     vpc_public_subnet_ids   = "${module.vpc.vpc_public_subnet_ids}"
     local_machine_cidr      = "${var.local_machine_cidr}"
 
-    mysql_database_name     = "favorites"
     mysql_instance_type     = "db.t2.small" # db.t2.micro doesn't support encryption at rest
     mysql_storage_type      = "standard" # Magnetic storage; min size 5GB
     mysql_database_size_gb  = 5

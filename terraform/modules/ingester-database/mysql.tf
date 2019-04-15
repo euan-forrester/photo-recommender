@@ -8,8 +8,9 @@ module "mysql" {
     instance_type         = "${var.mysql_instance_type}"
     storage_type          = "${var.mysql_storage_type}"
     database_size_gb      = "${var.mysql_database_size_gb}"
-    database_name         = "${var.mysql_database_name}"
+    database_name         = "favorites"
     multi_az              = "${var.mysql_multi_az}"
     database_password     = "${var.mysql_database_password}"
     backup_retention_period_days = "${var.mysql_backup_retention_period_days}"
+    init_script_file      = "ingester-database/favorites_init.sql"
 }

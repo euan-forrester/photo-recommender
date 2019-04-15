@@ -115,7 +115,7 @@ for neighbor_id in my_neighbors:
         logging.debug("Found neighbor favourite photo ", photo)
 
         if photo['id'] not in favorite_photos: # If we already added the photo as favorited by us, don't overwrite that with one of our neighbors instead
-            favorite_photos[photo['id']] = IngesterQueueItem(favorited_by=my_neighbors[neighbor_id]['user_id'], image_id=photo['id'], image_url=photo.get('url_l', photo.get('url_m', '')), owner=photo['owner'])
+            favorite_photos[photo['id']] = IngesterQueueItem(favorited_by=my_neighbors[neighbor_id]['user_id'], image_id=photo['id'], image_url=photo.get('url_l', photo.get('url_m', '')), image_owner=photo['owner'])
 
 # Output all of the photos we found to our queue
 
