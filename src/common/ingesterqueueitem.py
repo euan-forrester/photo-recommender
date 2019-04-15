@@ -6,10 +6,10 @@ class IngesterQueueItem:
     An item placed onto or read from the ingester queue. It represents a favorite (or equivalent) photo
     '''
 
-    def __init__(self, image_id, image_url, owner, favorited_by):
+    def __init__(self, image_id, image_url, image_owner, favorited_by):
         self.image_id       = image_id
         self.image_url      = image_url
-        self.owner          = owner
+        self.image_owner    = image_owner
         self.favorited_by   = favorited_by  
    
     def get_image_id(self):
@@ -18,8 +18,8 @@ class IngesterQueueItem:
     def get_image_url(self):
         return self.image_url
 
-    def get_owner(self):
-        return self.owner
+    def get_image_owner(self):
+        return self.image_owner
 
     def get_favorited_by(self):
         return self.favorited_by

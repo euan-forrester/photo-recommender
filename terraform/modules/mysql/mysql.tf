@@ -53,3 +53,15 @@ resource "aws_db_instance" "mysql_database" {
         Environment = "${var.environment}"
     }
 }           
+
+# Init the database with a script to create tables/indexes/etc
+
+resource "null_resource" "init-database" {
+    triggers {
+        database_id = "${aws_db_instance.mysql_database.id}" # Run this every time the database is changed
+    }
+
+    provisioner "local-exec" {
+        command = "mysql --host=${aws_db_instance.mysql_database.address} --port=${aws_db_instance.mysql_database.port} --user=${aws_db_instance.mysql_database.username} --password=${var.database_password} --database=${aws_db_instance.mysql_database.name} < ../modules/${var.init_script_file}"
+    }
+}

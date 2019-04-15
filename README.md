@@ -30,6 +30,7 @@ First we need to create the infrastructure that the various parts of the system 
 
 ```
 brew install terraform
+brew install mysql
 ```
 
 ### Create an AWS account
