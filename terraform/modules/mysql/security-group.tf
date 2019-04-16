@@ -23,6 +23,6 @@ resource "aws_security_group" "rds" {
     }
 
     tags { 
-        Name = "security-group-ecs-${var.database_name}-${var.environment}"
+        Name = "security-group-rds-${var.database_name}-${var.environment}"
     }
 }

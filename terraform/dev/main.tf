@@ -3,11 +3,31 @@ module "vpc" {
 
     vpc_name = "photo-recommender"
     environment = "dev"
-    availability_zone_1 = "${var.availability_zone_1}"
-    availability_zone_2 = "${var.availability_zone_2}"
+    availability_zone_1 = "us-west-2a"
+    availability_zone_2 = "us-west-2b"
 }
 
-module "puller-flickr" {
+module "elastic_container_service" {
+    source = "../modules/elastic-container-service"
+
+    environment = "dev"
+    region = "${var.region}"
+    cluster_name = "ecs-cluster-dev"
+
+    vpc_id = "${module.vpc.vpc_id}"
+    vpc_public_subnet_ids = "${module.vpc.vpc_public_subnet_ids}"
+
+    local_machine_cidr = "${var.local_machine_cidr}"
+    local_machine_public_key = "${var.local_machine_public_key}"
+
+    instance_type = "t2.micro"
+    cluster_desired_size = 1
+    cluster_min_size = 1
+    cluster_max_size = 2
+    instances_log_retention_days = 1
+}
+
+module "puller_flickr" {
     source = "../modules/puller-flickr"
 
     environment = "dev"
@@ -15,23 +35,19 @@ module "puller-flickr" {
 
     vpc_id = "${module.vpc.vpc_id}"
     vpc_public_subnet_ids = "${module.vpc.vpc_public_subnet_ids}"
+    local_machine_cidr = "${var.local_machine_cidr}"
 
     memcached_node_type = "cache.t2.micro"
     memcached_num_cache_nodes = 2
     memcached_az_mode = "cross-az"
     memcached_ttl = 7200
 
-    local_machine_cidr = "${var.local_machine_cidr}"
-    local_machine_public_key = "${var.local_machine_public_key}"
-
-    ecs_instance_type = "t2.micro"
-    ecs_cluster_desired_size = 1
-    ecs_cluster_min_size = 1
-    ecs_cluster_max_size = 2
+    ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
+    ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
     ecs_instances_desired_count = 0
     ecs_instances_memory = 256
     ecs_instances_cpu = 1
-    ecs_instances_log_retention_days = 1
+    ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
 
     flickr_api_key = "${var.flickr_api_key}"
     flickr_secret_key = "${var.flickr_secret_key}"
