@@ -1,3 +1,7 @@
+data "aws_caller_identity" "logging" {
+  
+}
+
 # NOTE: See https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/encrypt-log-data-kms.html
 resource "aws_kms_key" "logs" {
     description             = "Used to encrypt/decrypt logs"
@@ -12,7 +16,7 @@ resource "aws_kms_key" "logs" {
       "Sid" : "Enable IAM User Permissions",
       "Effect" : "Allow",
       "Principal" : {
-        "AWS" : "arn:aws:iam::${data.aws_caller_identity.ecs_task_definition.account_id}:root"
+        "AWS" : "arn:aws:iam::${data.aws_caller_identity.logging.account_id}:root"
       },
       "Action" : "kms:*",
       "Resource" : "*"
@@ -41,6 +45,7 @@ resource "aws_cloudwatch_log_group" "log_group" {
 }
 
 # Part of a task definition, used in task-definition.tf
+# TODO: Consider sending all logs to a single region so they can all be viewed together
 data "template_file" "log_configuration" {
     template = <<EOF
     "logConfiguration": {

@@ -57,6 +57,7 @@ resource "aws_db_instance" "mysql_database" {
 # Init the database with a script to create tables/indexes/etc
 
 resource "null_resource" "init-database" {
+    
     triggers {
         database_id = "${aws_db_instance.mysql_database.id}" # Run this every time the database is changed
     }
