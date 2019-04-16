@@ -12,7 +12,7 @@ variable "ecs_instances_memory" {}
 variable "ecs_instances_cpu" {}
 variable "ecs_cluster_id" {}
 variable "ecs_instances_log_configuration" {}
-variable "ecs_instance_role_name" {}
+variable "ecs_instances_role_name" {}
 variable "flickr_api_key" {}
 variable "flickr_secret_key" {}
 variable "flickr_user_id" {}

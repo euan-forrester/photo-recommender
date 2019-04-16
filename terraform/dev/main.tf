@@ -43,7 +43,7 @@ module "puller_flickr" {
     memcached_ttl = 7200
 
     ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
-    ecs_instance_role_name = "${module.elastic_container_service.instance_role_name}"
+    ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
     ecs_instances_desired_count = 0
     ecs_instances_memory = 256
     ecs_instances_cpu = 1
