@@ -12,7 +12,7 @@ module "elastic_container_service" {
 
     environment = "dev"
     region = "${var.region}"
-    cluster_name = "ecs-cluster-dev"
+    cluster_name = "photo-recommender"
 
     vpc_id = "${module.vpc.vpc_id}"
     vpc_public_subnet_ids = "${module.vpc.vpc_public_subnet_ids}"

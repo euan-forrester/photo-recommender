@@ -39,5 +39,5 @@ resource "aws_autoscaling_group" "ecs-autoscaling-group" {
 }
 
 resource "aws_ecs_cluster" "ecs-cluster" {
-    name = "${var.cluster_name}"
+    name = "${var.cluster_name}-${var.environment}"
 }
