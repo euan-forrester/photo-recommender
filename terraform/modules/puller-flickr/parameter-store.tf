@@ -20,7 +20,7 @@ resource "aws_ssm_parameter" "flickr_api_key" {
 }
 
 resource "aws_ssm_parameter" "flickr_secret_key" {
-    name        = "/${var.environment}/puller-flickr/flickr-secret-key"
+    name        = "/${var.environment}/puller-flickr/flickr-api-secret"
     description = "Flickr API secret key"
     type        = "SecureString"
     key_id      = "${aws_kms_key.parameter_secrets.id}"
@@ -35,14 +35,14 @@ resource "aws_ssm_parameter" "flickr_api_retries" {
 }
 
 resource "aws_ssm_parameter" "flickr_api_favorites_max_per_call" {
-    name        = "/${var.environment}/puller-flickr/flickr-api-favorites-max-per-call"
+    name        = "/${var.environment}/puller-flickr/flickr-api-favorites-maxpercall"
     description = "Max number of favorites to get per API call"
     type        = "String"
     value       = "${var.flickr_api_favorites_max_per_call}"
 }
 
 resource "aws_ssm_parameter" "flickr_api_favorites_max_to_get" {
-    name        = "/${var.environment}/puller-flickr/flickr-api-favorites-max-to-get"
+    name        = "/${var.environment}/puller-flickr/flickr-api-favorites-maxtoget"
     description = "Max number of favorites to get in total"
     type        = "String"
     value       = "${var.flickr_api_favorites_max_to_get}"
@@ -63,14 +63,14 @@ resource "aws_ssm_parameter" "memcached_location" {
 }
 
 resource "aws_ssm_parameter" "output_queue_url" {
-    name        = "/${var.environment}/puller-flickr/output_queue_url"
+    name        = "/${var.environment}/puller-flickr/output-queue-url"
     description = "URL of the queue to put favorites data into for later ingestion into the database"
     type        = "String"
     value       = "${var.output_queue_url}"
 }
 
 resource "aws_ssm_parameter" "output_queue_batch_size" {
-    name        = "/${var.environment}/puller-flickr/output_queue_batch_size"
+    name        = "/${var.environment}/puller-flickr/output-queue-batchsize"
     description = "Number of items to put on the output queue in a single batch"
     type        = "String"
     value       = "${var.output_queue_batch_size}"

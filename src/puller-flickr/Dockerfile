@@ -3,6 +3,7 @@ ADD puller-flickr/puller-flickr.py /puller-flickr/
 ADD puller-flickr/flickrapiwrapper.py /puller-flickr/
 ADD common/ingesterqueueitem.py /common/
 ADD common/queuewrapper.py /common/
+ADD common/confighelper.py /common/
 RUN pip install flickrapi
 RUN pip install python-memcached
 RUN pip install django
