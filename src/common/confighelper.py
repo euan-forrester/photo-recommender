@@ -3,7 +3,24 @@ import boto3
 from botocore.exceptions import ClientError
 import logging
 
-class ConfigHelperFile:
+class ConfigHelper:
+    
+    @staticmethod
+    def _log_int(param, value, is_secret):
+        if is_secret:
+            logging.info("Got parameter %s with value <secret>" % (param))
+        else:
+            logging.info("Got parameter %s with value %d" % (param, value))
+
+    @staticmethod
+    def _log_str(param, value, is_secret):
+        if is_secret:
+            logging.info("Got parameter %s with value <secret>" % (param))
+        else:
+            logging.info("Got parameter %s with value %s" % (param, value))
+
+
+class ConfigHelperFile(ConfigHelper):
     
     '''
     Uses the ConfigParser library to read config items from a set of local files
@@ -14,22 +31,29 @@ class ConfigHelperFile:
         self.config         = configparser.ConfigParser()
 
         for filename in filename_list:
+            logging.info("Reading in config file '%s'" % filename)
             self.config.read(filename)
 
-    def get(self, key, is_encrypted=False):
+    def get(self, key, is_secret=False):
         try:
-            return self.config.get(self.environment, key)
+            value = self.config.get(self.environment, key)
+            ConfigHelper._log_str(key, value, is_secret)
+            return value
+
         except configparser.NoOptionError as e:
             raise ParameterNotFoundException(message='Could not get parameter %s' % (key)) from e
 
     # This will throw a ValueError if the parameter doesn't contain an int
-    def getInt(self, key, is_encrypted=False):
+    def getInt(self, key, is_secret=False):
         try:
-            return self.config.getint(self.environment, key)
+            value = self.config.getint(self.environment, key)
+            ConfigHelper._log_int(key, value, is_secret)
+            return value
+
         except configparser.NoOptionError as e:
             raise ParameterNotFoundException(message='Could not get parameter %s' % (key)) from e
 
-class ConfigHelperParameterStore:
+class ConfigHelperParameterStore(ConfigHelper):
 
     '''
     Reads config items from the AWS Parameter Store
@@ -40,12 +64,15 @@ class ConfigHelperParameterStore:
         self.key_prefix     = key_prefix
         self.ssm            = boto3.client('ssm') # Region is read from the AWS_DEFAULT_REGION env var
 
-    def get(self, key, is_encrypted=False):
+    def get(self, key, is_secret=False):
         
         full_path = '/%s/%s/%s' % (self.environment, self.key_prefix, key)
 
         try:
-            return self.ssm.get_parameter(Name=full_path, WithDecryption=is_encrypted)['Parameter']['Value']
+            value = self.ssm.get_parameter(Name=full_path, WithDecryption=is_secret)['Parameter']['Value']
+            ConfigHelper._log_str(full_path, value, is_secret)
+            return value
+
         except ClientError as e:
             error_code = e.response['Error']['Code']
 
@@ -56,8 +83,8 @@ class ConfigHelperParameterStore:
                 raise
 
     # This will throw a ValueError if the parameter doesn't contain an int
-    def getInt(self, key, is_encrypted=False):
-        return int(self.get(key, is_encrypted))
+    def getInt(self, key, is_secret=False):
+        return int(self.get(key, is_secret))
 
 
 class ParameterNotFoundException(Exception):
