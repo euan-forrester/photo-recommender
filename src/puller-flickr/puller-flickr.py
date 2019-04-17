@@ -16,7 +16,7 @@ from confighelper import ConfigHelperParameterStore
 # Read in commandline arguments
 #
 
-parser = argparse.ArgumentParser(description="Pull favorites data from Flickr and send it to Kafka")
+parser = argparse.ArgumentParser(description="Pull favorites data from Flickr and send it to SQS")
 
 parser.add_argument("-d", "--debug", action="store_true", dest="debug", default=False, help="Display debug information")
 
@@ -48,7 +48,7 @@ else:
 
 flickr_user_id                      = config_helper.get("flickr-user-id")
 flickr_api_key                      = config_helper.get("flickr-api-key")
-flickr_api_secret                   = config_helper.get("flickr-api-secret")
+flickr_api_secret                   = config_helper.get("flickr-api-secret", is_secret=True)
 flickr_api_retries                  = config_helper.getInt("flickr-api-retries") 
 flickr_api_max_favorites_per_call   = config_helper.getInt("flickr-api-favorites-maxpercall")
 flickr_api_max_favorites_to_get     = config_helper.getInt("flickr-api-favorites-maxtoget")
