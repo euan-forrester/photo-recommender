@@ -49,6 +49,8 @@ Copy the file `terraform/terraform.tfvars.example` to `terraform/terraform.tfvar
 - Fill in your numerical Flickr user ID. You may need to get your numerical ID from: http://idgettr.com/
 - Fill in a master password for the various databases
 
+You'll be able to ssh into any EC2 instances created with `ssh ec2-user@<public ip of instance>`
+
 ### Run terraform
 
 Note that this will create infrastructure within your AWS account and could result in billing charges from AWS

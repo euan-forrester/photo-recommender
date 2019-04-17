@@ -11,6 +11,7 @@ import os
 import boto3
 import json
 from ingesterqueueitem import IngesterQueueItem
+from queuewrapper import SQSQueue
 
 # Read in commandline arguments
 
@@ -96,7 +97,7 @@ for photo in my_favorites:
     logging.debug("Found photo I favorited: ", photo)
     
     if photo['id'] not in favorite_photos:
-        favorite_photos[photo['id']] = IngesterQueueItem(favorited_by=flickr_user_id, image_id=photo['id'], image_url=photo.get('url_l', photo.get('url_m', '')), owner=photo['owner'])
+        favorite_photos[photo['id']] = IngesterQueueItem(favorited_by=flickr_user_id, image_id=photo['id'], image_url=photo.get('url_l', photo.get('url_m', '')), image_owner=photo['owner'])
 
     if photo['owner'] not in my_neighbors:
         my_neighbors[photo['owner']] = { 'user_id': photo['owner'] }
@@ -121,40 +122,6 @@ for neighbor_id in my_neighbors:
 
 logging.info("Found %d photos to send to queue %s in batches of %d" % (len(favorite_photos), output_queue_url, output_queue_batch_size))
 
-def send_batch(current_batch):
+queue = SQSQueue(output_queue_url, output_queue_batch_size)
 
-    response = sqs.send_message_batch(
-        QueueUrl=output_queue_url,
-        Entries=current_batch
-    )
-
-    if len(current_batch) == len(response['Successful']):
-        logging.info("All %d messages in batch sent successfully" % (len(current_batch)))
-    else:
-        logging.warn("%d messages in batch of %d were not sent successfully" % (len(response['Failed']), len(current_batch)))
-
-        for failed_message in response['Failed']:
-            logging.warn("Failed message: ", failed_message)
-
-        # TODO: Increment a metric that we can alert on
-
-sqs = boto3.client('sqs') 
-
-current_batch = []
-
-for photo in favorite_photos:
-
-    message = {
-        'Id': str(len(current_batch)),
-        'MessageBody': favorite_photos[photo].to_json()
-    }
-
-    current_batch.append(message)
-
-    if len(current_batch) >= output_queue_batch_size:
-
-        send_batch(current_batch)
-
-        current_batch = []
-
-send_batch(current_batch) # Send any remaining items that didn't make a full batch
+queue.send_messages(favorite_photos, lambda photo : photo.to_json())
