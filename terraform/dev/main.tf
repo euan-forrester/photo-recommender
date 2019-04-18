@@ -65,6 +65,8 @@ module "ingester_database" {
     source = "../modules/ingester-database"
 
     environment             = "dev"
+    region                  = "${var.region}"
+
     vpc_id                  = "${module.vpc.vpc_id}"
     vpc_public_subnet_ids   = "${module.vpc.vpc_public_subnet_ids}"
     local_machine_cidr      = "${var.local_machine_cidr}"
@@ -76,4 +78,14 @@ module "ingester_database" {
     mysql_backup_retention_period_days = 3
 
     mysql_database_password = "${var.database_password_dev}"
+
+    ecs_cluster_id          = "${module.elastic_container_service.cluster_id}"
+    ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
+    ecs_instances_desired_count = 0
+    ecs_instances_memory    = 256
+    ecs_instances_cpu       = 1
+    ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
+
+    input_queue_batch_size  = 10
+    input_queue_max_items_to_process = 100
 }
