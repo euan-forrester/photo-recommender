@@ -1,7 +1,7 @@
 import boto3
 import logging
 
-class SQSQueue:
+class SQSQueueWriter:
 
     '''
     Wraps an SQS queue
