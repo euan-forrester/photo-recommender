@@ -94,7 +94,6 @@ TODO:
 
 - Have ECS running in > 1 availability zone (see examples in the links in the README in the elastic-container-service module)
 - Make a build pipeline
-- Have queues in > 1 availabilty zone
 - Metrics and alarms
 - Consider moving MySQL passwords into config files rather than passing on command line from terraform script
 - Add tests
