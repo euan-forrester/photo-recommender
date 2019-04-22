@@ -10,7 +10,7 @@ data "aws_ecs_task_definition" "task_definition" {
 # See https://github.com/terraform-providers/terraform-provider-aws/issues/3281
 
 resource "aws_ecs_task_definition" "task_definition" {
-    family                = "puller-flickr"
+    family                = "${var.name}"
     container_definitions = <<DEFINITION
 [
   {

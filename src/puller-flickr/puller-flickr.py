@@ -8,7 +8,7 @@ import argparse
 import logging
 import os
 from ingesterqueueitem import IngesterQueueItem
-from queuewrapper import SQSQueue
+from queuewriter import SQSQueueWriter
 from confighelper import ConfigHelperFile
 from confighelper import ConfigHelperParameterStore
 
@@ -103,6 +103,6 @@ for neighbor_id in my_neighbors:
 
 logging.info("Found %d photos to send to queue %s in batches of %d" % (len(favorite_photos), output_queue_url, output_queue_batch_size))
 
-queue = SQSQueue(output_queue_url, output_queue_batch_size)
+queue = SQSQueueWriter(output_queue_url, output_queue_batch_size)
 
-queue.send_messages(favorite_photos, lambda photo : photo.to_json())
+queue.send_messages(objects=favorite_photos, to_string=lambda photo : photo.to_json())

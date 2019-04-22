@@ -1,10 +1,10 @@
 import boto3
 import logging
 
-class SQSQueue:
+class SQSQueueWriter:
 
     '''
-    Wraps an SQS queue
+    Wraps an SQS queue and allows for sending messages to that queue
     '''
 
     def __init__(self, queue_url, batch_size):

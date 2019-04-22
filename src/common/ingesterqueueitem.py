@@ -29,5 +29,5 @@ class IngesterQueueItem:
 
     @staticmethod
     def from_json(json):
-        return jsonpickle.decode(from_json)
+        return jsonpickle.decode(json)
         
