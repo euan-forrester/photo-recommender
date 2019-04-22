@@ -8,7 +8,7 @@ import argparse
 import logging
 import os
 from ingesterqueueitem import IngesterQueueItem
-from queuewrapper import SQSQueueWriter
+from queuewriter import SQSQueueWriter
 from confighelper import ConfigHelperFile
 from confighelper import ConfigHelperParameterStore
 
