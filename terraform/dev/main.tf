@@ -3,8 +3,13 @@ module "vpc" {
 
     vpc_name = "photo-recommender"
     environment = "dev"
-    availability_zone_1 = "us-west-2a"
-    availability_zone_2 = "us-west-2b"
+
+    cidr_block = "10.10.0.0/16"
+
+    subnets = {
+        us-west-2a = "10.10.1.0/24"
+        us-west-2b = "10.10.2.0/24"
+    }
 }
 
 module "elastic_container_service" {
