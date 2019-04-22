@@ -5,4 +5,5 @@ ADD common/queuereader.py /common/
 ADD common/confighelper.py /common/
 RUN pip install boto3
 RUN pip install jsonpickle
+RUN pip install mysql-connector-python
 CMD [ "python", "./ingester-database/ingester-database.py" ]

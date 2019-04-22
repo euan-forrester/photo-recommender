@@ -10,6 +10,7 @@ from ingesterqueueitem import IngesterQueueItem
 from queuereader import SQSQueueReader
 from confighelper import ConfigHelperFile
 from confighelper import ConfigHelperParameterStore
+from databasebatchwriter import DatabaseBatchWriter
 
 #
 # Read in commandline arguments
@@ -36,18 +37,24 @@ if not "ENVIRONMENT" in os.environ:
 
     ENVIRONMENT = "dev"
 
-    config_helper = ConfigHelperFile(environment=ENVIRONMENT, filename_list=["config/config.ini"])
+    config_helper = ConfigHelperFile(environment=ENVIRONMENT, filename_list=["config/config.ini", "config/secrets.ini"])
 
 else:
     ENVIRONMENT = os.environ.get('ENVIRONMENT')
 
     logging.info("Found ENVIRONMENT environment variable containing '%s': assuming we're running in AWS and getting our parameters from the AWS Parameter Store" % (ENVIRONMENT))
 
-    config_helper = ConfigHelperParameterStore(environment=ENVIRONMENT, key_prefix="puller-flickr")
+    config_helper = ConfigHelperParameterStore(environment=ENVIRONMENT, key_prefix="ingester-database")
 
 input_queue_url                     = config_helper.get("input-queue-url")
 input_queue_batch_size              = config_helper.getInt("input-queue-batchsize")
 input_queue_max_items_to_process    = config_helper.getInt("input-queue-maxitemstoprocess")
+
+output_database_username            = config_helper.get("output-database-username")
+output_database_password            = config_helper.get("output-database-password", is_secret=True)
+output_database_host                = config_helper.get("output-database-host")
+output_database_port                = config_helper.getInt("output-database-port")
+output_database_name                = config_helper.get("output-database-name")
 
 #
 # Receive some messages from the input queue and write them to the favorites database

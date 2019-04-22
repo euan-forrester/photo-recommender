@@ -5,11 +5,40 @@ resource "aws_kms_key" "parameter_secrets" {
     deletion_window_in_days = 7
 }
 
-resource "aws_ssm_parameter" "database_endpoint" {
-    name        = "/${var.environment}/ingester-database/database-endpoint"
-    description = "Endpoint of the database into which we ingest data from the queue"
+resource "aws_ssm_parameter" "output_database_host" {
+    name        = "/${var.environment}/ingester-database/output-database-host"
+    description = "Host for the database into which we ingest data from the queue"
     type        = "String"
-    value       = "${module.mysql.database_endpoint}"
+    value       = "${module.mysql.database_host}"
+}
+
+resource "aws_ssm_parameter" "output_database_port" {
+    name        = "/${var.environment}/ingester-database/output-database-port"
+    description = "Port for the database into which we ingest data from the queue"
+    type        = "String"
+    value       = "${module.mysql.database_port}"
+}
+
+resource "aws_ssm_parameter" "output_database_username" {
+    name        = "/${var.environment}/ingester-database/output-database-username"
+    description = "Username for the database into which we ingest data from the queue"
+    type        = "String"
+    value       = "${module.mysql.database_username}"
+}
+
+resource "aws_ssm_parameter" "output_database_password" {
+    name        = "/${var.environment}/ingester-database/output-database-password"
+    description = "Password for the database into which we ingest data from the queue"
+    type        = "SecureString"
+    key_id      = "${aws_kms_key.parameter_secrets.id}"
+    value       = "${var.mysql_database_password}"
+}
+
+resource "aws_ssm_parameter" "output_database_name" {
+    name        = "/${var.environment}/ingester-database/output-database-name"
+    description = "Name for the database into which we ingest data from the queue"
+    type        = "String"
+    value       = "${module.mysql.database_name}"
 }
 
 resource "aws_ssm_parameter" "input_queue_url" {

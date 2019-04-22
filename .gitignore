@@ -1,1 +1,3 @@
 __pycache__/
+src/puller-flickr/config/secrets.ini
+src/ingester-database/config/secrets.ini
