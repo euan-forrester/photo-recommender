@@ -65,6 +65,8 @@ output_database_name                = config_helper.get("output-database-name")
 
 queue = SQSQueueReader(queue_url=input_queue_url, batch_size=input_queue_batch_size, max_messages_to_read=input_queue_max_items_to_process)
 
+database = DatabaseBatchWriter(username=output_database_username, password=output_database_password, host=output_database_host, port=output_database_port, database=output_database_name)
+
 for queue_message in queue:
     photo = IngesterQueueItem.from_json(queue_message.get_message_body())
 
@@ -72,4 +74,5 @@ for queue_message in queue:
 
     queue.finished_with_message(queue_message)
 
+database.shutdown()
 queue.shutdown()
