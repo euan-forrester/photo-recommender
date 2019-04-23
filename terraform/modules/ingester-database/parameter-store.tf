@@ -41,6 +41,13 @@ resource "aws_ssm_parameter" "output_database_name" {
     value       = "${module.mysql.database_name}"
 }
 
+resource "aws_ssm_parameter" "output_database_batch_size" {
+    name        = "/${var.environment}/ingester-database/output-database-batchsize"
+    description = "Number of items to put into the database in a single batch"
+    type        = "String"
+    value       = "${var.mysql_database_batch_size}"
+}
+
 resource "aws_ssm_parameter" "input_queue_url" {
     name        = "/${var.environment}/ingester-database/input-queue-url"
     description = "Endpoint of queue we use to ingest favorites data intended for the database"

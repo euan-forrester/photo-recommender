@@ -82,6 +82,7 @@ module "ingester_database" {
     mysql_database_size_gb  = 5
     mysql_multi_az          = true
     mysql_backup_retention_period_days = 3
+    mysql_database_batch_size = 100
 
     mysql_database_password = "${var.database_password_dev}"
 
