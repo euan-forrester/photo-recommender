@@ -111,3 +111,5 @@ write_batch(photo_batch, unwritten_message_batch)
 
 database.shutdown()
 queue.shutdown()
+
+logging.info("Successfully finished processing")

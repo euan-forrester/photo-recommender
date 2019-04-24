@@ -106,3 +106,5 @@ logging.info("Found %d photos to send to queue %s in batches of %d" % (len(favor
 queue = SQSQueueWriter(output_queue_url, output_queue_batch_size)
 
 queue.send_messages(objects=favorite_photos, to_string=lambda photo : photo.to_json())
+
+logging.info("Successfully finished processing")
