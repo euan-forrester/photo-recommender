@@ -67,7 +67,7 @@ terraform plan
 terraform apply
 ```
 
-## Manual steps to push our docker image to ECR
+## Manual steps to push our docker images to ECR
 
 Install docker: https://docs.docker.com/install/
 
@@ -90,6 +90,15 @@ docker tag <ID of image you just built> <URI of puller-flickr-dev repository in 
 docker push <URI of puller-flicker-dev repository in ECR>
 ```
 
+and again for the next image
+
+```
+docker build -f ../../src/ingester-database/Dockerfile ../../src
+docker images
+docker tag <ID of image you just built> <URI of ingester-database-dev repository in ECR: use AWS console to find>
+docker push <URI of ingester-database-dev repository in ECR>
+```
+
 TODO:
 
 - Have ECS running in > 1 availability zone (see examples in the links in the README in the elastic-container-service module)
@@ -97,3 +106,4 @@ TODO:
 - Metrics and alarms
 - Consider moving MySQL passwords into config files rather than passing on command line from terraform script
 - Add tests
+- Lock python lib version numbers

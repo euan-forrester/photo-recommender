@@ -9,8 +9,8 @@ resource "aws_security_group" "elasticache" {
 }
 
 resource "aws_security_group_rule" "elasticache-local-machine" {
-    cidr_blocks       = ["${var.local_machine_cidr}"]
-    description       = "Allow local machine to communicate with the memcached instance"
+    cidr_blocks       = ["${var.local_machine_cidr}", "${var.vpc_cidr}"]
+    description       = "Allow local machine and EC2 instances to communicate with the memcached instance"
     from_port         = 11211
     protocol          = "tcp"
     security_group_id = "${aws_security_group.elasticache.id}"

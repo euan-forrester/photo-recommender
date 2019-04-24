@@ -40,6 +40,7 @@ module "puller_flickr" {
 
     vpc_id = "${module.vpc.vpc_id}"
     vpc_public_subnet_ids = "${module.vpc.vpc_public_subnet_ids}"
+    vpc_cidr = "${module.vpc.vpc_cidr_block}"
     local_machine_cidr = "${var.local_machine_cidr}"
 
     memcached_node_type = "cache.t2.micro"
@@ -49,7 +50,7 @@ module "puller_flickr" {
 
     ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 0
+    ecs_instances_desired_count = 1
     ecs_instances_memory = 256
     ecs_instances_cpu = 1
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
@@ -74,6 +75,7 @@ module "ingester_database" {
 
     vpc_id                  = "${module.vpc.vpc_id}"
     vpc_public_subnet_ids   = "${module.vpc.vpc_public_subnet_ids}"
+    vpc_cidr                = "${module.vpc.vpc_cidr_block}"
     local_machine_cidr      = "${var.local_machine_cidr}"
 
     mysql_instance_type     = "db.t2.micro" 
@@ -82,17 +84,17 @@ module "ingester_database" {
     mysql_database_size_gb  = 5
     mysql_multi_az          = true
     mysql_backup_retention_period_days = 3
-    mysql_database_batch_size = 100
+    mysql_database_batch_size = 1000
 
     mysql_database_password = "${var.database_password_dev}"
 
     ecs_cluster_id          = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 0
+    ecs_instances_desired_count = 1
     ecs_instances_memory    = 256
     ecs_instances_cpu       = 1
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
 
     input_queue_batch_size  = 10
-    input_queue_max_items_to_process = 100
+    input_queue_max_items_to_process = 10000
 }

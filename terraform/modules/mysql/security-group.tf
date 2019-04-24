@@ -1,6 +1,6 @@
 resource "aws_security_group" "rds" {
     name = "security-group-rds-${var.database_name}-${var.environment}"
-    description = "Allow public access from our local network to RDS"
+    description = "Allow access from our local machine and VPC to RDS"
     vpc_id = "${var.vpc_id}"
 
     ingress {
@@ -8,7 +8,8 @@ resource "aws_security_group" "rds" {
         to_port = 3306
         protocol = "tcp"
         cidr_blocks = [
-            "${var.local_machine_cidr}"
+            "${var.local_machine_cidr}",
+            "${var.vpc_cidr}"
         ]
     }
 
