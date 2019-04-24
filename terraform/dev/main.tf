@@ -50,7 +50,7 @@ module "puller_flickr" {
 
     ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 1
+    ecs_instances_desired_count = 0
     ecs_instances_memory = 256
     ecs_instances_cpu = 1
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
@@ -90,7 +90,7 @@ module "ingester_database" {
 
     ecs_cluster_id          = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 1
+    ecs_instances_desired_count = 0
     ecs_instances_memory    = 256
     ecs_instances_cpu       = 1
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"

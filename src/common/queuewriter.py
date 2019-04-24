@@ -35,17 +35,19 @@ class SQSQueueWriter:
 
     def _send_batch(self, current_batch):
 
-        response = self.sqs.send_message_batch(
-            QueueUrl=self.queue_url,
-            Entries=current_batch
-        )
+        if len(current_batch) > 0:
 
-        if len(current_batch) == len(response['Successful']):
-            logging.info("All %d messages in batch sent successfully" % (len(current_batch)))
-        else:
-            logging.warn("%d messages in batch of %d were not sent successfully" % (len(response['Failed']), len(current_batch)))
+            response = self.sqs.send_message_batch(
+                QueueUrl=self.queue_url,
+                Entries=current_batch
+            )
 
-            for failed_message in response['Failed']:
-                logging.warn("Failed message: ", failed_message)
+            if len(current_batch) == len(response['Successful']):
+                logging.info("All %d messages in batch sent successfully" % (len(current_batch)))
+            else:
+                logging.warn("%d messages in batch of %d were not sent successfully" % (len(response['Failed']), len(current_batch)))
 
-            # TODO: Increment a metric that we can alert on
+                for failed_message in response['Failed']:
+                    logging.warn("Failed message: ", failed_message)
+
+                # TODO: Increment a metric that we can alert on
