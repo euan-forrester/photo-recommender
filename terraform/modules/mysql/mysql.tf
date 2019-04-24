@@ -24,8 +24,8 @@ resource "aws_db_instance" "mysql_database" {
     allocated_storage               = "${var.database_size_gb}"
     storage_type                    = "${var.storage_type}"
 
-    storage_encrypted               = true
-    kms_key_id                      = "${aws_kms_key.mysql_encryption.arn}"
+    storage_encrypted               = "${var.storage_encrypted}"
+    kms_key_id                      = "${var.storage_encrypted == true ? "${aws_kms_key.mysql_encryption.arn}" : ""}"
 
     engine                          = "mysql"
     engine_version                  = "8.0"

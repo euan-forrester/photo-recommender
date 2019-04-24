@@ -8,5 +8,7 @@ variable "database_password" {}
 variable "vpc_id" {}
 variable "vpc_public_subnet_ids" { type = "list" }
 variable "local_machine_cidr" {}
+variable "vpc_cidr" {}
 variable "backup_retention_period_days" {}
 variable "init_script_file" {}
+variable "storage_encrypted" {}

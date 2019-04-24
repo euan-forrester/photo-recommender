@@ -7,6 +7,7 @@ variable "memcached_num_cache_nodes" {}
 variable "memcached_az_mode" {}
 variable "memcached_ttl" {}
 variable "local_machine_cidr" {}
+variable "vpc_cidr" {}
 variable "ecs_instances_desired_count" {}
 variable "ecs_instances_memory" {}
 variable "ecs_instances_cpu" {}
