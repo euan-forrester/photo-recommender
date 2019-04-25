@@ -9,8 +9,7 @@ import logging
 import os
 from ingesterqueueitem import IngesterQueueItem
 from queuewriter import SQSQueueWriter
-from confighelper import ConfigHelperFile
-from confighelper import ConfigHelperParameterStore
+from confighelper import ConfigHelper
 
 #
 # Read in commandline arguments
@@ -32,19 +31,7 @@ logging.basicConfig(format='%(levelname)s: %(message)s', level=log_level)
 # Get our config
 #
 
-if not "ENVIRONMENT" in os.environ:
-    logging.info("Did not find ENVIRONMENT environment variable, running in development mode and loading config from config files.")
-
-    ENVIRONMENT = "dev"
-
-    config_helper = ConfigHelperFile(environment=ENVIRONMENT, filename_list=["config/config.ini", "config/secrets.ini"])
-
-else:
-    ENVIRONMENT = os.environ.get('ENVIRONMENT')
-
-    logging.info("Found ENVIRONMENT environment variable containing '%s': assuming we're running in AWS and getting our parameters from the AWS Parameter Store" % (ENVIRONMENT))
-
-    config_helper = ConfigHelperParameterStore(environment=ENVIRONMENT, key_prefix="puller-flickr")
+config_helper = ConfigHelper.get_config_helper(default_env_name="dev", aws_parameter_prefix="puller-flickr")
 
 flickr_user_id                      = config_helper.get("flickr-user-id")
 flickr_api_key                      = config_helper.get("flickr-api-key")
