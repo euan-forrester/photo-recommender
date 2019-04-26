@@ -106,6 +106,8 @@ module "api-server" {
     region                  = "${var.region}"
     vpc_id                  = "${module.vpc.vpc_id}"
 
+    server_port             = 4444
+
     mysql_database_host     = "${module.ingester_database.output_database_host}"
     mysql_database_port     = "${module.ingester_database.output_database_port}"
     mysql_database_username = "${module.ingester_database.output_database_username}"
