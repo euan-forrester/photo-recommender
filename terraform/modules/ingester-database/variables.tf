@@ -18,5 +18,6 @@ variable "ecs_instances_cpu" {}
 variable "ecs_cluster_id" {}
 variable "ecs_instances_log_configuration" {}
 variable "ecs_instances_role_name" {}
+variable "ecs_days_to_keep_images" {}
 variable "input_queue_batch_size" {}
 variable "input_queue_max_items_to_process" {}

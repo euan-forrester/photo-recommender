@@ -12,4 +12,5 @@ variable "ecs_instances_cpu" {}
 variable "ecs_cluster_id" {}
 variable "ecs_instances_log_configuration" {}
 variable "ecs_instances_role_name" {}
+variable "ecs_days_to_keep_images" {}
 variable "server_port" {}

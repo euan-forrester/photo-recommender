@@ -1,3 +1,7 @@
-resource "aws_ecr_repository" "ecr" {
-    name = "ingester-database-${var.environment}"
-} 
+module "container_repository" {
+    source = "../container-repository"
+
+    name = "ingester-database"
+    environment = "${var.environment}"
+    num_days_to_keep_images = "${var.ecs_days_to_keep_images}"
+}

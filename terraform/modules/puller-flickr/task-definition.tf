@@ -4,7 +4,7 @@ module "task_definition" {
     name                        = "puller-flickr-${var.environment}"
     environment                 = "${var.environment}"
     region                      = "${var.region}"
-    container_repository_url    = "${aws_ecr_repository.ecr.repository_url}"
+    container_repository_url    = "${module.container_repository.repository_url}"
     cluster_id                  = "${var.ecs_cluster_id}"
     instances_memory            = "${var.ecs_instances_memory}"
     instances_cpu               = "${var.ecs_instances_cpu}"

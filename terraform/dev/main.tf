@@ -54,6 +54,7 @@ module "puller_flickr" {
     ecs_instances_memory = 256
     ecs_instances_cpu = 1
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
+    ecs_days_to_keep_images = 1
 
     flickr_api_key = "${var.flickr_api_key}"
     flickr_secret_key = "${var.flickr_secret_key}"
@@ -94,6 +95,7 @@ module "ingester_database" {
     ecs_instances_memory    = 256
     ecs_instances_cpu       = 1
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
+    ecs_days_to_keep_images = 1
 
     input_queue_batch_size  = 10
     input_queue_max_items_to_process = 10000
@@ -120,6 +122,7 @@ module "api-server" {
     ecs_instances_memory    = 256
     ecs_instances_cpu       = 1
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
+    ecs_days_to_keep_images = 1
 }
 
 
