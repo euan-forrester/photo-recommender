@@ -108,7 +108,8 @@ module "api-server" {
     region                  = "${var.region}"
     vpc_id                  = "${module.vpc.vpc_id}"
 
-    server_port             = 4444
+    load_balancer_port      = 4444
+    api_server_port         = 4445
 
     mysql_database_host     = "${module.ingester_database.output_database_host}"
     mysql_database_port     = "${module.ingester_database.output_database_port}"

@@ -41,10 +41,10 @@ resource "aws_ssm_parameter" "database_name" {
     value       = "${var.mysql_database_name}"
 }
 
-resource "aws_ssm_parameter" "server_port" {
+resource "aws_ssm_parameter" "api_server_port" {
     name        = "/${var.environment}/api-server/server-port"
     description = "Port we listen on to serve requests"
     type        = "String"
-    value       = "${var.server_port}"
+    value       = "${var.api_server_port}"
 }
 
