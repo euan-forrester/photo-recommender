@@ -59,7 +59,7 @@ resource "aws_ssm_parameter" "memcached_location" {
     name        = "/${var.environment}/puller-flickr/memcached-location"
     description = "Endpoint of the memcached cluster that we cache Flickr API calls to"
     type        = "String"
-    value       = "${aws_elasticache_cluster.memcached.cluster_address}:${aws_elasticache_cluster.memcached.port}"
+    value       = "${var.memcached_num_cache_nodes != 0 ? format("%s:%d", aws_elasticache_cluster.memcached.cluster_address, aws_elasticache_cluster.memcached.port) : "localhost:11211"}" # If we specifed having no nodes, then then there's no cluster and just try to connect to localhost. See https://itnext.io/things-i-wish-i-knew-about-terraform-before-jumping-into-it-43ee92a9dd65
 }
 
 resource "aws_ssm_parameter" "output_queue_url" {

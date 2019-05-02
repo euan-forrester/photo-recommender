@@ -24,6 +24,8 @@ resource "aws_elasticache_subnet_group" "public_subnet_group" {
 }
 
 resource "aws_elasticache_cluster" "memcached" {
+    count                = "${var.memcached_num_cache_nodes != 0 ? 1 : 0}" # Don't create the resource at all if we specify 0 nodes. See https://itnext.io/things-i-wish-i-knew-about-terraform-before-jumping-into-it-43ee92a9dd65
+
     cluster_id           = "puller-flickr-${var.environment}"
     engine               = "memcached"
     node_type            = "${var.memcached_node_type}"
