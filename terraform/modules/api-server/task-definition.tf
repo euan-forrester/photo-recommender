@@ -12,6 +12,7 @@ module "task_definition" {
     instances_desired_count     = "${var.ecs_instances_desired_count}"
     instances_role_name         = "${var.ecs_instances_role_name}"
     instances_extra_policy_arn  = "${aws_iam_policy.ecs-instance-api-server-extra-policy.arn}"
+    port_mappings               = "${data.template_file.port_mappings.rendered}"
 }
 
 data "aws_caller_identity" "api-server" {
@@ -42,5 +43,17 @@ resource "aws_iam_policy" "ecs-instance-api-server-extra-policy" {
     }
   ]
 }
+EOF
+}
+
+# Part of a task definition, used in the task-definition module
+data "template_file" "port_mappings" {
+    template = <<EOF
+    "portMappings": [
+      {
+        "containerPort": ${var.api_server_port},
+        "hostPort": ${var.api_server_port}
+      }
+    ],
 EOF
 }

@@ -35,6 +35,7 @@ database_password   = config_helper.get("database-password", is_secret=True)
 database_host       = config_helper.get("database-host")
 database_port       = config_helper.getInt("database-port")
 database_name       = config_helper.get("database-name")
+server_host         = config_helper.get("server-host")
 server_port         = config_helper.getInt("server-port")
 
 #
@@ -51,4 +52,4 @@ if __name__ == '__main__':
     # Note that running Flask like this results in the output saying "lazy loading" and I'm not sure what that means.
     # If we run it the way specified in the documentation `FLASK_APP=./api-server.py flask run` then it doesn't say this.
     # But I wanted to be able to specify the port via a parameter rather than having to use an env var
-    app.run(port=server_port)
+    app.run(host=server_host, port=server_port)

@@ -12,6 +12,7 @@ module "task_definition" {
     instances_desired_count     = "${var.ecs_instances_desired_count}"
     instances_role_name         = "${var.ecs_instances_role_name}"
     instances_extra_policy_arn  = "${aws_iam_policy.ecs-instance-ingester-database-extra-policy.arn}"
+    port_mappings               = ""
 }
 
 data "aws_caller_identity" "ingester_database" {

@@ -15,3 +15,4 @@ variable "ecs_instances_role_name" {}
 variable "ecs_days_to_keep_images" {}
 variable "api_server_port" {}
 variable "load_balancer_port" {}
+variable "local_machine_cidr" {}

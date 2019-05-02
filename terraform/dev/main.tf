@@ -25,6 +25,8 @@ module "elastic_container_service" {
     local_machine_cidr = "${var.local_machine_cidr}"
     local_machine_public_key = "${var.local_machine_public_key}"
 
+    extra_security_groups = ["${module.api_server.security_group_id}"]
+
     instance_type = "t2.micro"
     cluster_desired_size = 1
     cluster_min_size = 1
@@ -101,7 +103,7 @@ module "ingester_database" {
     input_queue_max_items_to_process = 10000
 }
 
-module "api-server" {
+module "api_server" {
     source = "../modules/api-server"
 
     environment             = "dev"
@@ -111,6 +113,8 @@ module "api-server" {
     load_balancer_port      = 4444
     api_server_port         = 4445
 
+    local_machine_cidr      = "${var.local_machine_cidr}"
+
     mysql_database_host     = "${module.ingester_database.output_database_host}"
     mysql_database_port     = "${module.ingester_database.output_database_port}"
     mysql_database_username = "${module.ingester_database.output_database_username}"
@@ -119,7 +123,7 @@ module "api-server" {
 
     ecs_cluster_id          = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 0
+    ecs_instances_desired_count = 1
     ecs_instances_memory    = 256
     ecs_instances_cpu       = 1
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
