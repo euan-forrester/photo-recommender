@@ -41,6 +41,10 @@ server_port         = config_helper.getInt("server-port")
 #
 # Run our API server
 #
+# Note that the Flask built-in server is not sufficient for production. In production we run under gunicorn instead, and
+# we run behind nginx. See: 
+#   https://medium.com/@kmmanoj/deploying-a-scalable-flask-app-using-gunicorn-and-nginx-in-docker-part-1-3344f13c9649
+#
 
 application = Flask(__name__)
 
