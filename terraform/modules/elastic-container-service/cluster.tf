@@ -19,7 +19,7 @@ resource "aws_launch_configuration" "ecs-launch-configuration" {
         create_before_destroy = true
     }
 
-    security_groups             = ["${aws_security_group.ecs.id}"]
+    security_groups             = ["${concat(var.extra_security_groups, list(aws_security_group.ecs.id))}"]
     associate_public_ip_address = "true"
     key_name                    = "${aws_key_pair.local_machine.key_name}"
     user_data                   = <<EOF

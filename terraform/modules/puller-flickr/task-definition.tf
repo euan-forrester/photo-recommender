@@ -4,7 +4,7 @@ module "task_definition" {
     name                        = "puller-flickr-${var.environment}"
     environment                 = "${var.environment}"
     region                      = "${var.region}"
-    container_repository_url    = "${aws_ecr_repository.ecr.repository_url}"
+    container_repository_url    = "${module.container_repository.repository_url}"
     cluster_id                  = "${var.ecs_cluster_id}"
     instances_memory            = "${var.ecs_instances_memory}"
     instances_cpu               = "${var.ecs_instances_cpu}"
@@ -12,6 +12,7 @@ module "task_definition" {
     instances_desired_count     = "${var.ecs_instances_desired_count}"
     instances_role_name         = "${var.ecs_instances_role_name}"
     instances_extra_policy_arn  = "${aws_iam_policy.ecs-instance-puller-flickr-extra-policy.arn}"
+    port_mappings               = ""
 }
 
 data "aws_caller_identity" "puller_flickr" {

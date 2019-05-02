@@ -8,8 +8,7 @@ import logging
 import os
 from ingesterqueueitem import IngesterQueueItem
 from queuereader import SQSQueueReader
-from confighelper import ConfigHelperFile
-from confighelper import ConfigHelperParameterStore
+from confighelper import ConfigHelper
 from databasebatchwriter import DatabaseBatchWriter
 
 #
@@ -32,19 +31,7 @@ logging.basicConfig(format='%(levelname)s: %(message)s', level=log_level)
 # Get our config
 #
 
-if not "ENVIRONMENT" in os.environ:
-    logging.info("Did not find ENVIRONMENT environment variable, running in development mode and loading config from config files.")
-
-    ENVIRONMENT = "dev"
-
-    config_helper = ConfigHelperFile(environment=ENVIRONMENT, filename_list=["config/config.ini", "config/secrets.ini"])
-
-else:
-    ENVIRONMENT = os.environ.get('ENVIRONMENT')
-
-    logging.info("Found ENVIRONMENT environment variable containing '%s': assuming we're running in AWS and getting our parameters from the AWS Parameter Store" % (ENVIRONMENT))
-
-    config_helper = ConfigHelperParameterStore(environment=ENVIRONMENT, key_prefix="ingester-database")
+config_helper = ConfigHelper.get_config_helper(default_env_name="dev", aws_parameter_prefix="ingester-database")
 
 input_queue_url                     = config_helper.get("input-queue-url")
 input_queue_batch_size              = config_helper.getInt("input-queue-batchsize")

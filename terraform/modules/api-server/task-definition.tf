@@ -1,7 +1,7 @@
 module "task_definition" {
     source = "../task-definition"
 
-    name                        = "ingester-database-${var.environment}"
+    name                        = "api-server-${var.environment}"
     environment                 = "${var.environment}"
     region                      = "${var.region}"
     container_repository_url    = "${module.container_repository.repository_url}"
@@ -11,17 +11,17 @@ module "task_definition" {
     instances_log_configuration = "${var.ecs_instances_log_configuration}"
     instances_desired_count     = "${var.ecs_instances_desired_count}"
     instances_role_name         = "${var.ecs_instances_role_name}"
-    instances_extra_policy_arn  = "${aws_iam_policy.ecs-instance-ingester-database-extra-policy.arn}"
-    port_mappings               = ""
+    instances_extra_policy_arn  = "${aws_iam_policy.ecs-instance-api-server-extra-policy.arn}"
+    port_mappings               = "${data.template_file.port_mappings.rendered}"
 }
 
-data "aws_caller_identity" "ingester_database" {
+data "aws_caller_identity" "api-server" {
   
 }
 
-resource "aws_iam_policy" "ecs-instance-ingester-database-extra-policy" {
-  name        = "ingester-database-extra-policy"
-  description = "Allows ingester-database to read parameters, read from the ingestion queue, and talk to the favorites database"
+resource "aws_iam_policy" "ecs-instance-api-server-extra-policy" {
+  name        = "api-server-extra-policy"
+  description = "Allows api-server to read parameters and talk to the favorites database"
 
   policy = <<EOF
 {
@@ -32,7 +32,7 @@ resource "aws_iam_policy" "ecs-instance-ingester-database-extra-policy" {
         "ssm:GetParameter"
       ],
       "Effect": "Allow",
-      "Resource": "arn:aws:ssm:*:${data.aws_caller_identity.ingester_database.account_id}:parameter/${var.environment}/ingester-database/*"
+      "Resource": "arn:aws:ssm:*:${data.aws_caller_identity.api-server.account_id}:parameter/${var.environment}/api-server/*"
     },
     {
       "Action": [
@@ -40,17 +40,20 @@ resource "aws_iam_policy" "ecs-instance-ingester-database-extra-policy" {
       ],
       "Effect": "Allow",
       "Resource": "${aws_kms_key.parameter_secrets.arn}"
-    },
-    {
-      "Action": [
-        "sqs:ReceiveMessage",
-        "sqs:DeleteMessageBatch",
-        "sqs:DeleteMessage"
-      ],
-      "Effect": "Allow",
-      "Resource": "${module.sqs_queue.queue_arn}"
     }
   ]
 }
+EOF
+}
+
+# Part of a task definition, used in the task-definition module
+data "template_file" "port_mappings" {
+    template = <<EOF
+    "portMappings": [
+      {
+        "containerPort": ${var.api_server_port},
+        "hostPort": ${var.api_server_port}
+      }
+    ],
 EOF
 }

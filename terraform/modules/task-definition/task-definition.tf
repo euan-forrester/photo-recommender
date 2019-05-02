@@ -23,6 +23,7 @@ resource "aws_ecs_task_definition" "task_definition" {
       { "name": "ENVIRONMENT", "value": "${var.environment}" },
       { "name": "AWS_DEFAULT_REGION", "value": "${var.region}" }
     ],
+    ${var.port_mappings}
     ${var.instances_log_configuration}
   }
 ]

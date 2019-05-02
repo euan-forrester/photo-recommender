@@ -10,3 +10,4 @@ variable "local_machine_public_key" {}
 variable "instances_log_retention_days" {}
 variable "vpc_id" {}
 variable "vpc_public_subnet_ids" { type = "list" }
+variable "extra_security_groups" { type = "list" }

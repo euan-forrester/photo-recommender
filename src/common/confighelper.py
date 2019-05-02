@@ -2,9 +2,24 @@ import configparser
 import boto3
 from botocore.exceptions import ClientError
 import logging
+import os
 
 class ConfigHelper:
     
+    @staticmethod
+    def get_config_helper(default_env_name, aws_parameter_prefix):
+        if not "ENVIRONMENT" in os.environ:
+            logging.info("Did not find ENVIRONMENT environment variable, running in development mode and loading config from config files.")
+
+            return ConfigHelperFile(environment=default_env_name, filename_list=["config/config.ini", "config/secrets.ini"])
+
+        else:
+            ENVIRONMENT = os.environ.get('ENVIRONMENT')
+
+            logging.info("Found ENVIRONMENT environment variable containing '%s': assuming we're running in AWS and getting our parameters from the AWS Parameter Store" % (ENVIRONMENT))
+
+            return ConfigHelperParameterStore(environment=ENVIRONMENT, key_prefix=aws_parameter_prefix)
+
     @staticmethod
     def _log_int(param, value, is_secret):
         if is_secret:
