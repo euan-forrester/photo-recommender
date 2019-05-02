@@ -46,7 +46,7 @@ module "puller_flickr" {
     local_machine_cidr = "${var.local_machine_cidr}"
 
     memcached_node_type = "cache.t2.micro"
-    memcached_num_cache_nodes = 2
+    memcached_num_cache_nodes = 0 # Disable memcached in dev to save billing charges
     memcached_az_mode = "cross-az"
     memcached_ttl = 7200
 
