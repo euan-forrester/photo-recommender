@@ -106,4 +106,5 @@ TODO:
 - Metrics and alarms
 - Consider moving MySQL passwords into config files rather than passing on command line from terraform script
 - Add tests
-- Lock python lib version numbers
+- Lock python lib version numbers (see https://docs.docker.com/samples/library/python/#pythonversion-alpine to lock python version)
+- Maybe add a container running nginx to serve static files

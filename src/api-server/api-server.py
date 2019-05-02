@@ -41,10 +41,14 @@ server_port         = config_helper.getInt("server-port")
 #
 # Run our API server
 #
+# Note that the Flask built-in server is not sufficient for production. In production we run under gunicorn instead, and
+# we run behind nginx. See: 
+#   https://medium.com/@kmmanoj/deploying-a-scalable-flask-app-using-gunicorn-and-nginx-in-docker-part-1-3344f13c9649
+#
 
-app = Flask(__name__)
+application = Flask(__name__)
 
-@app.route("/")
+@application.route("/")
 def hello():
     return "Hello World!"
 
@@ -52,4 +56,4 @@ if __name__ == '__main__':
     # Note that running Flask like this results in the output saying "lazy loading" and I'm not sure what that means.
     # If we run it the way specified in the documentation `FLASK_APP=./api-server.py flask run` then it doesn't say this.
     # But I wanted to be able to specify the port via a parameter rather than having to use an env var
-    app.run(host=server_host, port=server_port)
+    application.run(host=server_host, port=server_port)
