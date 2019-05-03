@@ -10,3 +10,6 @@ variable "instances_role_name" {}
 variable "instances_extra_policy_arn" {}
 variable "container_repository_url" {}
 variable "port_mappings" {}
+variable "create_load_balancer" {}
+variable "load_balancer_container_port" {}
+variable "load_balancer_target_group_arn" {}
