@@ -59,7 +59,9 @@ resource "aws_ssm_parameter" "memcached_location" {
     name        = "/${var.environment}/puller-flickr/memcached-location"
     description = "Endpoint of the memcached cluster that we cache Flickr API calls to"
     type        = "String"
-    value       = "${var.memcached_num_cache_nodes != 0 ? format("%s:%d", aws_elasticache_cluster.memcached.cluster_address, aws_elasticache_cluster.memcached.port) : "localhost:11211"}" # If we specifed having no nodes, then then there's no cluster and just try to connect to localhost. See https://itnext.io/things-i-wish-i-knew-about-terraform-before-jumping-into-it-43ee92a9dd65
+    # Ugly syntax here for referencing a resource that may not exist. See https://github.com/hashicorp/terraform/issues/16726
+    # Puts "localhost:11211" in this attribute if the memcached cluster wasn't created. The script will attempt to connect to there, fail, and continue in that case
+    value       = "${format("%s:%d", element(concat(aws_elasticache_cluster.memcached.*.cluster_address, list("localhost")), 0), element(concat(aws_elasticache_cluster.memcached.*.cluster_address, list("11211")), 0))}"
 }
 
 resource "aws_ssm_parameter" "output_queue_url" {
