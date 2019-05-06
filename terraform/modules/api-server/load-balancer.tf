@@ -128,12 +128,12 @@ resource "aws_s3_bucket" "load_balancer_access_logs" {
         }
     }
 
-    #server_side_encryption_configuration {
-    #    rule {
-    #        apply_server_side_encryption_by_default {
-    #            kms_master_key_id = "${aws_kms_key.load_balancer_access_logs.arn}"
-    #            sse_algorithm     = "aws:kms"
-    #        }
-    #    }
-    #}
+    server_side_encryption_configuration {
+        rule {
+            apply_server_side_encryption_by_default {
+                kms_master_key_id = "${aws_kms_key.load_balancer_access_logs.arn}"
+                sse_algorithm     = "aws:kms"
+            }
+        }
+    }
 }
