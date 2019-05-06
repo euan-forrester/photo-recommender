@@ -7,11 +7,11 @@ resource "aws_lb" "api_server" {
     idle_timeout       = 60
     ip_address_type    = "ipv4"
 
-    #access_logs {
-    #    bucket  = "${aws_s3_bucket.load_balancer_access_logs.bucket}"
-    #    prefix  = "${var.load_balancer_access_logs_prefix}"
-    #    enabled = true
-    #}
+    access_logs {
+        bucket  = "${var.load_balancer_access_logs_bucket}"
+        prefix  = "${var.load_balancer_access_logs_prefix}"
+        enabled = true
+    }
 
     tags = {
         Environment = "${var.environment}"
@@ -77,7 +77,7 @@ resource "aws_security_group" "load_balancer" {
         Name = "security-group-load-balancer-${var.environment}"
     }
 }
-/*
+
 resource "aws_kms_key" "load_balancer_access_logs" {
     description             = "Used to encrypt the load balancer access logs"
     key_usage               = "ENCRYPT_DECRYPT"
@@ -85,10 +85,37 @@ resource "aws_kms_key" "load_balancer_access_logs" {
     deletion_window_in_days = 7
 }
 
+# Setup bucket policy so load balancer can write to it.
+# Taken from https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-access-logs.html
+
+data "aws_caller_identity" "load_balancer" {}
+
+data "aws_elb_service_account" "main" {}
+
 resource "aws_s3_bucket" "load_balancer_access_logs" {
     bucket = "${var.load_balancer_access_logs_bucket}"
-    acl    = "private"
-    policy = "${data.aws_iam_policy_document.access_logs_bucket.json}"
+    acl    = "bucket-owner-full-control"
+    policy = <<EOF
+{
+  "Id": "Policy1429136655940",
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowToPutLoadBalancerLogsToS3Bucket",
+      "Action": [
+        "s3:PutObject"
+      ],
+      "Effect": "Allow",
+      "Resource": "arn:aws:s3:::${var.load_balancer_access_logs_bucket}/${var.load_balancer_access_logs_prefix}/AWSLogs/${data.aws_caller_identity.load_balancer.account_id}/*",
+      "Principal": {
+        "AWS": [
+          "${data.aws_elb_service_account.main.id}"
+        ]
+      }
+    }
+  ]
+}
+    EOF
 
     lifecycle_rule {
         id      = "log"
@@ -101,33 +128,12 @@ resource "aws_s3_bucket" "load_balancer_access_logs" {
         }
     }
 
-    server_side_encryption_configuration {
-        rule {
-            apply_server_side_encryption_by_default {
-                kms_master_key_id = "${aws_kms_key.load_balancer_access_logs.arn}"
-                sse_algorithm     = "aws:kms"
-            }
-        }
-    }
+    #server_side_encryption_configuration {
+    #    rule {
+    #        apply_server_side_encryption_by_default {
+    #            kms_master_key_id = "${aws_kms_key.load_balancer_access_logs.arn}"
+    #            sse_algorithm     = "aws:kms"
+    #        }
+    #    }
+    #}
 }
-
-# Setup bucket policy so load balancer can write to it.
-# Taken from https://github.com/terraform-aws-modules/terraform-aws-alb/issues/61
-
-data "aws_caller_identity" "load_balancer" {}
-
-data "aws_elb_service_account" "main" {}
-
-data "aws_iam_policy_document" "access_logs_bucket" {
-    statement {
-        sid       = "AllowToPutLoadBalancerLogsToS3Bucket"
-        actions   = ["s3:PutObject"]
-        resources = ["arn:aws:s3:::${var.load_balancer_access_logs_bucket}/${var.load_balancer_access_logs_prefix}/AWSLogs/${data.aws_caller_identity.load_balancer.account_id}/*"]
-
-        principals {
-            type        = "AWS"
-            identifiers = ["arn:aws:iam::${data.aws_elb_service_account.main.id}:root"]
-        }
-    }
-}
-*/
