@@ -118,7 +118,7 @@ resource "aws_s3_bucket" "load_balancer_access_logs" {
     EOF
 
     lifecycle_rule {
-        id      = "log"
+        id      = "expire-logs-after-N-days"
         enabled = true
 
         prefix = "*"
