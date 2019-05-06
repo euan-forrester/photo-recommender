@@ -52,6 +52,10 @@ application = Flask(__name__)
 def hello():
     return "Hello World!"
 
+@application.route("/healthcheck")
+def health_check():
+    return "OK"
+
 if __name__ == '__main__':
     # Note that running Flask like this results in the output saying "lazy loading" and I'm not sure what that means.
     # If we run it the way specified in the documentation `FLASK_APP=./api-server.py flask run` then it doesn't say this.

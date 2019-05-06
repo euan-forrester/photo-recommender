@@ -25,7 +25,7 @@ resource "aws_db_instance" "mysql_database" {
     storage_type                    = "${var.storage_type}"
 
     storage_encrypted               = "${var.storage_encrypted}"
-    kms_key_id                      = "${var.storage_encrypted == true ? "${aws_kms_key.mysql_encryption.arn}" : ""}"
+    kms_key_id                      = "${var.storage_encrypted ? "${aws_kms_key.mysql_encryption.arn}" : ""}" # Luckily we're able to use "" here to denote an empty field. Support for a null value is coming in terraform 0.12: https://github.com/hashicorp/terraform/issues/14037
 
     engine                          = "mysql"
     engine_version                  = "8.0"
