@@ -13,7 +13,7 @@ module "task_definition" {
     instances_role_name         = "${var.ecs_instances_role_name}"
     instances_extra_policy_arn  = "${aws_iam_policy.ecs-instance-ingester-database-extra-policy.arn}"
     port_mappings               = ""
-    create_load_balancer        = false
+    has_load_balancer           = false
     load_balancer_container_port = -1
     load_balancer_target_group_arn = ""
 }

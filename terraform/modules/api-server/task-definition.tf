@@ -13,16 +13,9 @@ module "task_definition" {
     instances_role_name         = "${var.ecs_instances_role_name}"
     instances_extra_policy_arn  = "${aws_iam_policy.ecs-instance-api-server-extra-policy.arn}"
     port_mappings               = "${data.template_file.port_mappings.rendered}"
-    create_load_balancer        = true
+    has_load_balancer           = true
     load_balancer_container_port = "${var.api_server_port}"
-    load_balancer_target_group_arn = "${aws_lb_target_group.target_group.arn}"
-}
-
-resource "aws_lb_target_group" "target_group" {
-    name     = "api-server-lb-tg-${var.environment}"
-    port     = "${var.load_balancer_port}"
-    protocol = "HTTP"
-    vpc_id   = "${var.vpc_id}"
+    load_balancer_target_group_arn = "${aws_lb_target_group.load_balancer.arn}"
 }
 
 data "aws_caller_identity" "api-server" {

@@ -90,13 +90,20 @@ docker tag <ID of image you just built> <URI of puller-flickr-dev repository in 
 docker push <URI of puller-flicker-dev repository in ECR>
 ```
 
-and again for the next image
+and again for the next images
 
 ```
 docker build -f ../../src/ingester-database/Dockerfile ../../src
 docker images
 docker tag <ID of image you just built> <URI of ingester-database-dev repository in ECR: use AWS console to find>
 docker push <URI of ingester-database-dev repository in ECR>
+```
+
+```
+docker build -f ../../src/api-server/Dockerfile ../../src
+docker images
+docker tag <ID of image you just built> <URI of api-server-dev repository in ECR: use AWS console to find>
+docker push <URI of api-server-dev repository in ECR>
 ```
 
 TODO:
@@ -108,3 +115,4 @@ TODO:
 - Add tests
 - Lock python lib version numbers (see https://docs.docker.com/samples/library/python/#pythonversion-alpine to lock python version)
 - Maybe add a container running nginx to serve static files
+- Have dev load balancer only be accessable from the local machine, and have the prod load balancer only listen on https

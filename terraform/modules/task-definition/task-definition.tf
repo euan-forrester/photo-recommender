@@ -49,7 +49,7 @@ resource "aws_iam_role_policy_attachment" "attach-extra-policy" {
 # Dynamic blocks are coming in terraform 0.12: https://github.com/hashicorp/terraform/issues/7034
 
 resource "aws_ecs_service" "ecs_service_no_load_balancer" {
-    count           = "${var.create_load_balancer ? 0 : 1}"
+    count           = "${var.has_load_balancer ? 0 : 1}"
 
     name            = "${var.name}"
     cluster         = "${var.cluster_id}"
@@ -64,7 +64,7 @@ resource "aws_ecs_service" "ecs_service_no_load_balancer" {
 }
 
 resource "aws_ecs_service" "ecs_service_with_load_balancer" {
-    count           = "${var.create_load_balancer ? 1 : 0}"
+    count           = "${var.has_load_balancer ? 1 : 0}"
 
     name            = "${var.name}"
     cluster         = "${var.cluster_id}"

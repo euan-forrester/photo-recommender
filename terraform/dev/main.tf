@@ -108,10 +108,17 @@ module "api_server" {
 
     environment             = "dev"
     region                  = "${var.region}"
+
     vpc_id                  = "${module.vpc.vpc_id}"
+    vpc_public_subnet_ids   = "${module.vpc.vpc_public_subnet_ids}"
+    vpc_cidr                = "${module.vpc.vpc_cidr_block}"
 
     load_balancer_port      = 4444
     api_server_port         = 4445
+
+    load_balancer_days_to_keep_access_logs = 1
+    load_balancer_access_logs_bucket = "api-server-access-logs-dev"
+    load_balancer_access_logs_prefix = "api-server-lb-dev"
 
     local_machine_cidr      = "${var.local_machine_cidr}"
 
