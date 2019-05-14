@@ -116,3 +116,4 @@ TODO:
 - Lock python lib version numbers (see https://docs.docker.com/samples/library/python/#pythonversion-alpine to lock python version)
 - Maybe add a container running nginx to serve static files, or can ALB route to S3 to serve static files?
 - Have dev load balancer only be accessable from the local machine, and have the prod load balancer only listen on https
+- Encrypt SQS messages in prod
