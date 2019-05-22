@@ -1,4 +1,4 @@
-FROM python:3
+FROM python:3-alpine
 ADD api-server/api-server.py /api-server/
 ADD common/confighelper.py /common/
 RUN pip install flask

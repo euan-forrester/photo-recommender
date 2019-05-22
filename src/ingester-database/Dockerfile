@@ -1,4 +1,4 @@
-FROM python:3
+FROM python:3-alpine
 ADD ingester-database/ingester-database.py /ingester-database/
 ADD ingester-database/databasebatchwriter.py /ingester-database/
 ADD common/ingesterqueueitem.py /common/

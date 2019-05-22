@@ -1,4 +1,4 @@
-FROM python:3
+FROM python:3-alpine
 ADD puller-flickr/puller-flickr.py /puller-flickr/
 ADD puller-flickr/flickrapiwrapper.py /puller-flickr/
 ADD common/ingesterqueueitem.py /common/
