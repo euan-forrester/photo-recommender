@@ -78,13 +78,6 @@ resource "aws_security_group" "load_balancer" {
     }
 }
 
-resource "aws_kms_key" "load_balancer_access_logs" {
-    description             = "Used to encrypt the load balancer access logs"
-    key_usage               = "ENCRYPT_DECRYPT"
-    enable_key_rotation     = true
-    deletion_window_in_days = 7
-}
-
 # Setup bucket policy so load balancer can write to it.
 # Taken from https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-access-logs.html
 
@@ -131,8 +124,10 @@ resource "aws_s3_bucket" "load_balancer_access_logs" {
     server_side_encryption_configuration {
         rule {
             apply_server_side_encryption_by_default {
-                kms_master_key_id = "${aws_kms_key.load_balancer_access_logs.arn}"
-                sse_algorithm     = "aws:kms"
+                # It seems that the ALB isn't able to write to the bucket if we set this to "aws:kms": 
+                # we get an error saying "Failure configuring LB attributes: InvalidConfigurationRequest: Access Denied for bucket". 
+                # It also seems to be implied by the docs here that we need to use AES: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-access-logs.html
+                sse_algorithm = "AES256" 
             }
         }
     }
