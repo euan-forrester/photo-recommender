@@ -10,9 +10,12 @@ class FavoritesStoreDatabase:
 
     def get_my_favorites_and_neighbors_favorites(self, user_id):
 
-        cursor = self.cnx.cursor()
+        # Using a nonbuffered cursor here results in the same row being returned over and over at the end of the results. 
+        # Using a buffered cursor behaves as expected. Is this a bug in mysql or the driver?
+        # The problem is that a buffered cursor retrieves all of the results at once, and our result set can be large.
+        cursor = self.cnx.cursor(buffered=True) 
 
-        print("Trying to get rows")
+        print("Trying to get rows for user '%s'" % user_id)
 
         try:
             cursor.execute("""
@@ -21,15 +24,15 @@ class FavoritesStoreDatabase:
                 from 
                     favorites 
                 where 
-                    favorited_by="%s" 
+                    favorited_by=%s 
                 or 
-                    favorited_by in (select distinct image_owner from favorites where favorited_by="%s");
+                    favorited_by in (select distinct image_owner from favorites where favorited_by=%s);
             """, (user_id, user_id))
      
             favorites = []
 
             for row in self._iter_row(cursor):
-                print("Got a row!")
+                print("Got a row!", row)
                 favorites.append(Favorite(id=row[0], image_id=row[1], image_url=row[2], image_owner=row[3], favorited_by=row[4]))
 
             return favorites
@@ -44,6 +47,7 @@ class FavoritesStoreDatabase:
     def _iter_row(self, cursor):
         while True:
             rows = cursor.fetchmany(self.fetch_batch_size)
+            print("Just fetched %d rows", len(rows))
             if not rows:
                 break
             for row in rows:
