@@ -1,4 +1,5 @@
-import mysql.connector
+import pymysql
+import pymysql.cursors
 import logging
 from favorite import Favorite
 from favoritesstoreexception import FavoritesStoreException
@@ -6,19 +7,33 @@ from favoritesstoreexception import FavoritesStoreException
 class FavoritesStoreDatabase:
 
     def __init__(self, database_username, database_password, database_host, database_port, database_name, fetch_batch_size):
-        self.cnx                = mysql.connector.connect(user=database_username, password=database_password, host=database_host, port=database_port, database=database_name)
+        
+        # Note that pymysql.cursors.SSCursor is an unbuffered cursor, meaning that it only retrieves rows as it needs them, rather than all at once.
+        # We're retrieving a large dataset here, so having only a few in memory at once is preferred. Although we end up creating an object for
+        # every row anyway, and keeping them all in memory at once, so it's not a huge deal.
+        #
+        # I tried using mysql.connector, but only its buffered cursor worked as expected: using an unbuffered cursor resulted in having
+        # a single row being returned over and over by fetchmany() after all of the correct results had been returned. So it would be difficult to
+        # determine whether we were actually at the end of our resultset or not. This appears to be a bug in that connector lib, because a buffered 
+        # cursor worked as expected, and the same code worked fine for an unbuffered (and buffered) cursor with the pymysql package.
+        #
+        # Solutions tried: upgrading python, upgrading the mysql-connector-python package, downgrading the database from MySQL 8.0 to 5.7
+        # Couldn't find anything with various google searches.
+        # Maybe later this bug will be fixed and we can switch back to the mysql.connector package?
+
+        self.cnx                = pymysql.connect(
+                                    user=database_username, 
+                                    password=database_password, 
+                                    host=database_host, 
+                                    port=database_port, 
+                                    db=database_name, 
+                                    cursorclass=pymysql.cursors.SSCursor) # Unbuffered cursor: https://pymysql.readthedocs.io/en/latest/modules/cursors.html
+        
         self.fetch_batch_size   = fetch_batch_size
 
     def get_my_favorites_and_neighbors_favorites(self, user_id):
 
-        # Using a nonbuffered cursor here results in the same row being returned over and over at the end of the results. 
-        # Using a buffered cursor behaves as expected. Is this a bug in mysql or the driver?
-        # The problem is that a buffered cursor retrieves all of the results at once, and our result set can be large.
-        #
-        # Solutions tried: upgrading python, upgrading the mysql-connector-python package, downgrading the database from MySQL 8.0 to 5.7
-        # Couldn't find anything with various google searches.
-        # Consider trying a different package to connect to MySQL
-        cursor = self.cnx.cursor(buffered=False) 
+        cursor = self.cnx.cursor() 
 
         print("Trying to get rows for user '%s'" % user_id)
 

@@ -7,7 +7,7 @@ ADD common/confighelper.py /common/
 RUN pip install flask
 RUN pip install flask_api
 RUN pip install gunicorn
-RUN pip install mysql-connector-python
+RUN pip install pymysql
 RUN pip install boto3
 EXPOSE 4445
 WORKDIR /api-server/
