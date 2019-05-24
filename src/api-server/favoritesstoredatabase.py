@@ -1,4 +1,5 @@
 import mysql.connector
+import logging
 from favorite import Favorite
 from favoritesstoreexception import FavoritesStoreException
 
@@ -13,7 +14,11 @@ class FavoritesStoreDatabase:
         # Using a nonbuffered cursor here results in the same row being returned over and over at the end of the results. 
         # Using a buffered cursor behaves as expected. Is this a bug in mysql or the driver?
         # The problem is that a buffered cursor retrieves all of the results at once, and our result set can be large.
-        cursor = self.cnx.cursor(buffered=True) 
+        #
+        # Solutions tried: upgrading python, upgrading the mysql-connector-python package, downgrading the database from MySQL 8.0 to 5.7
+        # Couldn't find anything with various google searches.
+        # Consider trying a different package to connect to MySQL
+        cursor = self.cnx.cursor(buffered=False) 
 
         print("Trying to get rows for user '%s'" % user_id)
 
@@ -32,7 +37,7 @@ class FavoritesStoreDatabase:
             favorites = []
 
             for row in self._iter_row(cursor):
-                print("Got a row!", row)
+                logging.debug("Got a row!", row)
                 favorites.append(Favorite(id=row[0], image_id=row[1], image_url=row[2], image_owner=row[3], favorited_by=row[4]))
 
             return favorites
@@ -47,7 +52,7 @@ class FavoritesStoreDatabase:
     def _iter_row(self, cursor):
         while True:
             rows = cursor.fetchmany(self.fetch_batch_size)
-            print("Just fetched %d rows", len(rows))
+            logging.debug("Just fetched %d rows" % len(rows))
             if not rows:
                 break
             for row in rows:
