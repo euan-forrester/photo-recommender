@@ -117,3 +117,4 @@ TODO:
 - Maybe add a container running nginx to serve static files, or can ALB route to S3 to serve static files?
 - Have dev load balancer only be accessable from the local machine, and have the prod load balancer only listen on https
 - Encrypt SQS messages in prod
+- Add connection pool manager for talking to DB from API server

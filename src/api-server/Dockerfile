@@ -3,6 +3,7 @@ ADD api-server/api-server.py /api-server/
 ADD api-server/favorite.py /api-server/
 ADD api-server/favoritesstoredatabase.py /api-server/
 ADD api-server/favoritesstoreexception.py /api-server/
+ADD api-server/recommendations.py /api-server/
 ADD common/confighelper.py /common/
 RUN pip install flask
 RUN pip install flask_api

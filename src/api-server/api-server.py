@@ -12,6 +12,7 @@ from confighelper import ConfigHelper
 from favorite import Favorite
 from favoritesstoredatabase import FavoritesStoreDatabase
 from favoritesstoreexception import FavoritesStoreException
+from recommendations import Recommendations
 
 #
 # Read in commandline arguments
@@ -81,6 +82,8 @@ def get_recommendations(user_id=None):
         return "User not specified", status.HTTP_400_BAD_REQUEST
 
     all_favorites = favorites_store.get_my_favorites_and_neighbors_favorites(user_id)
+
+    Recommendations.get_recommendations(user_id, all_favorites)
 
     return "Got back %d favorites" % len(all_favorites)
 

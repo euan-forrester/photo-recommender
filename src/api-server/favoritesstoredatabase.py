@@ -6,6 +6,10 @@ from favoritesstoreexception import FavoritesStoreException
 
 class FavoritesStoreDatabase:
 
+    '''
+    This class interfaces with a MySQL database to retrieve a list of my favorites and the favorites of my neighbors
+    '''
+
     def __init__(self, database_username, database_password, database_host, database_port, database_name, fetch_batch_size):
         
         # Note that pymysql.cursors.SSCursor is an unbuffered cursor, meaning that it only retrieves rows as it needs them, rather than all at once.
@@ -35,7 +39,7 @@ class FavoritesStoreDatabase:
 
         cursor = self.cnx.cursor() 
 
-        print("Trying to get rows for user '%s'" % user_id)
+        logging.debug("Trying to get rows for user '%s'" % user_id)
 
         try:
             cursor.execute("""
@@ -53,7 +57,7 @@ class FavoritesStoreDatabase:
 
             for row in self._iter_row(cursor):
                 logging.debug("Got a row!", row)
-                favorites.append(Favorite(id=row[0], image_id=row[1], image_url=row[2], image_owner=row[3], favorited_by=row[4]))
+                favorites.append(Favorite(id=row[0], image_id=row[1], image_owner=row[2], image_url=row[3], favorited_by=row[4]))
 
             return favorites
 
