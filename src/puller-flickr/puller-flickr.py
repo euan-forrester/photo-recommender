@@ -56,15 +56,14 @@ flickrapi = FlickrApiWrapper(flickr_api_key, flickr_api_secret, memcached_locati
 logging.info("Getting my favourites")
 
 my_favorites = flickrapi.get_favorites(flickr_user_id, flickr_api_max_favorites_per_call, flickr_api_max_favorites_to_get)
-favorite_photos = {}
+favorite_photos = []
 
 my_neighbors = {}
 
 for photo in my_favorites:
     logging.debug("Found photo I favorited: ", photo)
     
-    if photo['id'] not in favorite_photos:
-        favorite_photos[photo['id']] = IngesterQueueItem(favorited_by=flickr_user_id, image_id=photo['id'], image_url=photo.get('url_l', photo.get('url_m', '')), image_owner=photo['owner'])
+    favorite_photos.append(IngesterQueueItem(favorited_by=flickr_user_id, image_id=photo['id'], image_url=photo.get('url_l', photo.get('url_m', '')), image_owner=photo['owner']))
 
     if photo['owner'] not in my_neighbors:
         my_neighbors[photo['owner']] = { 'user_id': photo['owner'] }
@@ -81,8 +80,7 @@ for neighbor_id in my_neighbors:
     for photo in neighbor_favorites:
         logging.debug("Found neighbor favourite photo ", photo)
 
-        if photo['id'] not in favorite_photos: # If we already added the photo as favorited by us, don't overwrite that with one of our neighbors instead
-            favorite_photos[photo['id']] = IngesterQueueItem(favorited_by=my_neighbors[neighbor_id]['user_id'], image_id=photo['id'], image_url=photo.get('url_l', photo.get('url_m', '')), image_owner=photo['owner'])
+        favorite_photos.append(IngesterQueueItem(favorited_by=my_neighbors[neighbor_id]['user_id'], image_id=photo['id'], image_url=photo.get('url_l', photo.get('url_m', '')), image_owner=photo['owner']))
 
 #
 # Output all of the photos we found to our queue
