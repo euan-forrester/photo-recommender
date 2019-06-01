@@ -136,6 +136,8 @@ module "api_server" {
     ecs_instances_cpu       = 1
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
     ecs_days_to_keep_images = 1
+
+    default_num_photo_recommendations = 10
 }
 
 

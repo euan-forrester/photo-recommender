@@ -7,12 +7,14 @@ import argparse
 import logging
 import atexit
 from flask import Flask
+from flask import request
 from flask_api import status
 from confighelper import ConfigHelper
 from favorite import Favorite
 from favoritesstoredatabase import FavoritesStoreDatabase
 from favoritesstoreexception import FavoritesStoreException
 from recommendations import Recommendations
+from output import Output
 
 #
 # Read in commandline arguments
@@ -44,6 +46,7 @@ database_name               = config_helper.get("database-name")
 database_fetch_batch_size   = config_helper.getInt("database-fetch-batch-size")
 server_host                 = config_helper.get("server-host")
 server_port                 = config_helper.getInt("server-port")
+default_num_photo_recommendations = config_helper.getInt('default-num-photo-recommendations')
 
 #
 # Set up our data store
@@ -81,11 +84,15 @@ def get_recommendations(user_id=None):
     if user_id is None:
         return "User not specified", status.HTTP_400_BAD_REQUEST
 
+    num_photos = int(request.args.get('num-photos', default_num_photo_recommendations))
+
     all_favorites = favorites_store.get_my_favorites_and_neighbors_favorites(user_id)
 
-    Recommendations.get_recommendations(user_id, all_favorites)
+    recommendations = Recommendations.get_recommendations(user_id, all_favorites, num_photos)
 
-    return "Got back %d favorites" % len(all_favorites)
+    output = Output.get_output(recommendations)
+
+    return output
 
 if __name__ == '__main__':
     # Note that running Flask like this results in the output saying "lazy loading" and I'm not sure what that means.
