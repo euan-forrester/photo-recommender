@@ -127,6 +127,7 @@ module "api_server" {
     mysql_database_username = "${module.ingester_database.output_database_username}"
     mysql_database_password = "${var.database_password_dev}"
     mysql_database_name     = "${module.ingester_database.output_database_name}"
+    mysql_database_fetch_batch_size = 10000
 
     ecs_cluster_id          = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
@@ -135,6 +136,8 @@ module "api_server" {
     ecs_instances_cpu       = 1
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
     ecs_days_to_keep_images = 1
+
+    default_num_photo_recommendations = 10
 }
 
 

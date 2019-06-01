@@ -5,6 +5,7 @@ variable "mysql_database_port" {}
 variable "mysql_database_username" {}
 variable "mysql_database_password" {}
 variable "mysql_database_name" {}
+variable "mysql_database_fetch_batch_size" {}
 variable "vpc_id" {}
 variable "vpc_public_subnet_ids" { type = "list" }
 variable "vpc_cidr" {}
@@ -21,3 +22,4 @@ variable "load_balancer_port" {}
 variable "load_balancer_days_to_keep_access_logs" {}
 variable "load_balancer_access_logs_bucket" {}
 variable "load_balancer_access_logs_prefix" {}
+variable "default_num_photo_recommendations" {}

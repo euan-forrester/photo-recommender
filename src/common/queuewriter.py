@@ -19,7 +19,7 @@ class SQSQueueWriter:
 
             message = {
                 'Id': str(len(current_batch)),
-                'MessageBody': to_string(objects[obj])
+                'MessageBody': to_string(obj)
             }
 
             current_batch.append(message)

@@ -41,6 +41,13 @@ resource "aws_ssm_parameter" "database_name" {
     value       = "${var.mysql_database_name}"
 }
 
+resource "aws_ssm_parameter" "database_fetch_batch_size" {
+    name        = "/${var.environment}/api-server/database-fetch-batch-size"
+    description = "Number of records to read from the database per batch"
+    type        = "String"
+    value       = "${var.mysql_database_fetch_batch_size}"
+}
+
 resource "aws_ssm_parameter" "api_server_host" {
     name        = "/${var.environment}/api-server/server-host"
     description = "Host we listen on to serve requests"
@@ -55,3 +62,9 @@ resource "aws_ssm_parameter" "api_server_port" {
     value       = "${var.api_server_port}"
 }
 
+resource "aws_ssm_parameter" "default_num_photo_recommendations" {
+    name        = "/${var.environment}/api-server/default-num-photo-recommendations"
+    description = "Number of photo recommendations we return if the caller doesn't specify"
+    type        = "String"
+    value       = "${var.default_num_photo_recommendations}"
+}
