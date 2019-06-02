@@ -108,13 +108,12 @@ docker push <URI of api-server-dev repository in ECR>
 
 TODO:
 
-- Have ECS running in > 1 availability zone (see examples in the links in the README in the elastic-container-service module)
 - Make a build pipeline
 - Metrics and alarms
 - Consider moving MySQL passwords into config files rather than passing on command line from terraform script
 - Add tests
 - Lock python lib version numbers (see https://docs.docker.com/samples/library/python/#pythonversion-alpine to lock python version)
-- Maybe add a container running nginx to serve static files, or can ALB route to S3 to serve static files?
 - Have dev load balancer only be accessable from the local machine, and have the prod load balancer only listen on https
 - Encrypt SQS messages in prod
+- Use templating lib for outputting HTML from API server
 - Add connection pool manager for talking to DB from API server
