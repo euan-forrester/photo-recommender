@@ -12,7 +12,6 @@ from flask_api import status
 from confighelper import ConfigHelper
 from favoritesstoredatabase import FavoritesStoreDatabase
 from favoritesstoreexception import FavoritesStoreException
-from recommendations import Recommendations
 from output import Output
 
 #
@@ -78,7 +77,7 @@ application = Flask(__name__)
 def health_check():
     return "OK", status.HTTP_200_OK
 
-@application.route("/users/<user_id>/recommendations-fast")
+@application.route("/users/<user_id>/recommendations")
 def get_recommendations_fast(user_id=None):
     if user_id is None:
         return "User not specified", status.HTTP_400_BAD_REQUEST
@@ -86,21 +85,6 @@ def get_recommendations_fast(user_id=None):
     num_photos = int(request.args.get('num-photos', default_num_photo_recommendations))
 
     recommendations = favorites_store.get_photo_recommendations(user_id, num_photos)
-
-    output = Output.get_output(recommendations)
-
-    return output
-
-@application.route("/users/<user_id>/recommendations")
-def get_recommendations(user_id=None):
-    if user_id is None:
-        return "User not specified", status.HTTP_400_BAD_REQUEST
-
-    num_photos = int(request.args.get('num-photos', default_num_photo_recommendations))
-
-    all_favorites = favorites_store.get_my_favorites_and_neighbors_favorites(user_id)
-
-    recommendations = Recommendations.get_recommendations(user_id, all_favorites, num_photos)
 
     output = Output.get_output(recommendations)
 

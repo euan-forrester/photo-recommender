@@ -1,7 +1,6 @@
 import pymysql
 import pymysql.cursors
 import logging
-from favorite import Favorite
 from photorecommendation import PhotoRecommendation
 from favoritesstoreexception import FavoritesStoreException
 
@@ -95,39 +94,6 @@ class FavoritesStoreDatabase:
         finally:
             cursor.close()
 
-    def get_my_favorites_and_neighbors_favorites(self, user_id):
-
-        cursor = self.cnx.cursor() 
-
-        logging.debug("Trying to get rows for user '%s'" % user_id)
-
-        try:
-            cursor.execute("""
-                select 
-                    id, image_id, image_owner, image_url, favorited_by 
-                from 
-                    favorites 
-                where 
-                    favorited_by=%s 
-                or 
-                    favorited_by in (select distinct image_owner from favorites where favorited_by=%s);
-            """, (user_id, user_id))
-     
-            favorites = []
-
-            for row in self._iter_row(cursor):
-                logging.debug("Got a row!", row)
-                favorites.append(Favorite(id=row[0], image_id=row[1], image_owner=row[2], image_url=row[3], favorited_by=row[4]))
-
-            return favorites
-
-        except Exception as e:
-            raise FavoritesStoreException from e
-
-        finally:
-            cursor.close()
-
- 
     def _iter_row(self, cursor):
         while True:
             rows = cursor.fetchmany(self.fetch_batch_size)
