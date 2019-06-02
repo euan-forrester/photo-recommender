@@ -49,6 +49,8 @@ class FavoritesStoreDatabase:
             # versus just getting all of the favorites data from the database (could be 10s or 100s of thousands of records)
             # then doing the scoring and sorting in the API server
 
+            # OPTIMIZATION: Is it possible to pre-compile this statement? I was unclear from the PyMySql docs how to do this.
+
             cursor.execute("""
                 select possible_photos.image_id, possible_photos.image_owner, possible_photos.image_url, sum(neighbor_scores.score) as 'total_score' from
                         (select image_id, image_owner, image_url, favorited_by from favorites 
