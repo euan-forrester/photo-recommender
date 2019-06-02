@@ -10,7 +10,6 @@ from flask import Flask
 from flask import request
 from flask_api import status
 from confighelper import ConfigHelper
-from favorite import Favorite
 from favoritesstoredatabase import FavoritesStoreDatabase
 from favoritesstoreexception import FavoritesStoreException
 from recommendations import Recommendations
@@ -78,6 +77,19 @@ application = Flask(__name__)
 @application.route("/healthcheck")
 def health_check():
     return "OK", status.HTTP_200_OK
+
+@application.route("/users/<user_id>/recommendations-fast")
+def get_recommendations_fast(user_id=None):
+    if user_id is None:
+        return "User not specified", status.HTTP_400_BAD_REQUEST
+
+    num_photos = int(request.args.get('num-photos', default_num_photo_recommendations))
+
+    recommendations = favorites_store.get_photo_recommendations(user_id, num_photos)
+
+    output = Output.get_output(recommendations)
+
+    return output
 
 @application.route("/users/<user_id>/recommendations")
 def get_recommendations(user_id=None):

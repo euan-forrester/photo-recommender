@@ -1,6 +1,7 @@
 import logging
 import math
 from favorite import Favorite
+from photorecommendation import PhotoRecommendation
 
 class Recommendations:
 
@@ -88,5 +89,5 @@ class Recommendations:
 
         # The result is a list of tuples where the first element is the photo ID, and the second element is a dictionary of score and photo object
 
-        return map(lambda photo: {'image_owner': photo[1]['photo'].get_image_owner(), 'photo_id': photo[1]['photo'].get_id(), 'image_url': photo[1]['photo'].get_image_url()}, 
+        return map(lambda photo: PhotoRecommendation(image_owner=photo[1]['photo'].get_image_owner(), image_id=photo[1]['photo'].get_image_id(), image_url=photo[1]['photo'].get_image_url(), score=photo[1]['score']), 
             sorted_neighbor_favorite_photo_ids[0:num_photo_results])
