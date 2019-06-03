@@ -6,6 +6,7 @@ variable "mysql_database_username" {}
 variable "mysql_database_password" {}
 variable "mysql_database_name" {}
 variable "mysql_database_fetch_batch_size" {}
+variable "mysql_database_connection_pool_size" {}
 variable "vpc_id" {}
 variable "vpc_public_subnet_ids" { type = "list" }
 variable "vpc_cidr" {}
