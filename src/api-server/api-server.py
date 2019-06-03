@@ -6,6 +6,7 @@ sys.path.insert(0, '../common')
 import argparse
 import logging
 import atexit
+import json
 from flask import Flask
 from flask import request
 from flask_api import status
@@ -75,12 +76,14 @@ atexit.register(cleanup_data_store)
 
 application = Flask(__name__)
 
+# Health check for our load balancer
 @application.route("/healthcheck")
 def health_check():
     return "OK", status.HTTP_200_OK
 
+# Gets our recommendations for a specific user
 @application.route("/users/<user_id>/recommendations")
-def get_recommendations_fast(user_id=None):
+def get_recommendations(user_id=None):
     if user_id is None:
         return "User not specified", status.HTTP_400_BAD_REQUEST
 
@@ -90,7 +93,20 @@ def get_recommendations_fast(user_id=None):
 
     output = Output.get_output(recommendations)
 
-    return output
+    return output, status.HTTP_200_OK
+
+# Gets a list of registered users who need to have their data refreshed
+@application.route("/users/need-update")
+def get_users_that_need_update():
+
+    num_seconds_between_updates = request.args.get('num-seconds-between-updates')
+
+    if not num_seconds_between_updates:
+        return "num-seconds-between-updates not specified", status.HTTP_400_BAD_REQUEST
+
+    users = favorites_store.get_users_that_need_updated(int(num_seconds_between_updates))
+
+    return json.dumps(users)
 
 if __name__ == '__main__':
     # Note that running Flask like this results in the output saying "lazy loading" and I'm not sure what that means.

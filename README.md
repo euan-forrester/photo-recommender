@@ -117,3 +117,4 @@ TODO:
 - Have dev load balancer only be accessable from the local machine, and have the prod load balancer only listen on https
 - Encrypt SQS messages in prod
 - Use templating lib for outputting HTML from API server
+- Move database terraform into its own top-level module, and rename database to "photo-recommender"

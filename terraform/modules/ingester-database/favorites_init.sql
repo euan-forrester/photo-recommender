@@ -10,3 +10,16 @@ CREATE TABLE favorites (
     KEY (image_owner),
     KEY (image_id)
 ) ENGINE = InnoDB, CHARACTER SET = utf8mb4;
+
+CREATE TABLE registered_users (
+    id INT AUTO_INCREMENT,
+    user_id VARCHAR(64) NOT NULL,
+    data_last_requested_at TIMESTAMP,
+    data_last_successfully_processed_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY (user_id),
+    KEY (data_last_requested_at),
+    KEY (data_last_successfully_processed_at)
+) ENGINE = InnoDB, CHARACTER SET = utf8mb4;
