@@ -124,6 +124,44 @@ class FavoritesStoreDatabase:
             cursor.close()
             cnx.close()            
 
+    def user_data_requested(self, user_id):
+        cnx = self.cnxpool.get_connection()
+
+        cursor = cnx.cursor() 
+
+        try:
+            cursor.execute("""
+                update registered_users set data_last_requested_at = NOW() where user_id=%s;
+            """, (user_id,))
+
+            cnx.commit()
+
+        except Exception as e:
+            raise FavoritesStoreException from e
+
+        finally:
+            cursor.close()
+            cnx.close()         
+
+    def user_data_updated(self, user_id):
+        cnx = self.cnxpool.get_connection()
+
+        cursor = cnx.cursor() 
+
+        try:
+            cursor.execute("""
+                update registered_users set data_last_successfully_processed_at = NOW() where user_id=%s;
+            """, (user_id,))
+
+            cnx.commit()
+
+        except Exception as e:
+            raise FavoritesStoreException from e
+
+        finally:
+            cursor.close()
+            cnx.close()    
+
     def _iter_row(self, cursor):
         while True:
             rows = cursor.fetchmany(self.fetch_batch_size)

@@ -19,7 +19,7 @@ CREATE TABLE registered_users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
-    KEY (user_id),
+    UNIQUE KEY (user_id),
     KEY (data_last_requested_at),
     KEY (data_last_successfully_processed_at)
 ) ENGINE = InnoDB, CHARACTER SET = utf8mb4;

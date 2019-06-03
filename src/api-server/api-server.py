@@ -6,9 +6,9 @@ sys.path.insert(0, '../common')
 import argparse
 import logging
 import atexit
-import json
 from flask import Flask
 from flask import request
+from flask import jsonify
 from flask_api import status
 from confighelper import ConfigHelper
 from favoritesstoredatabase import FavoritesStoreDatabase
@@ -77,15 +77,15 @@ atexit.register(cleanup_data_store)
 application = Flask(__name__)
 
 # Health check for our load balancer
-@application.route("/healthcheck")
+@application.route("/healthcheck", methods = ['GET'])
 def health_check():
     return "OK", status.HTTP_200_OK
 
 # Gets our recommendations for a specific user
-@application.route("/users/<user_id>/recommendations")
+@application.route("/users/<user_id>/recommendations", methods = ['GET'])
 def get_recommendations(user_id=None):
     if user_id is None:
-        return "User not specified", status.HTTP_400_BAD_REQUEST
+        return user_not_specified()
 
     num_photos = int(request.args.get('num-photos', default_num_photo_recommendations))
 
@@ -96,17 +96,48 @@ def get_recommendations(user_id=None):
     return output, status.HTTP_200_OK
 
 # Gets a list of registered users who need to have their data refreshed
-@application.route("/users/need-update")
+@application.route("/users/need-update", methods = ['GET'])
 def get_users_that_need_update():
 
     num_seconds_between_updates = request.args.get('num-seconds-between-updates')
 
     if not num_seconds_between_updates:
-        return "num-seconds-between-updates not specified", status.HTTP_400_BAD_REQUEST
+        return parameter_not_specified("num-seconds-between-updates")
 
     users = favorites_store.get_users_that_need_updated(int(num_seconds_between_updates))
 
-    return json.dumps(users)
+    resp = jsonify(users)
+    resp.status_code = status.HTTP_200_OK
+
+    return resp
+
+# Notifies that a particular user has had their data requested
+@application.route("/users/<user_id>/data-requested", methods = ['PUT'])
+def put_user_data_requested(user_id=None):
+    if user_id is None:
+        return user_not_specified()
+
+    favorites_store.user_data_requested(user_id)
+
+    return "OK", status.HTTP_200_OK
+
+# Notifies that a particular user has had their data successfully updated
+@application.route("/users/<user_id>/data-updated", methods = ['PUT'])
+def put_user_data_updated(user_id=None):
+    if user_id is None:
+        return user_not_specified()
+
+    favorites_store.user_data_updated(user_id)
+
+    return "OK", status.HTTP_200_OK
+
+@application.errorhandler(status.HTTP_400_BAD_REQUEST)
+def user_not_specified(error=None):
+    return "User not specified", status.HTTP_400_BAD_REQUEST
+
+@application.errorhandler(status.HTTP_400_BAD_REQUEST)
+def parameter_not_specified(param_name, error=None):
+    return f"Parameter {param_name} not specified", status.HTTP_400_BAD_REQUEST
 
 if __name__ == '__main__':
     # Note that running Flask like this results in the output saying "lazy loading" and I'm not sure what that means.
