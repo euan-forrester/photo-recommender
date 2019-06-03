@@ -53,6 +53,8 @@ class FavoritesStoreDatabase:
 
             # OPTIMIZATION: Is it possible to pre-compile this statement? 
 
+            # Took the scoring formula from https://www.flickr.com/groups/709526@N23/discuss/72157604460161681/72157604455830572
+
             cursor.execute("""
                 select possible_photos.image_id, possible_photos.image_owner, possible_photos.image_url, sum(neighbor_scores.score) as 'total_score' from
                         (select image_id, image_owner, image_url, favorited_by from favorites 
@@ -109,4 +111,3 @@ class FavoritesStoreDatabase:
     def shutdown(self):
         # Nothing to do: don't need to close a connection pool
         return
-        
