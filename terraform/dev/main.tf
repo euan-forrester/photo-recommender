@@ -34,6 +34,30 @@ module "elastic_container_service" {
     instances_log_retention_days = 1
 }
 
+module "scheduler" {
+    source = "../modules/scheduler"
+
+    environment = "dev"
+    region = "${var.region}"
+
+    ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
+    ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
+    ecs_instances_desired_count = 0
+    ecs_instances_memory = 256
+    ecs_instances_cpu = 1
+    ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
+    ecs_days_to_keep_images = 1
+
+    api_server_host = "${module.api_server.load_balancer_host}"
+    api_server_port = "${module.api_server.load_balancer_port}"
+    api_server_fetch_batch_size = 1000
+
+    scheduler_queue_batch_size = 10
+
+    scheduler_response_queue_batch_size  = 10
+    scheduler_response_queue_max_items_to_process = 10000
+}
+
 module "puller_flickr" {
     source = "../modules/puller-flickr"
 
@@ -85,7 +109,7 @@ module "ingester_database" {
     mysql_storage_encrypted = false # db.t2.micro doesn't support encryption at rest -- needs to be at least db.t2.small
     mysql_storage_type      = "standard" # Magnetic storage; min size 5GB
     mysql_database_size_gb  = 5
-    mysql_multi_az          = true
+    mysql_multi_az          = false # Disable database multi-AZ in dev to save billing charges
     mysql_backup_retention_period_days = 3
     mysql_database_batch_size = 1000
 

@@ -108,6 +108,7 @@ docker push <URI of api-server-dev repository in ECR>
 
 TODO:
 
+- Upgrade to terraform v0.12
 - Make a build pipeline
 - Metrics and alarms
 - Consider moving MySQL passwords into config files rather than passing on command line from terraform script
