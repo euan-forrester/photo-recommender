@@ -1,5 +1,4 @@
-import pymysql
-import pymysql.cursors
+import mysql.connector.pooling
 import logging
 from photorecommendation import PhotoRecommendation
 from favoritesstoreexception import FavoritesStoreException
@@ -10,36 +9,40 @@ class FavoritesStoreDatabase:
     This class interfaces with a MySQL database to retrieve a list of my favorites and the favorites of my neighbors
     '''
 
-    def __init__(self, database_username, database_password, database_host, database_port, database_name, fetch_batch_size):
+    def __init__(self, database_username, database_password, database_host, database_port, database_name, connection_pool_size, fetch_batch_size):
         
-        # Note that pymysql.cursors.SSCursor is an unbuffered cursor, meaning that it only retrieves rows as it needs them, rather than all at once.
-        # We're retrieving a large dataset here, so having only a few in memory at once is preferred. Although we end up creating an object for
-        # every row anyway, and keeping them all in memory at once, so it's not a huge deal.
+        # Note that we're using a buffered cursor, meaning that it downloads all results from the database before returning the
+        # first result, rather than retrieving results as it needs them.
         #
-        # I tried using mysql.connector, but only its buffered cursor worked as expected: using an unbuffered cursor resulted in having
-        # a single row being returned over and over by fetchmany() after all of the correct results had been returned. So it would be difficult to
-        # determine whether we were actually at the end of our resultset or not. This appears to be a bug in that connector lib, because a buffered 
-        # cursor worked as expected, and the same code worked fine for an unbuffered (and buffered) cursor with the pymysql package.
+        # I found that using an unbuffered cursor with mysql.connector had a bug where the same result would be returned infinitely
+        # at the end of a result set when using fetchmany(), at least with a lot of results being returned.
         #
-        # Solutions tried: upgrading python, upgrading the mysql-connector-python package, downgrading the database from MySQL 8.0 to 5.7
-        # Couldn't find anything with various google searches.
-        # Maybe later this bug will be fixed and we can switch back to the mysql.connector package?
+        # So I tried switching to the PyMySql library instead, which did not have this bug. However, the support for connection
+        # pooling in PyMySql is pretty poor, so it doesn't seem like a good production library to use.
+        #
+        # But now we're just returning small result sets, so it seems okay to just use a buffered cursor and switch back to the 
+        # mysql.connector lib instead.
 
-        self.cnx                = pymysql.connect(
-                                    user=database_username, 
-                                    password=database_password, 
-                                    host=database_host, 
-                                    port=database_port, 
-                                    db=database_name, 
-                                    cursorclass=pymysql.cursors.SSCursor) # Unbuffered cursor: https://pymysql.readthedocs.io/en/latest/modules/cursors.html
-        
+        # See here for a full list of possible args in this struct: https://dev.mysql.com/doc/connector-python/en/connector-python-connectargs.html
+        dbconfig = {
+            "database": database_name,
+            "user":     database_username,
+            "password": database_password,
+            "host":     database_host,
+            "port":     database_port
+        }
+
+        self.cnxpool            = mysql.connector.pooling.MySQLConnectionPool(pool_name = "favorites",
+                                                                              pool_size = connection_pool_size,
+                                                                              **dbconfig)
+
         self.fetch_batch_size   = fetch_batch_size
 
     def get_photo_recommendations(self, user_id, num_photos):
 
-        cursor = self.cnx.cursor() 
+        cnx = self.cnxpool.get_connection()
 
-        logging.debug(f"Trying to get recommendations for user '{user_id}'")
+        cursor = cnx.cursor() 
 
         try:
             # See SQL queries.md for an explanation of the various portions of this query
@@ -48,7 +51,7 @@ class FavoritesStoreDatabase:
             # versus just getting all of the favorites data from the database (could be 10s or 100s of thousands of records)
             # then doing the scoring and sorting in the API server
 
-            # OPTIMIZATION: Is it possible to pre-compile this statement? I was unclear from the PyMySql docs how to do this.
+            # OPTIMIZATION: Is it possible to pre-compile this statement? 
 
             cursor.execute("""
                 select possible_photos.image_id, possible_photos.image_owner, possible_photos.image_url, sum(neighbor_scores.score) as 'total_score' from
@@ -93,15 +96,17 @@ class FavoritesStoreDatabase:
 
         finally:
             cursor.close()
+            cnx.close()
 
     def _iter_row(self, cursor):
         while True:
             rows = cursor.fetchmany(self.fetch_batch_size)
-            logging.debug("Just fetched %d rows" % len(rows))
             if not rows:
                 break
             for row in rows:
                 yield row
 
     def shutdown(self):
-        self.cnx.close()
+        # Nothing to do: don't need to close a connection pool
+        return
+        

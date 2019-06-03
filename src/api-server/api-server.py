@@ -42,6 +42,7 @@ database_host               = config_helper.get("database-host")
 database_port               = config_helper.getInt("database-port")
 database_name               = config_helper.get("database-name")
 database_fetch_batch_size   = config_helper.getInt("database-fetch-batch-size")
+database_connection_pool_size = config_helper.getInt("database-connection-pool-size")
 server_host                 = config_helper.get("server-host")
 server_port                 = config_helper.getInt("server-port")
 default_num_photo_recommendations = config_helper.getInt('default-num-photo-recommendations')
@@ -56,7 +57,8 @@ favorites_store = FavoritesStoreDatabase(
     database_host=database_host, 
     database_port=database_port, 
     database_name=database_name, 
-    fetch_batch_size=database_fetch_batch_size)
+    fetch_batch_size=database_fetch_batch_size,
+    connection_pool_size=database_connection_pool_size)
 
 def cleanup_data_store():
     favorites_store.shutdown()

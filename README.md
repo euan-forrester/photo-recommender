@@ -116,4 +116,3 @@ TODO:
 - Have dev load balancer only be accessable from the local machine, and have the prod load balancer only listen on https
 - Encrypt SQS messages in prod
 - Use templating lib for outputting HTML from API server
-- Add connection pool manager for talking to DB from API server

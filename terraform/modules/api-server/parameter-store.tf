@@ -48,6 +48,13 @@ resource "aws_ssm_parameter" "database_fetch_batch_size" {
     value       = "${var.mysql_database_fetch_batch_size}"
 }
 
+resource "aws_ssm_parameter" "database_connection_pool_size" {
+    name        = "/${var.environment}/api-server/database-connection-pool-size"
+    description = "Size of our pool of connections to the database"
+    type        = "String"
+    value       = "${var.mysql_database_connection_pool_size}"
+}
+
 resource "aws_ssm_parameter" "api_server_host" {
     name        = "/${var.environment}/api-server/server-host"
     description = "Host we listen on to serve requests"
