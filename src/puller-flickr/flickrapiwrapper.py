@@ -10,7 +10,7 @@ class FlickrApiWrapper:
     Wraps around the flickrapi package: adds in retries to calls that fail, and external cacheing via memcached
     """
 
-    def __init__(self, flickr_api_key, flickr_api_secret, memcached_location, memcached_ttl, max_retries):
+    def __init__(self, flickr_api_key, flickr_api_secret, memcached_location, memcached_ttl, max_retries, max_favorites_per_call, max_favorites_to_get):
 
         settings.configure(CACHES = {
             'default': {
@@ -25,6 +25,8 @@ class FlickrApiWrapper:
         self.flickr.cache = cache
 
         self.max_retries = max_retries
+        self.max_favorites_per_call = max_favorites_per_call
+        self.max_favorites_to_get = max_favorites_to_get
 
     def get_person_info(self, user_id):
         
@@ -32,18 +34,18 @@ class FlickrApiWrapper:
 
         person_info = self._call_with_retries(lambda_to_call)
 
-        logging.info("Just called get_person_info for user %s" % (user_id))
+        logging.info(f"Just called get_person_info for user {user_id}")
 
         return person_info
 
-    def get_favorites(self, user_id, max_per_call, max_to_get):
+    def get_favorites(self, user_id):
 
         got_all_favorites = False
         current_page = 1
         favorites = []
 
-        while not got_all_favorites and len(favorites) < max_to_get:
-            favorites_subset = self._get_favorites_page(user_id, max_per_call, current_page)
+        while not got_all_favorites and len(favorites) < self.max_favorites_to_get:
+            favorites_subset = self._get_favorites_page(user_id, current_page)
 
             if len(favorites_subset['photos']['photo']) > 0: # We can't just check if the number we got back == the number we requested, because frequently we can get back < the number we requested but there's still more available. This is likely due to not having permission to be able to view all of the ones we requested
                 favorites.extend(favorites_subset['photos']['photo'])
@@ -52,19 +54,19 @@ class FlickrApiWrapper:
 
             current_page += 1
 
-        favorites_up_to_max = favorites[0:max_to_get]
+        favorites_up_to_max = favorites[0:self.max_favorites_to_get]
 
-        logging.info("Returning %d favorites which took %d calls" % (len(favorites_up_to_max), current_page - 1))
+        logging.info(f"Returning {len(favorites_up_to_max)} favorites which took {current_page - 1} calls")
 
         return favorites_up_to_max 
 
-    def _get_favorites_page(self, user_id, max_per_call, page_number):
+    def _get_favorites_page(self, user_id, page_number):
 
-        lambda_to_call = lambda: self.flickr.favorites.getList(user_id=user_id, extras='url_l,url_m', per_page=max_per_call, page=page_number)
+        lambda_to_call = lambda: self.flickr.favorites.getList(user_id=user_id, extras='url_l,url_m', per_page=self.max_favorites_per_call, page=page_number)
 
         favorites = self._call_with_retries(lambda_to_call)
 
-        logging.info("Just called get_favorites_page for page %d with max_per_call %d and returning %d faves" % (page_number, max_per_call, len(favorites['photos']['photo'])))
+        logging.info(f"Just called get_favorites_page for page {page_number} with max_favorites_per_call {self.max_favorites_per_call} and returning {len(favorites['photos']['photo'])} faves")
 
         return favorites
 
@@ -97,11 +99,11 @@ class FlickrApiWrapper:
                 # Sleeping between calls didn't seem to always solve it, but retrying does
                 # There doesn't seem to be a way to determine that this happened from the exception object other than to test
                 # the string against "do_request: Status code 502 received"
-                logging.debug("Got FlickrError %s" % (e))
+                logging.debug(f"Got FlickrError {e}")
                 error = e
 
             except requests.exceptions.ConnectionError as e:
-                logging.debug("Got ConnectionError %s" % (e))
+                logging.debug(f"Got ConnectionError {e}")
                 # Sometimes we see a random "Remote end closed connection without response" error
                 error = e
 

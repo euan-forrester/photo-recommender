@@ -91,6 +91,13 @@ module "puller_flickr" {
     output_queue_url = "${module.ingester_database.ingester_queue_url}"
     output_queue_arn = "${module.ingester_database.ingester_queue_arn}"
     output_queue_batch_size = 10
+
+    scheduler_queue_url = "${module.scheduler.scheduler_queue_url}"
+    scheduler_queue_batch_size = 10
+    scheduler_queue_max_items_to_process = 1000
+
+    scheduler_response_queue_url = "${module.scheduler.scheduler_response_queue_url}"
+    scheduler_response_queue_batch_size = 10
 }
 
 module "ingester_database" {

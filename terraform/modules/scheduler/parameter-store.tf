@@ -35,7 +35,7 @@ resource "aws_ssm_parameter" "scheduler_response_queue_url" {
 
 resource "aws_ssm_parameter" "scheduler_response_queue_batch_size" {
     name        = "/${var.environment}/scheduler/scheduler-response-queue-batchsize"
-    description = "Number of items to take off of the scheduler resposne queue in a single batch"
+    description = "Number of items to take off of the scheduler response queue in a single batch"
     type        = "String"
     value       = "${var.scheduler_response_queue_batch_size}"
 }
