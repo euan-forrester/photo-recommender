@@ -5,10 +5,12 @@ sys.path.insert(0, '../common')
 
 import argparse
 import logging
-import os
 from queuewriter import SQSQueueWriter
 from queuereader import SQSQueueReader
 from confighelper import ConfigHelper
+from schedulerqueueitem import SchedulerQueueItem
+from schedulerresponsequeueitem import SchedulerResponseQueueItem
+from usersstoreapiserver import UsersStoreAPIServer
 
 #
 # Read in commandline arguments
@@ -34,7 +36,6 @@ config_helper = ConfigHelper.get_config_helper(default_env_name="dev", aws_param
 
 api_server_host                     = config_helper.get("api-server-host")
 api_server_port                     = config_helper.getInt("api-server-port")
-api_server_fetch_batch_size         = config_helper.getInt("api-server-fetch-batch-size")
 
 scheduler_queue_url                 = config_helper.get("scheduler-queue-url")
 scheduler_queue_batch_size          = config_helper.getInt("scheduler-queue-batchsize")
@@ -42,3 +43,70 @@ scheduler_queue_batch_size          = config_helper.getInt("scheduler-queue-batc
 scheduler_response_queue_url        = config_helper.get("scheduler-response-queue-url")
 scheduler_response_queue_batch_size = config_helper.getInt("scheduler-response-queue-batchsize")
 scheduler_response_queue_max_items_to_process = config_helper.getInt("scheduler-response-queue-maxitemstoprocess")
+
+#
+# Initialize our users' store and queues
+# 
+
+users_store = UsersStoreAPIServer(host=api_server_host, port=api_server_port)
+
+scheduler_queue = SQSQueueWriter(scheduler_queue_url, scheduler_queue_batch_size)
+
+scheduler_response_queue = SQSQueueReader(scheduler_response_queue_url, scheduler_response_queue_batch_size, scheduler_response_queue_max_items_to_process)
+
+#
+# Begin by requesting all of the users that haven't been updated in a while
+#
+
+logging.info("Beginning looking for users who haven't been updated in a while")
+
+try:
+    users_ids_to_request_data_for = users_store.get_users_to_request_data_for(seconds_between_user_data_updates)
+
+    users_to_request_data_for = map(lambda user_id: SchedulerQueueItem(user_id=user_id, is_registered_user=True), users_ids_to_request_data_for)
+
+    logging.info(f"Found {len(users_to_request_data_for)} registered users who need their data updated. Sending messages to queue {scheduler_queue_url} in batches of {scheduler_queue_batch_size}")
+
+    scheduler_queue.send_messages(objects=users_to_request_data_for, to_string=lambda user : user.to_json())
+
+    for user in users_to_request_data_for:
+        logging.info(f"Requested data for user {user.get_user_id()}")
+        users_store.data_requested(user.get_user_id())
+
+except UsersStoreException as e:
+    logging.error("Unable to talk to our users store. Exiting.", e)
+    sys.exit()
+
+logging.info("Ended looking for users who haven't been updated in a while")
+
+#
+# Process any scheduler response messages
+#
+
+logging.info("Beginning processing scheduler response messages")
+
+try:
+
+    for queue_message in scheduler_response_queue:
+        response = SchedulerResponseQueueItem.from_json(queue_message.get_message_body())
+
+        logging.info(f"Received response message: User ID: {response.get_user_id()}, is registered user: {response.is_registered_user()}")
+
+        users_store.data_updated(response.get_user_id())
+
+        scheduler_response_queue.finished_with_message(queue_message)
+
+except UsersStoreException as e:
+    logging.error("Unable to talk to our users store. Exiting.", e)
+    sys.exit()
+
+finally:
+    scheduler_response_queue.shutdown()
+
+logging.info("Ended processing scheduler response messages")
+
+#
+# And we're finished
+#
+
+logging.info("Scheduler successfully completed processing")

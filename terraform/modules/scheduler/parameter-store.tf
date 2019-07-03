@@ -12,13 +12,6 @@ resource "aws_ssm_parameter" "api_server_port" {
     value       = "${var.api_server_port}"
 }
 
-resource "aws_ssm_parameter" "api_server_fetch_batch_size" {
-    name        = "/${var.environment}/scheduler/api-server-fetch-batch-size"
-    description = "Number of records to read from the API server per batch"
-    type        = "String"
-    value       = "${var.api_server_fetch_batch_size}"
-}
-
 resource "aws_ssm_parameter" "scheduler_queue_url" {
     name        = "/${var.environment}/scheduler/scheduler-queue-url"
     description = "URL of the queue to put requests for data to be pulled"

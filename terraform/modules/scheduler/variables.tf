@@ -2,7 +2,6 @@ variable "environment" {}
 variable "region" {}
 variable "api_server_host" {}
 variable "api_server_port" {}
-variable "api_server_fetch_batch_size" {}
 variable "ecs_instances_desired_count" {}
 variable "ecs_instances_memory" {}
 variable "ecs_instances_cpu" {}

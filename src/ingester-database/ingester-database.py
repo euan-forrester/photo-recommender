@@ -5,7 +5,6 @@ sys.path.insert(0, '../common')
 
 import argparse
 import logging
-import os
 from ingesterqueueitem import IngesterQueueItem
 from queuereader import SQSQueueReader
 from confighelper import ConfigHelper

@@ -50,11 +50,10 @@ module "scheduler" {
 
     api_server_host = "${module.api_server.load_balancer_host}"
     api_server_port = "${module.api_server.load_balancer_port}"
-    api_server_fetch_batch_size = 1000
 
     scheduler_queue_batch_size = 10
 
-    scheduler_response_queue_batch_size  = 10
+    scheduler_response_queue_batch_size = 10
     scheduler_response_queue_max_items_to_process = 10000
 }
 

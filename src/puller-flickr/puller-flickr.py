@@ -6,7 +6,6 @@ sys.path.insert(0, '../common')
 from flickrapiwrapper import FlickrApiWrapper
 import argparse
 import logging
-import os
 from ingesterqueueitem import IngesterQueueItem
 from queuewriter import SQSQueueWriter
 from confighelper import ConfigHelper
