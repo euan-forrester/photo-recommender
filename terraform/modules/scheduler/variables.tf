@@ -12,3 +12,4 @@ variable "ecs_days_to_keep_images" {}
 variable "scheduler_queue_batch_size" {}
 variable "scheduler_response_queue_batch_size" {}
 variable "scheduler_response_queue_max_items_to_process" {}
+variable "scheduler_seconds_between_user_data_updates" {}

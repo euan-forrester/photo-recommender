@@ -51,6 +51,23 @@ resource "aws_iam_policy" "ecs-instance-puller-flickr-extra-policy" {
       ],
       "Effect": "Allow",
       "Resource": "${var.output_queue_arn}"
+    },
+    {
+      "Action": [
+        "sqs:SendMessageBatch",
+        "sqs:SendMessage"
+      ],
+      "Effect": "Allow",
+      "Resource": "${var.scheduler_response_queue_arn}"
+    },
+    {
+      "Action": [
+        "sqs:ReceiveMessage",
+        "sqs:DeleteMessageBatch",
+        "sqs:DeleteMessage"
+      ],
+      "Effect": "Allow",
+      "Resource": "${var.scheduler_queue_arn}"
     }
   ]
 }

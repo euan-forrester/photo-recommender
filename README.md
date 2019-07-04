@@ -125,3 +125,4 @@ TODO:
 - Encrypt SQS messages in prod
 - Use templating lib for outputting HTML from API server
 - Move database terraform into its own top-level module, and rename database to "photo-recommender"
+- Add locking mechanism to Scheduler

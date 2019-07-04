@@ -1,5 +1,7 @@
 FROM python:3-alpine
 ADD scheduler/scheduler.py /scheduler/
+ADD scheduler/usersstoreapiserver.py /scheduler/
+ADD scheduler/usersstoreexception.py /scheduler/
 ADD common/schedulerqueueitem.py /common/
 ADD common/schedulerresponsequeueitem.py /common/
 ADD common/queuereader.py /common/

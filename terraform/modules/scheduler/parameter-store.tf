@@ -46,3 +46,10 @@ resource "aws_ssm_parameter" "scheduler_response_queue_max_items_to_process" {
     type        = "String"
     value       = "${var.scheduler_response_queue_max_items_to_process}"
 }
+
+resource "aws_ssm_parameter" "scheduler_seconds_between_user_data_updates" {
+    name        = "/${var.environment}/scheduler/seconds-between-user-data-updates"
+    description = "Number of seconds between requests from the scheduler to update user data from each provider"
+    type        = "String"
+    value       = "${var.scheduler_seconds_between_user_data_updates}"
+}

@@ -25,7 +25,9 @@ variable "output_queue_url" {}
 variable "output_queue_arn" {}
 variable "output_queue_batch_size" {}
 variable "scheduler_queue_url" {}
+variable "scheduler_queue_arn" {}
 variable "scheduler_queue_batch_size" {}
 variable "scheduler_queue_max_items_to_process" {}
 variable "scheduler_response_queue_url" {}
+variable "scheduler_response_queue_arn" {}
 variable "scheduler_response_queue_batch_size" {}

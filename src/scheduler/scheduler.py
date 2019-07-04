@@ -11,6 +11,7 @@ from confighelper import ConfigHelper
 from schedulerqueueitem import SchedulerQueueItem
 from schedulerresponsequeueitem import SchedulerResponseQueueItem
 from usersstoreapiserver import UsersStoreAPIServer
+from usersstoreexception import UsersStoreException
 
 #
 # Read in commandline arguments
@@ -32,7 +33,7 @@ logging.basicConfig(format='%(levelname)s: %(message)s', level=log_level)
 # Get our config
 #
 
-config_helper = ConfigHelper.get_config_helper(default_env_name="dev", aws_parameter_prefix="puller-flickr")
+config_helper = ConfigHelper.get_config_helper(default_env_name="dev", aws_parameter_prefix="scheduler")
 
 api_server_host                     = config_helper.get("api-server-host")
 api_server_port                     = config_helper.getInt("api-server-port")
@@ -43,6 +44,8 @@ scheduler_queue_batch_size          = config_helper.getInt("scheduler-queue-batc
 scheduler_response_queue_url        = config_helper.get("scheduler-response-queue-url")
 scheduler_response_queue_batch_size = config_helper.getInt("scheduler-response-queue-batchsize")
 scheduler_response_queue_max_items_to_process = config_helper.getInt("scheduler-response-queue-maxitemstoprocess")
+
+scheduler_seconds_between_user_data_updates = config_helper.getInt("seconds-between-user-data-updates")
 
 #
 # Initialize our users' store and queues
@@ -61,9 +64,9 @@ scheduler_response_queue = SQSQueueReader(scheduler_response_queue_url, schedule
 logging.info("Beginning looking for users who haven't been updated in a while")
 
 try:
-    users_ids_to_request_data_for = users_store.get_users_to_request_data_for(seconds_between_user_data_updates)
+    users_ids_to_request_data_for = users_store.get_users_to_request_data_for(scheduler_seconds_between_user_data_updates)
 
-    users_to_request_data_for = map(lambda user_id: SchedulerQueueItem(user_id=user_id, is_registered_user=True), users_ids_to_request_data_for)
+    users_to_request_data_for = [SchedulerQueueItem(user_id=user_id, is_registered_user=True) for user_id in users_ids_to_request_data_for]
 
     logging.info(f"Found {len(users_to_request_data_for)} registered users who need their data updated. Sending messages to queue {scheduler_queue_url} in batches of {scheduler_queue_batch_size}")
 
@@ -90,7 +93,7 @@ try:
     for queue_message in scheduler_response_queue:
         response = SchedulerResponseQueueItem.from_json(queue_message.get_message_body())
 
-        logging.info(f"Received response message: User ID: {response.get_user_id()}, is registered user: {response.is_registered_user()}")
+        logging.info(f"Received response message: User ID: {response.get_user_id()}, is registered user: {str(response.get_is_registered_user())}")
 
         users_store.data_updated(response.get_user_id())
 

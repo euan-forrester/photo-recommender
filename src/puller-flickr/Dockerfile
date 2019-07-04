@@ -5,6 +5,7 @@ ADD common/ingesterqueueitem.py /common/
 ADD common/schedulerqueueitem.py /common/
 ADD common/schedulerresponsequeueitem.py /common/
 ADD common/queuewriter.py /common/
+ADD common/queuereader.py /common/
 ADD common/confighelper.py /common/
 RUN pip install flickrapi
 RUN pip install python-memcached

@@ -42,7 +42,7 @@ module "scheduler" {
 
     ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 0
+    ecs_instances_desired_count = 1
     ecs_instances_memory = 256
     ecs_instances_cpu = 1
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
@@ -50,6 +50,8 @@ module "scheduler" {
 
     api_server_host = "${module.api_server.load_balancer_host}"
     api_server_port = "${module.api_server.load_balancer_port}"
+
+    scheduler_seconds_between_user_data_updates = 7200
 
     scheduler_queue_batch_size = 10
 
@@ -75,7 +77,7 @@ module "puller_flickr" {
 
     ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 0
+    ecs_instances_desired_count = 1
     ecs_instances_memory = 256
     ecs_instances_cpu = 1
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
@@ -93,10 +95,12 @@ module "puller_flickr" {
     output_queue_batch_size = 10
 
     scheduler_queue_url = "${module.scheduler.scheduler_queue_url}"
+    scheduler_queue_arn = "${module.scheduler.scheduler_queue_arn}"
     scheduler_queue_batch_size = 10
     scheduler_queue_max_items_to_process = 1000
 
     scheduler_response_queue_url = "${module.scheduler.scheduler_response_queue_url}"
+    scheduler_response_queue_arn = "${module.scheduler.scheduler_response_queue_arn}"
     scheduler_response_queue_batch_size = 10
 }
 

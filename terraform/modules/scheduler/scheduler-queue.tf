@@ -4,6 +4,6 @@ module "scheduler_queue" {
     queue_name                  = "scheduler-queue"
     environment                 = "${var.environment}"
     max_redrives                = 4
-    visibility_timeout_seconds  = 30
+    visibility_timeout_seconds  = 900 # 15 minutes. It can take quite a while to pull all of the favorites for a user if they have a lot 
     message_retention_seconds   = 7200
 }

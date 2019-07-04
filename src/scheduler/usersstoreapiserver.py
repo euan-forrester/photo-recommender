@@ -11,7 +11,7 @@ class UsersStoreAPIServer:
     def __init__(self, host, port):
         self.url_prefix = f"http://{host}:{port}"
 
-    def get_users_to_request_data_for(seconds_between_user_data_updates):
+    def get_users_to_request_data_for(self, seconds_between_user_data_updates):
 
         try:
             response = requests.get(f"{self.url_prefix}/users/need-update",
@@ -26,7 +26,7 @@ class UsersStoreAPIServer:
         except HTTPError as http_err:
             raise UsersStoreException from http_err
 
-    def data_requested(user_id):
+    def data_requested(self, user_id):
 
         try:
             response = requests.put(f"{self.url_prefix}/users/{user_id}/data-requested")
@@ -38,7 +38,7 @@ class UsersStoreAPIServer:
         except HTTPError as http_err:
             raise UsersStoreException from http_err
 
-    def data_updated(user_id):
+    def data_updated(self, user_id):
 
         try:
             response = requests.put(f"{self.url_prefix}/users/{user_id}/data-updated")
