@@ -1,0 +1,15 @@
+variable "environment" {}
+variable "region" {}
+variable "api_server_host" {}
+variable "api_server_port" {}
+variable "ecs_instances_desired_count" {}
+variable "ecs_instances_memory" {}
+variable "ecs_instances_cpu" {}
+variable "ecs_cluster_id" {}
+variable "ecs_instances_log_configuration" {}
+variable "ecs_instances_role_name" {}
+variable "ecs_days_to_keep_images" {}
+variable "scheduler_queue_batch_size" {}
+variable "scheduler_response_queue_batch_size" {}
+variable "scheduler_response_queue_max_items_to_process" {}
+variable "scheduler_seconds_between_user_data_updates" {}

@@ -5,13 +5,6 @@ resource "aws_kms_key" "parameter_secrets" {
     deletion_window_in_days = 7
 }
 
-resource "aws_ssm_parameter" "flickr_user_id" {
-    name        = "/${var.environment}/puller-flickr/flickr-user-id"
-    description = "Numerical user ID of the user for whom we're recommending photos"
-    type        = "String"
-    value       = "${var.flickr_user_id}"
-}
-
 resource "aws_ssm_parameter" "flickr_api_key" {
     name        = "/${var.environment}/puller-flickr/flickr-api-key"
     description = "Flickr API key"
@@ -77,4 +70,32 @@ resource "aws_ssm_parameter" "output_queue_batch_size" {
     description = "Number of items to put on the output queue in a single batch"
     type        = "String"
     value       = "${var.output_queue_batch_size}"
+}
+
+resource "aws_ssm_parameter" "scheduler_queue_url" {
+    name        = "/${var.environment}/puller-flickr/scheduler-queue-url"
+    description = "URL of the queue to get requests for data to be pulled"
+    type        = "String"
+    value       = "${var.scheduler_queue_url}"
+}
+
+resource "aws_ssm_parameter" "scheduler_queue_batch_size" {
+    name        = "/${var.environment}/puller-flickr/scheduler-queue-batchsize"
+    description = "Number of items to get from the scheduler queue in a single batch"
+    type        = "String"
+    value       = "${var.scheduler_queue_batch_size}"
+}
+
+resource "aws_ssm_parameter" "scheduler_queue_max_items_to_process" {
+    name        = "/${var.environment}/puller-flickr/scheduler-queue-maxitemstoprocess"
+    description = "Maximum number of items to get from the scheduler queue before exiting"
+    type        = "String"
+    value       = "${var.scheduler_queue_max_items_to_process}"
+}
+
+resource "aws_ssm_parameter" "scheduler_response_queue_url" {
+    name        = "/${var.environment}/puller-flickr/scheduler-response-queue-url"
+    description = "URL where we put messages saying we've successfully pulled data"
+    type        = "String"
+    value       = "${var.scheduler_response_queue_url}"
 }

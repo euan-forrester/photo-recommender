@@ -1,7 +1,7 @@
 module "task_definition" {
     source = "../task-definition"
 
-    name                        = "puller-flickr-${var.environment}"
+    name                        = "scheduler-${var.environment}"
     environment                 = "${var.environment}"
     region                      = "${var.region}"
     container_repository_url    = "${module.container_repository.repository_url}"
@@ -11,20 +11,20 @@ module "task_definition" {
     instances_log_configuration = "${var.ecs_instances_log_configuration}"
     instances_desired_count     = "${var.ecs_instances_desired_count}"
     instances_role_name         = "${var.ecs_instances_role_name}"
-    instances_extra_policy_arn  = "${aws_iam_policy.ecs-instance-puller-flickr-extra-policy.arn}"
+    instances_extra_policy_arn  = "${aws_iam_policy.ecs-instance-scheduler-extra-policy.arn}"
     port_mappings               = ""
     has_load_balancer           = false
     load_balancer_container_port = -1
     load_balancer_target_group_arn = ""
 }
 
-data "aws_caller_identity" "puller_flickr" {
+data "aws_caller_identity" "scheduler" {
   
 }
 
-resource "aws_iam_policy" "ecs-instance-puller-flickr-extra-policy" {
-  name        = "puller-flickr-extra-policy"
-  description = "Allows puller-flickr to read parameters and write to the ingestion queue"
+resource "aws_iam_policy" "ecs-instance-scheduler-extra-policy" {
+  name        = "scheduler-extra-policy"
+  description = "Allows the scheduler to read parameters, write to the scheduler queue, read from the scheduler response queue"
 
   policy = <<EOF
 {
@@ -35,14 +35,7 @@ resource "aws_iam_policy" "ecs-instance-puller-flickr-extra-policy" {
         "ssm:GetParameter"
       ],
       "Effect": "Allow",
-      "Resource": "arn:aws:ssm:*:${data.aws_caller_identity.puller_flickr.account_id}:parameter/${var.environment}/puller-flickr/*"
-    },
-    {
-      "Action": [
-        "kms:Decrypt"
-      ],
-      "Effect": "Allow",
-      "Resource": "${aws_kms_key.parameter_secrets.arn}"
+      "Resource": "arn:aws:ssm:*:${data.aws_caller_identity.scheduler.account_id}:parameter/${var.environment}/scheduler/*"
     },
     {
       "Action": [
@@ -50,15 +43,7 @@ resource "aws_iam_policy" "ecs-instance-puller-flickr-extra-policy" {
         "sqs:SendMessage"
       ],
       "Effect": "Allow",
-      "Resource": "${var.output_queue_arn}"
-    },
-    {
-      "Action": [
-        "sqs:SendMessageBatch",
-        "sqs:SendMessage"
-      ],
-      "Effect": "Allow",
-      "Resource": "${var.scheduler_response_queue_arn}"
+      "Resource": "${module.scheduler_queue.queue_arn}"
     },
     {
       "Action": [
@@ -67,7 +52,7 @@ resource "aws_iam_policy" "ecs-instance-puller-flickr-extra-policy" {
         "sqs:DeleteMessage"
       ],
       "Effect": "Allow",
-      "Resource": "${var.scheduler_queue_arn}"
+      "Resource": "${module.scheduler_response_queue.queue_arn}"
     }
   ]
 }

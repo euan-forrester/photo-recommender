@@ -100,6 +100,68 @@ class FavoritesStoreDatabase:
             cursor.close()
             cnx.close()
 
+    def get_users_that_need_updated(self, num_seconds_between_updates):
+        cnx = self.cnxpool.get_connection()
+
+        cursor = cnx.cursor() 
+
+        try:
+            cursor.execute("""
+                select user_id from registered_users where TIMESTAMPDIFF(SECOND, IFNULL(data_last_requested_at, TIMESTAMP('1970-01-01')), NOW()) > %s;
+            """, (num_seconds_between_updates,))
+
+            users = []
+
+            for row in self._iter_row(cursor):
+                users.append(row[0])
+
+            return users
+
+        except Exception as e:
+            raise FavoritesStoreException from e
+
+        finally:
+            cursor.close()
+            cnx.close()            
+
+    def user_data_requested(self, user_id):
+        cnx = self.cnxpool.get_connection()
+
+        cursor = cnx.cursor() 
+
+        try:
+            cursor.execute("""
+                update registered_users set data_last_requested_at = NOW() where user_id=%s;
+            """, (user_id,))
+
+            cnx.commit()
+
+        except Exception as e:
+            raise FavoritesStoreException from e
+
+        finally:
+            cursor.close()
+            cnx.close()         
+
+    def user_data_updated(self, user_id):
+        cnx = self.cnxpool.get_connection()
+
+        cursor = cnx.cursor() 
+
+        try:
+            cursor.execute("""
+                update registered_users set data_last_successfully_processed_at = NOW() where user_id=%s;
+            """, (user_id,))
+
+            cnx.commit()
+
+        except Exception as e:
+            raise FavoritesStoreException from e
+
+        finally:
+            cursor.close()
+            cnx.close()    
+
     def _iter_row(self, cursor):
         while True:
             rows = cursor.fetchmany(self.fetch_batch_size)

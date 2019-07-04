@@ -9,14 +9,21 @@ Initially this will use the Flickr API, since it's the only one I know of where 
 - Instagram: deprecated their API that allowed access to users' likes on Apr 4 2018: https://www.instagram.com/developer/changelog/
 - Smugmug: I don't see any facility for adding favorites or getting them from the API: https://api.smugmug.com/api/v2/doc
 - 500px: Their API is no longer free: https://support.500px.com/hc/en-us/articles/360002435653-API- Their API did appear to have the concept of "votes" which might be similar: https://github.com/500px/legacy-api-documentation/tree/master/endpoints/photo 
+- Spotify: Is it possible to do something here with playlists? https://developer.spotify.com/documentation/web-api/
+- YouPic: Seems to have a similar idea with favorites, and a somewhat similar idea with stars, although no public API that I see: https://youpic.com/faq
 
-I plan to use:
+This project uses:
+
 - Terraform: https://www.terraform.io/
 - Elastic Container Service: https://aws.amazon.com/ecs/ and Elastic Container Registry: https://aws.amazon.com/ecr/
-- CodeBuild: https://aws.amazon.com/codebuild/
 - SQS for the initial stab at data injestion, but consider changing to Kafka https://aws.amazon.com/msk/ or Kinesis https://aws.amazon.com/kinesis/
 - RDS for the initial stab at data storage, but consider changing to Clickhouse: https://clickhouse.yandex/ or Redshift https://aws.amazon.com/redshift/
+- A bunch of Python libs, most notably Flask and gunicorn
+- ALB for load balancing
 - Random other parts of AWS like ElastiCache, Parameter Store, CloudWatch. and Key Management Service
+
+I plan to use:
+
 - Maybe building a fancy Centralized Logging thing: https://aws.amazon.com/solutions/centralized-logging/
 - Vue.js: https://vuejs.org/
 
@@ -108,6 +115,7 @@ docker push <URI of api-server-dev repository in ECR>
 
 TODO:
 
+- Upgrade to terraform v0.12
 - Make a build pipeline
 - Metrics and alarms
 - Consider moving MySQL passwords into config files rather than passing on command line from terraform script
@@ -116,3 +124,5 @@ TODO:
 - Have dev load balancer only be accessable from the local machine, and have the prod load balancer only listen on https
 - Encrypt SQS messages in prod
 - Use templating lib for outputting HTML from API server
+- Move database terraform into its own top-level module, and rename database to "photo-recommender"
+- Add locking mechanism to Scheduler

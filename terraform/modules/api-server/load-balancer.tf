@@ -34,7 +34,7 @@ resource "aws_lb_target_group" "load_balancer" {
         timeout             = 6
         healthy_threshold   = 3
         unhealthy_threshold = 3
-        matcher             = "200-299"
+        matcher             = "200"
     }
 }
 
@@ -59,7 +59,7 @@ resource "aws_security_group" "load_balancer" {
         to_port     = "${var.load_balancer_port}"
         protocol    = "tcp"
         cidr_blocks = [
-            "${var.local_machine_cidr}"
+            "0.0.0.0/0" # internet-facing load balancer should accept traffic from everywhere: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-update-security-groups.html
         ]
     }
 
