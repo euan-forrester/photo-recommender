@@ -58,6 +58,8 @@ Copy the file `terraform/terraform.tfvars.example` to `terraform/terraform.tfvar
 
 You'll be able to ssh into any EC2 instances created with `ssh ec2-user@<public ip of instance>`
 
+To kick the ECS service, ssh onto the instance you want to kick then type `sudo systemctl restart ecs`
+
 ### Run terraform
 
 Note that this will create infrastructure within your AWS account and could result in billing charges from AWS

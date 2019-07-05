@@ -83,7 +83,7 @@ except UsersStoreException as e:
 logging.info("Ended looking for users who haven't been updated in a while")
 
 #
-# Process any scheduler response messages
+# Process any scheduler response messages. If they contain a list of neighbors to request data for, then request those as well
 #
 
 logging.info("Beginning processing scheduler response messages")
@@ -94,6 +94,15 @@ try:
         response = SchedulerResponseQueueItem.from_json(queue_message.get_message_body())
 
         logging.info(f"Received response message: User ID: {response.get_user_id()}, is registered user: {str(response.get_is_registered_user())}")
+
+        neighbors_to_request_data_for = [SchedulerQueueItem(user_id=user_id, is_registered_user=False) for user_id in response.get_neighbor_list()]
+
+        logging.info(f"Found {len(neighbors_to_request_data_for)} neighbors who need their data updated. Sending messages to queue {scheduler_queue_url} in batches of {scheduler_queue_batch_size}")
+
+        scheduler_queue.send_messages(objects=neighbors_to_request_data_for, to_string=lambda user : user.to_json())
+
+        for neighbor in neighbors_to_request_data_for:
+            logging.info(f"Requested data for user {neighbor.get_user_id()}")
 
         users_store.data_updated(response.get_user_id())
 
