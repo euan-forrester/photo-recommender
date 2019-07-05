@@ -59,45 +59,54 @@ scheduler_queue             = SQSQueueReader(queue_url=scheduler_queue_url,     
 scheduler_response_queue    = SQSQueueWriter(queue_url=scheduler_response_queue_url,    batch_size=1) # We ignore the batch size by sending the messages one at a time, because we don't want to miss any if we have an error
 output_queue                = SQSQueueWriter(queue_url=output_queue_url,                batch_size=output_queue_batch_size)
 
-def process_user(flickr_user_id):
+def process_user(scheduler_queue_item):
 
     # We will need to build a set of "neighbors" to our user. A "neighbor" is someone who took a photo that the user favorited.
     # We will use each neighbor's photos to assign a score to that neighbor, which we will then use to assign a score to each of their favorites.
+
+    # The Scheduler will request all of the favorites of each neighbor, but we need to provide it the actual list of neighbors.
+    # That's because it might be a while before the ingester_database process finishes ingesting the data we just pulled here, so the Scheduler
+    # won't be able to find out the list of neighbors from the database until an unspecified time in the future
+
+    flickr_user_id      = scheduler_queue_item.get_user_id()
+    is_registered_user  = scheduler_queue_item.get_is_registered_user()
 
     logging.info(f"Getting favourites for requested user {flickr_user_id}")
 
     my_favorites = flickrapi.get_favorites(flickr_user_id)
     favorite_photos = []
 
-    my_neighbors = {}
+    my_neighbors = set()
 
     for photo in my_favorites:
         logging.debug("Found photo I favorited: ", photo)
         
         favorite_photos.append(IngesterQueueItem(favorited_by=flickr_user_id, image_id=photo['id'], image_url=photo.get('url_l', photo.get('url_m', '')), image_owner=photo['owner']))
 
-        if photo['owner'] not in my_neighbors:
-            my_neighbors[photo['owner']] = { 'user_id': photo['owner'] }
+        my_neighbors.add(photo['owner'])
 
-    logging.debug("Found list of neighbors: ", my_neighbors)
+    my_neighbors_list = list(my_neighbors)
 
-    # To calculate the score of each neighbour we need to know its favourites
-    for neighbor_id in my_neighbors:
+    logging.debug("Found list of neighbors: ", my_neighbors_list)
 
-        logging.info(f"Getting favorites of neighbor {my_neighbors[neighbor_id]['user_id']}")
-
-        neighbor_favorites = flickrapi.get_favorites(my_neighbors[neighbor_id]['user_id'])
-
-        for photo in neighbor_favorites:
-            logging.debug("Found neighbor favourite photo ", photo)
-
-            favorite_photos.append(IngesterQueueItem(favorited_by=my_neighbors[neighbor_id]['user_id'], image_id=photo['id'], image_url=photo.get('url_l', photo.get('url_m', '')), image_owner=photo['owner']))
-
-    # Output all of the photos we found to our queue
+    # Output all of the photos we found to our output queue so they can be ingested into the database
 
     logging.info(f"Found {len(favorite_photos)} photos to send to queue {output_queue_url} in batches of {output_queue_batch_size}")
 
     output_queue.send_messages(objects=favorite_photos, to_string=lambda photo : photo.to_json())
+
+    # And send a response to the scheduler saying that we've successfully processed this request
+
+    if not is_registered_user:
+        my_neighbors_list = [] # The Scheduler doesn't care about neighbors of neighbors, so if this isn't a registered user then don't bother to send them. They'll just be a bunch of data for no reason, and might exceed the max and cause unnecessary trouble
+
+    scheduler_response_queue_item = SchedulerResponseQueueItem(user_id=flickr_user_id, is_registered_user=is_registered_user, neighbor_list=my_neighbors_list) 
+
+    if scheduler_response_queue_item.get_max_neighbors_exceeded():
+        logging.warn(f"User {flickr_user_id} exceeded max number of neighbors: has {len(my_neighbors_list)} neighbors. Consider putting this list is S3 rather than in this SQS message")
+        # FIXME: Increment a metric here so that we can alert on this
+
+    scheduler_response_queue.send_messages(objects=[scheduler_response_queue_item], to_string=lambda x: x.to_json()) # Sends messages one at a time, regardless of what the batch size is set to. We don't want to batch them up then miss sending one if we have an error later
 
     logging.info(f"Finished processing for requested user {flickr_user_id}")
 
@@ -105,16 +114,14 @@ def process_user(flickr_user_id):
 # Call Flickr to get my favorites, and the favorites of the users who created them
 #
 
+logging.info(f"About to query queue {scheduler_queue_url} for requests")
+
 try:
 
     for queue_message in scheduler_queue:
         scheduler_queue_item = SchedulerQueueItem.from_json(queue_message.get_message_body())
 
-        process_user(flickr_user_id=scheduler_queue_item.get_user_id())
-
-        scheduler_response_queue_item = SchedulerResponseQueueItem(user_id=scheduler_queue_item.get_user_id(), is_registered_user=True) # FIXME: Need to get this from our input message in the future
-
-        scheduler_response_queue.send_messages(objects=[scheduler_response_queue_item], to_string=lambda x: x.to_json()) # Sends messages one at a time, regardless of what the batch size is set to. We don't want to batch them up then miss sending one if we have an error later
+        process_user(scheduler_queue_item)
 
         scheduler_queue.finished_with_message(queue_message)
 
