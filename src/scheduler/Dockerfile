@@ -7,8 +7,10 @@ ADD common/schedulerresponsequeueitem.py /common/
 ADD common/queuereader.py /common/
 ADD common/queuewriter.py /common/
 ADD common/confighelper.py /common/
+ADD common/loop_command.sh /common/
 RUN pip install boto3
 RUN pip install jsonpickle
 RUN pip install mysql-connector-python
 RUN pip install requests
-CMD [ "python", "./scheduler/scheduler.py" ]
+WORKDIR scheduler/
+CMD [ "../common/loop_command.sh", "./scheduler.py", "2" ]
