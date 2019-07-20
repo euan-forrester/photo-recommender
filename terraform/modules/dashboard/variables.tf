@@ -1,0 +1,10 @@
+variable "environment" {}
+variable "region" {}
+
+variable "scheduler_queue_base_name" {}
+variable "scheduler_queue_full_name" {}
+variable "scheduler_queue_dead_letter_full_name" {}
+
+variable "scheduler_response_queue_base_name" {}
+variable "scheduler_response_queue_full_name" {}
+variable "scheduler_response_queue_dead_letter_full_name" {}

@@ -175,5 +175,18 @@ module "api_server" {
     default_num_photo_recommendations = 10
 }
 
+module "dashboard" {
+    source = "../modules/dashboard"
 
+    environment             = "dev"
+    region                  = "${var.region}"
+
+    scheduler_queue_base_name               = "${module.scheduler.scheduler_queue_base_name}"
+    scheduler_queue_full_name               = "${module.scheduler.scheduler_queue_full_name}"
+    scheduler_queue_dead_letter_full_name   = "${module.scheduler.scheduler_queue_dead_letter_full_name}"
+
+    scheduler_response_queue_base_name              = "${module.scheduler.scheduler_response_queue_base_name}"
+    scheduler_response_queue_full_name              = "${module.scheduler.scheduler_response_queue_full_name}"
+    scheduler_response_queue_dead_letter_full_name  = "${module.scheduler.scheduler_response_queue_dead_letter_full_name}"
+}
 
