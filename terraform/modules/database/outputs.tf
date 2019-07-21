@@ -17,3 +17,8 @@ output "database_name" {
     value = "${module.mysql.database_name}"
     description = "Name of the database that was created"
 }
+
+output "database_instance_identifier" {
+    value = "${module.mysql.database_instance_identifier}"
+    description = "The identifier of the database instance that was created"
+} 

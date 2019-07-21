@@ -24,6 +24,13 @@ resource "aws_cloudwatch_dashboard" "main" {
           "width":12,
           "height":6,
           ${data.template_file.ingester_queue.rendered}
+       },
+       {
+          "x":0,
+          "y":13,
+          "width":12,
+          "height":6,
+          ${data.template_file.database_io.rendered} 
        }
     ]
   }
@@ -61,4 +68,13 @@ data "template_file" "ingester_queue" {
     }
 
     template = "${file("${path.module}/sqs_queue.tpl")}"
+}
+
+data "template_file" "database_io" {
+    vars = {
+        database_identifier         = "${var.database_identifier}"
+        region                      = "${var.region}"
+    }
+
+    template = "${file("${path.module}/database_io.tpl")}"
 }

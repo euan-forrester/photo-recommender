@@ -17,3 +17,8 @@ output "database_name" {
     value = "${aws_db_instance.mysql_database.name}"
     description = "The name of the database that was created within the instance"
 }
+
+output "database_instance_identifier" {
+    value = "${aws_db_instance.mysql_database.identifier}"
+    description = "The identifier of the database instance that was created"
+} 
