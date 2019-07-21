@@ -188,5 +188,9 @@ module "dashboard" {
     scheduler_response_queue_base_name              = "${module.scheduler.scheduler_response_queue_base_name}"
     scheduler_response_queue_full_name              = "${module.scheduler.scheduler_response_queue_full_name}"
     scheduler_response_queue_dead_letter_full_name  = "${module.scheduler.scheduler_response_queue_dead_letter_full_name}"
+
+    ingester_queue_base_name               = "${module.ingester_database.ingester_queue_base_name}"
+    ingester_queue_full_name               = "${module.ingester_database.ingester_queue_full_name}"
+    ingester_queue_dead_letter_full_name   = "${module.ingester_database.ingester_queue_dead_letter_full_name}"
 }
 

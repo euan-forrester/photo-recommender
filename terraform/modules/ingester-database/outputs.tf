@@ -8,6 +8,21 @@ output "ingester_queue_arn" {
     description = "The ARN of the ingester queue"
 }
 
+output "ingester_queue_base_name" {
+    value = "${module.sqs_queue.queue_base_name}"
+    description = "The base name of the ingester queue"
+}
+
+output "ingester_queue_full_name" {
+    value = "${module.sqs_queue.queue_full_name}"
+    description = "The full name of the ingester queue"
+}
+
+output "ingester_queue_dead_letter_full_name" {
+    value = "${module.sqs_queue.queue_dead_letter_full_name}"
+    description = "The full name of the ingester dead letter queue"
+}
+
 output "output_database_host" {
     value = "${module.mysql.database_host}"
     description = "Host string for the database that was created"
