@@ -34,6 +34,28 @@ module "elastic_container_service" {
     instances_log_retention_days = 1
 }
 
+module "database" {
+    source = "../modules/database"
+
+    environment = "dev"
+    region = "${var.region}"
+
+    vpc_id                  = "${module.vpc.vpc_id}"
+    vpc_public_subnet_ids   = "${module.vpc.vpc_public_subnet_ids}"
+    vpc_cidr                = "${module.vpc.vpc_cidr_block}"
+    local_machine_cidr      = "${var.local_machine_cidr}"
+
+    mysql_database_name     = "photorecommender"
+    mysql_instance_type     = "db.t2.micro" 
+    mysql_storage_encrypted = false # db.t2.micro doesn't support encryption at rest -- needs to be at least db.t2.small
+    mysql_storage_type      = "standard" # Magnetic storage; min size 5GB
+    mysql_database_size_gb  = 5
+    mysql_multi_az          = false # Disable database multi-AZ in dev to save billing charges
+    mysql_backup_retention_period_days = 3
+
+    mysql_database_password = "${var.database_password_dev}"
+}
+
 module "scheduler" {
     source = "../modules/scheduler"
 
@@ -110,21 +132,6 @@ module "ingester_database" {
     environment             = "dev"
     region                  = "${var.region}"
 
-    vpc_id                  = "${module.vpc.vpc_id}"
-    vpc_public_subnet_ids   = "${module.vpc.vpc_public_subnet_ids}"
-    vpc_cidr                = "${module.vpc.vpc_cidr_block}"
-    local_machine_cidr      = "${var.local_machine_cidr}"
-
-    mysql_instance_type     = "db.t2.micro" 
-    mysql_storage_encrypted = false # db.t2.micro doesn't support encryption at rest -- needs to be at least db.t2.small
-    mysql_storage_type      = "standard" # Magnetic storage; min size 5GB
-    mysql_database_size_gb  = 5
-    mysql_multi_az          = false # Disable database multi-AZ in dev to save billing charges
-    mysql_backup_retention_period_days = 3
-    mysql_database_batch_size = 1000
-
-    mysql_database_password = "${var.database_password_dev}"
-
     ecs_cluster_id          = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
     ecs_instances_desired_count = 10
@@ -132,6 +139,13 @@ module "ingester_database" {
     ecs_instances_cpu       = 1
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
     ecs_days_to_keep_images = 1
+
+    mysql_database_host     = "${module.database.database_host}"
+    mysql_database_port     = "${module.database.database_port}"
+    mysql_database_username = "${module.database.database_username}"
+    mysql_database_password = "${var.database_password_dev}"
+    mysql_database_name     = "${module.database.database_name}"
+    mysql_database_batch_size = 1000
 
     input_queue_batch_size  = 10
     input_queue_max_items_to_process = 10000
@@ -156,11 +170,11 @@ module "api_server" {
 
     local_machine_cidr      = "${var.local_machine_cidr}"
 
-    mysql_database_host     = "${module.ingester_database.output_database_host}"
-    mysql_database_port     = "${module.ingester_database.output_database_port}"
-    mysql_database_username = "${module.ingester_database.output_database_username}"
+    mysql_database_host     = "${module.database.database_host}"
+    mysql_database_port     = "${module.database.database_port}"
+    mysql_database_username = "${module.database.database_username}"
     mysql_database_password = "${var.database_password_dev}"
-    mysql_database_name     = "${module.ingester_database.output_database_name}"
+    mysql_database_name     = "${module.database.database_name}"
     mysql_database_fetch_batch_size = 10000
     mysql_database_connection_pool_size = 10
 
