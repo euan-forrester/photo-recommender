@@ -12,7 +12,7 @@ resource "aws_cloudwatch_dashboard" "main" {
           ${data.template_file.scheduler_queue.rendered}
        },
        {
-          "x":13,
+          "x":12,
           "y":0,
           "width":12,
           "height":6,
@@ -20,17 +20,38 @@ resource "aws_cloudwatch_dashboard" "main" {
        },
        {
           "x":0,
-          "y":7,
+          "y":6,
           "width":12,
           "height":6,
           ${data.template_file.ingester_queue.rendered}
        },
        {
           "x":0,
-          "y":13,
+          "y":12,
           "width":12,
           "height":6,
           ${data.template_file.database_io.rendered} 
+       },
+       {
+          "x":12,
+          "y":12,
+          "width":4,
+          "height":6,
+          ${data.template_file.database_cpu.rendered} 
+       },
+       {
+          "x":16,
+          "y":12,
+          "width":4,
+          "height":6,
+          ${data.template_file.database_disc.rendered} 
+       },
+       {
+          "x":20,
+          "y":12,
+          "width":4,
+          "height":6,
+          ${data.template_file.database_memory.rendered} 
        }
     ]
   }
@@ -77,4 +98,31 @@ data "template_file" "database_io" {
     }
 
     template = "${file("${path.module}/database_io.tpl")}"
+}
+
+data "template_file" "database_cpu" {
+    vars = {
+        database_identifier         = "${var.database_identifier}"
+        region                      = "${var.region}"
+    }
+
+    template = "${file("${path.module}/database_cpu.tpl")}"
+}
+
+data "template_file" "database_disc" {
+    vars = {
+        database_identifier         = "${var.database_identifier}"
+        region                      = "${var.region}"
+    }
+
+    template = "${file("${path.module}/database_disc.tpl")}"
+}
+
+data "template_file" "database_memory" {
+    vars = {
+        database_identifier         = "${var.database_identifier}"
+        region                      = "${var.region}"
+    }
+
+    template = "${file("${path.module}/database_memory.tpl")}"
 }
