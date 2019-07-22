@@ -21,7 +21,7 @@
             "ClusterName",
             "${cluster_name}",
             "ServiceName",
-            "database-ingester-${environment}"
+            "ingester-database-${environment}"
         ],
         [
             "AWS/ECS",

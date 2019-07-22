@@ -3,6 +3,12 @@
     "metrics": [
         [
             "AWS/SQS",
+            "ApproximateNumberOfMessagesVisible",
+            "QueueName",
+            "${queue_full_name}"
+        ],
+        [
+            "AWS/SQS",
             "NumberOfMessagesSent",
             "QueueName",
             "${queue_full_name}"
@@ -18,6 +24,12 @@
             "ApproximateNumberOfMessagesVisible",
             "QueueName",
             "${queue_dead_letter_full_name}"
+        ],
+        [
+            "AWS/SQS",
+            "ApproximateAgeOfOldestMessage",
+            "QueueName",
+            "${queue_full_name}"
         ]
     ],
     "period":300,
