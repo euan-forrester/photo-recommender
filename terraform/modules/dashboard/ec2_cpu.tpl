@@ -11,5 +11,5 @@
     "period":300,
     "stat":"Average",
     "region":"${region}",
-    "title":"${autoscaling_group_name} CPU"
+    "title":"EC2 CPU"
 }

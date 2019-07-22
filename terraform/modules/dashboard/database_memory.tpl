@@ -17,5 +17,5 @@
     "period":300,
     "stat":"Average",
     "region":"${region}",
-    "title":"${database_identifier} database memory"
+    "title":"Database memory"
 }

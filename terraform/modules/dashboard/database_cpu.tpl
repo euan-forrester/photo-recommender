@@ -11,5 +11,5 @@
     "period":300,
     "stat":"Average",
     "region":"${region}",
-    "title":"${database_identifier} database CPU"
+    "title":"Database CPU"
 }

@@ -17,5 +17,5 @@
     "period":300,
     "stat":"Average",
     "region":"${region}",
-    "title":"${autoscaling_group_name} network"
+    "title":"EC2 network"
 }

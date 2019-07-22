@@ -29,5 +29,5 @@
     "period":300,
     "stat":"Average",
     "region":"${region}",
-    "title":"${database_identifier} database I/O"
+    "title":"Database ${database_identifier} I/O"
 }

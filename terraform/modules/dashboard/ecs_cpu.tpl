@@ -43,5 +43,5 @@
     "period":300,
     "stat":"Average",
     "region":"${region}",
-    "title":"${cluster_name} CPU"
+    "title":"ECS Cluster ${cluster_name} CPU"
 }
