@@ -208,5 +208,6 @@ module "dashboard" {
     ingester_queue_dead_letter_full_name    = "${module.ingester_database.ingester_queue_dead_letter_full_name}"
 
     database_identifier                     = "${module.database.database_instance_identifier}"
-}
 
+    ecs_autoscaling_group_name              = "${module.elastic_container_service.autoscaling_group_name}"
+}

@@ -26,6 +26,20 @@ resource "aws_cloudwatch_dashboard" "main" {
           ${data.template_file.ingester_queue.rendered}
        },
        {
+          "x":12,
+          "y":6,
+          "width":6,
+          "height":6,
+          ${data.template_file.ec2_network.rendered} 
+       },
+       {
+          "x":18,
+          "y":6,
+          "width":6,
+          "height":6,
+          ${data.template_file.ec2_cpu.rendered} 
+       },
+       {
           "x":0,
           "y":12,
           "width":12,
@@ -89,6 +103,24 @@ data "template_file" "ingester_queue" {
     }
 
     template = "${file("${path.module}/sqs_queue.tpl")}"
+}
+
+data "template_file" "ec2_network" {
+    vars = {
+        autoscaling_group_name      = "${var.ecs_autoscaling_group_name}"
+        region                      = "${var.region}"
+    }
+
+    template = "${file("${path.module}/ec2_network.tpl")}"
+}
+
+data "template_file" "ec2_cpu" {
+    vars = {
+        autoscaling_group_name      = "${var.ecs_autoscaling_group_name}"
+        region                      = "${var.region}"
+    }
+
+    template = "${file("${path.module}/ec2_cpu.tpl")}"
 }
 
 data "template_file" "database_io" {
