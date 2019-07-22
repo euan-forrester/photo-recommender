@@ -28,9 +28,9 @@ module "elastic_container_service" {
     extra_security_groups = ["${module.api_server.security_group_id}"]
 
     instance_type = "t2.micro"
-    cluster_desired_size = 2
+    cluster_desired_size = 10
     cluster_min_size = 1
-    cluster_max_size = 2
+    cluster_max_size = 10
     instances_log_retention_days = 1
 }
 
@@ -48,7 +48,7 @@ module "database" {
     mysql_database_name     = "photorecommender"
     mysql_instance_type     = "db.t2.micro" 
     mysql_storage_encrypted = false # db.t2.micro doesn't support encryption at rest -- needs to be at least db.t2.small
-    mysql_storage_type      = "standard" # Magnetic storage; min size 5GB
+    mysql_storage_type      = "gp2" # General purpose SSD
     mysql_database_size_gb  = 5
     mysql_multi_az          = false # Disable database multi-AZ in dev to save billing charges
     mysql_backup_retention_period_days = 3
@@ -65,8 +65,8 @@ module "scheduler" {
     ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
     ecs_instances_desired_count = 1
-    ecs_instances_memory = 32
-    ecs_instances_cpu = 1
+    ecs_instances_memory = 64
+    ecs_instances_cpu = 400
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
     ecs_days_to_keep_images = 1
 
@@ -99,9 +99,9 @@ module "puller_flickr" {
 
     ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 10
+    ecs_instances_desired_count = 9
     ecs_instances_memory = 64
-    ecs_instances_cpu = 1
+    ecs_instances_cpu = 400
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
     ecs_days_to_keep_images = 1
 
@@ -134,9 +134,9 @@ module "ingester_database" {
 
     ecs_cluster_id          = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 10
+    ecs_instances_desired_count = 9
     ecs_instances_memory    = 64
-    ecs_instances_cpu       = 1
+    ecs_instances_cpu       = 400
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
     ecs_days_to_keep_images = 1
 
@@ -182,7 +182,7 @@ module "api_server" {
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
     ecs_instances_desired_count = 1
     ecs_instances_memory    = 256
-    ecs_instances_cpu       = 1
+    ecs_instances_cpu       = 100
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
     ecs_days_to_keep_images = 1
 
