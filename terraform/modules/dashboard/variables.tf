@@ -16,3 +16,4 @@ variable "ingester_queue_dead_letter_full_name" {}
 variable "database_identifier" {}
 
 variable "ecs_autoscaling_group_name" {}
+variable "ecs_cluster_name" {}

@@ -17,3 +17,8 @@ output "autoscaling_group_name" {
     value = "${aws_autoscaling_group.ecs-autoscaling-group.name}"
     description = "The name of the autoscaling group that was created"
 }
+
+output "cluster_full_name" {
+    value = "${aws_ecs_cluster.ecs-cluster.name}"
+    description = "The full name of the cluster that was created"
+}

@@ -66,6 +66,20 @@ resource "aws_cloudwatch_dashboard" "main" {
           "width":4,
           "height":6,
           ${data.template_file.database_memory.rendered} 
+       },
+       {
+          "x":0,
+          "y":18,
+          "width":12,
+          "height":6,
+          ${data.template_file.ecs_cpu.rendered} 
+       },
+       {
+          "x":12,
+          "y":18,
+          "width":12,
+          "height":6,
+          ${data.template_file.ecs_memory.rendered} 
        }
     ]
   }
@@ -157,4 +171,24 @@ data "template_file" "database_memory" {
     }
 
     template = "${file("${path.module}/database_memory.tpl")}"
+}
+
+data "template_file" "ecs_cpu" {
+    vars = {
+        cluster_name                = "${var.ecs_cluster_name}"
+        region                      = "${var.region}"
+        environment                 = "${var.environment}"
+    }
+
+    template = "${file("${path.module}/ecs_cpu.tpl")}"
+}
+
+data "template_file" "ecs_memory" {
+    vars = {
+        cluster_name                = "${var.ecs_cluster_name}"
+        region                      = "${var.region}"
+        environment                 = "${var.environment}"
+    }
+
+    template = "${file("${path.module}/ecs_memory.tpl")}"
 }

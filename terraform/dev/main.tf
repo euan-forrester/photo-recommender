@@ -210,4 +210,5 @@ module "dashboard" {
     database_identifier                     = "${module.database.database_instance_identifier}"
 
     ecs_autoscaling_group_name              = "${module.elastic_container_service.autoscaling_group_name}"
+    ecs_cluster_name                        = "${module.elastic_container_service.cluster_full_name}"
 }
