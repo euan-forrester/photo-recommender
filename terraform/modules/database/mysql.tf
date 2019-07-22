@@ -10,9 +10,9 @@ module "mysql" {
     storage_type          = "${var.mysql_storage_type}"
     database_size_gb      = "${var.mysql_database_size_gb}"
     storage_encrypted     = "${var.mysql_storage_encrypted}"
-    database_name         = "favorites"
+    database_name         = "${var.mysql_database_name}"
     multi_az              = "${var.mysql_multi_az}"
     database_password     = "${var.mysql_database_password}"
     backup_retention_period_days = "${var.mysql_backup_retention_period_days}"
-    init_script_file      = "ingester-database/favorites_init.sql"
+    init_script_file      = "database/photo_recommender_init.sql"
 }

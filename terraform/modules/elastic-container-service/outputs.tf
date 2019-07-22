@@ -12,3 +12,13 @@ output "instance_role_name" {
     value = "${aws_iam_role.ecs-instance-role.name}"
     description = "The name of the role assigned to each instance in the cluster. Attach extra policies needed by your task here."
 }
+
+output "autoscaling_group_name" {
+    value = "${aws_autoscaling_group.ecs-autoscaling-group.name}"
+    description = "The name of the autoscaling group that was created"
+}
+
+output "cluster_full_name" {
+    value = "${aws_ecs_cluster.ecs-cluster.name}"
+    description = "The full name of the cluster that was created"
+}

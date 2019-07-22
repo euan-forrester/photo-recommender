@@ -123,8 +123,7 @@ TODO:
 - Consider moving MySQL passwords into config files rather than passing on command line from terraform script
 - Add tests
 - Lock python lib version numbers (see https://docs.docker.com/samples/library/python/#pythonversion-alpine to lock python version)
-- Have dev load balancer only be accessable from the local machine, and have the prod load balancer only listen on https
+- Have the prod load balancer only listen on https
 - Encrypt SQS messages in prod
 - Use templating lib for outputting HTML from API server
-- Move database terraform into its own top-level module, and rename database to "photo-recommender"
 - Add locking mechanism to Scheduler

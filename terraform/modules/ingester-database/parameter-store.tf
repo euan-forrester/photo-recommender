@@ -9,21 +9,21 @@ resource "aws_ssm_parameter" "output_database_host" {
     name        = "/${var.environment}/ingester-database/output-database-host"
     description = "Host for the database into which we ingest data from the queue"
     type        = "String"
-    value       = "${module.mysql.database_host}"
+    value       = "${var.mysql_database_host}"
 }
 
 resource "aws_ssm_parameter" "output_database_port" {
     name        = "/${var.environment}/ingester-database/output-database-port"
     description = "Port for the database into which we ingest data from the queue"
     type        = "String"
-    value       = "${module.mysql.database_port}"
+    value       = "${var.mysql_database_port}"
 }
 
 resource "aws_ssm_parameter" "output_database_username" {
     name        = "/${var.environment}/ingester-database/output-database-username"
     description = "Username for the database into which we ingest data from the queue"
     type        = "String"
-    value       = "${module.mysql.database_username}"
+    value       = "${var.mysql_database_username}"
 }
 
 resource "aws_ssm_parameter" "output_database_password" {
@@ -38,7 +38,7 @@ resource "aws_ssm_parameter" "output_database_name" {
     name        = "/${var.environment}/ingester-database/output-database-name"
     description = "Name for the database into which we ingest data from the queue"
     type        = "String"
-    value       = "${module.mysql.database_name}"
+    value       = "${var.mysql_database_name}"
 }
 
 resource "aws_ssm_parameter" "output_database_batch_size" {

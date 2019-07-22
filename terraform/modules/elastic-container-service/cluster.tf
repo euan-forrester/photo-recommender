@@ -4,8 +4,8 @@ resource "aws_key_pair" "local_machine" {
 }
 
 resource "aws_launch_configuration" "ecs-launch-configuration" {
-    name_prefix                 = "ecs-launch-configuration-${var.cluster_name}-" # Auto-generate the name because once it's created it can't be changed
-    image_id                    = "ami-0302f3ec240b9d23c" # ECS-optimized image for us-west-2: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/launch_container_instance.html
+    name_prefix                 = "ecs-launch-configuration-${var.cluster_name}-${var.environment}-" # Auto-generate the name because once it's created it can't be changed
+    image_id                    = "ami-0e5e051fd0b505db6" # ECS-optimized image for us-west-2: https://docs.aws.amazon.com/AmazonECS/latest/developerguide/launch_container_instance.html
     instance_type               = "${var.instance_type}"
     iam_instance_profile        = "${aws_iam_instance_profile.ecs-instance-profile.id}"
 
@@ -29,7 +29,7 @@ resource "aws_launch_configuration" "ecs-launch-configuration" {
 }
 
 resource "aws_autoscaling_group" "ecs-autoscaling-group" {
-    name                        = "ecs-autoscaling-group-${var.cluster_name}"
+    name                        = "ecs-autoscaling-group-${var.cluster_name}-${var.environment}"
     max_size                    = "${var.cluster_max_size}"
     min_size                    = "${var.cluster_min_size}"
     desired_capacity            = "${var.cluster_desired_size}"
