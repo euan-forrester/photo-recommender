@@ -16,23 +16,23 @@ class ConfigHelper:
         else:
             ENVIRONMENT = os.environ.get('ENVIRONMENT')
 
-            logging.info("Found ENVIRONMENT environment variable containing '%s': assuming we're running in AWS and getting our parameters from the AWS Parameter Store" % (ENVIRONMENT))
+            logging.info(f"Found ENVIRONMENT environment variable containing '{ENVIRONMENT}': assuming we're running in AWS and getting our parameters from the AWS Parameter Store")
 
             return ConfigHelperParameterStore(environment=ENVIRONMENT, key_prefix=aws_parameter_prefix)
 
     @staticmethod
     def _log_int(param, value, is_secret):
         if is_secret:
-            logging.info("Got parameter %s with value <secret>" % (param))
+            logging.info(f"Got parameter {param} with value <secret>")
         else:
-            logging.info("Got parameter %s with value %d" % (param, value))
+            logging.info(f"Got parameter {param} with value {value}")
 
     @staticmethod
     def _log_str(param, value, is_secret):
         if is_secret:
-            logging.info("Got parameter %s with value <secret>" % (param))
+            logging.info(f"Got parameter {param} with value <secret>")
         else:
-            logging.info("Got parameter %s with value %s" % (param, value))
+            logging.info(f"Got parameter {param} with value {value}")
 
 
 class ConfigHelperFile(ConfigHelper):
@@ -46,7 +46,7 @@ class ConfigHelperFile(ConfigHelper):
         self.config         = configparser.ConfigParser()
 
         for filename in filename_list:
-            logging.info("Reading in config file '%s'" % filename)
+            logging.info(f"Reading in config file '{filename}'")
             self.config.read(filename)
 
     def get(self, key, is_secret=False):
@@ -56,7 +56,7 @@ class ConfigHelperFile(ConfigHelper):
             return value
 
         except configparser.NoOptionError as e:
-            raise ParameterNotFoundException(message='Could not get parameter %s' % (key)) from e
+            raise ParameterNotFoundException(message=f'Could not get parameter {key}') from e
 
     # This will throw a ValueError if the parameter doesn't contain an int
     def getInt(self, key, is_secret=False):
@@ -66,7 +66,7 @@ class ConfigHelperFile(ConfigHelper):
             return value
 
         except configparser.NoOptionError as e:
-            raise ParameterNotFoundException(message='Could not get parameter %s' % (key)) from e
+            raise ParameterNotFoundException(message=f'Could not get parameter {key}') from e
 
 class ConfigHelperParameterStore(ConfigHelper):
 
@@ -81,7 +81,7 @@ class ConfigHelperParameterStore(ConfigHelper):
 
     def get(self, key, is_secret=False):
         
-        full_path = '/%s/%s/%s' % (self.environment, self.key_prefix, key)
+        full_path = f'/{self.environment}/{self.key_prefix}/{key}'
 
         try:
             value = self.ssm.get_parameter(Name=full_path, WithDecryption=is_secret)['Parameter']['Value']
@@ -92,7 +92,7 @@ class ConfigHelperParameterStore(ConfigHelper):
             error_code = e.response['Error']['Code']
 
             if error_code == "ParameterNotFound":
-                raise ParameterNotFoundException(message='Could not get parameter %s: %s' % (full_path, error_code)) from e
+                raise ParameterNotFoundException(message=f'Could not get parameter {full_path}: {error_code}') from e
             else:
                 # Something else bad happened; better just let it through
                 raise
