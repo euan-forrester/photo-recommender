@@ -1,13 +1,8 @@
 variable "environment" {}
 variable "region" {}
-variable "vpc_id" {}
-variable "vpc_public_subnet_ids" { type = "list" }
-variable "memcached_node_type" {}
-variable "memcached_num_cache_nodes" {}
-variable "memcached_az_mode" {}
+variable "parameter_memcached_location" {}
+variable "memcached_location" {}
 variable "memcached_ttl" {}
-variable "local_machine_cidr" {}
-variable "vpc_cidr" {}
 variable "ecs_instances_desired_count" {}
 variable "ecs_instances_memory" {}
 variable "ecs_instances_cpu" {}

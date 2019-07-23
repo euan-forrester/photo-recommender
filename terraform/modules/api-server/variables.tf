@@ -1,5 +1,6 @@
 variable "environment" {}
 variable "region" {}
+variable "parameter_memcached_location" {}
 variable "mysql_database_host" {}
 variable "mysql_database_port" {}
 variable "mysql_database_username" {}

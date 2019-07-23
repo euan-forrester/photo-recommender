@@ -10,6 +10,7 @@ RUN pip install flask_api
 RUN pip install gunicorn
 RUN pip install mysql-connector-python
 RUN pip install boto3
+RUN pip install pymemcache
 EXPOSE 4445
 WORKDIR /api-server/
 CMD [ "gunicorn", "-b", "0.0.0.0:4445", "--access-logfile", "-", "--error-logfile", "-", "api-server" ]

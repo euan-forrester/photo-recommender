@@ -12,5 +12,6 @@ RUN pip install boto3
 RUN pip install jsonpickle
 RUN pip install mysql-connector-python
 RUN pip install requests
+RUN pip install pymemcache
 WORKDIR scheduler/
 CMD [ "../common/loop_command.sh", "./scheduler.py", "2" ]

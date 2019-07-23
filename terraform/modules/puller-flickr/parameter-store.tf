@@ -5,6 +5,13 @@ resource "aws_kms_key" "parameter_secrets" {
     deletion_window_in_days = 7
 }
 
+resource "aws_ssm_parameter" "parameter_memcached_location" {
+    name        = "/${var.environment}/puller-flickr/parameter-memcached-location"
+    description = "Where to find a memcached instance to cache our parameter values"
+    type        = "String"
+    value       = "${var.parameter_memcached_location}"
+}
+
 resource "aws_ssm_parameter" "flickr_api_key" {
     name        = "/${var.environment}/puller-flickr/flickr-api-key"
     description = "Flickr API key"
@@ -52,10 +59,7 @@ resource "aws_ssm_parameter" "memcached_location" {
     name        = "/${var.environment}/puller-flickr/memcached-location"
     description = "Endpoint of the memcached cluster that we cache Flickr API calls to"
     type        = "String"
-    # Ugly syntax here for referencing a resource that may not exist. See https://github.com/hashicorp/terraform/issues/16726
-    # Puts "localhost:11211" in this attribute if the memcached cluster wasn't created. The script will attempt to connect to there, fail, and continue in that case
-    # Also note that all variables are internally stored as strings, so having the port as an int results in a strange error message: https://github.com/hashicorp/terraform/issues/17033
-    value       = "${format("%s:%s", element(concat(aws_elasticache_cluster.memcached.*.cluster_address, list("localhost")), 0), element(concat(aws_elasticache_cluster.memcached.*.port, list("11211")), 0))}"
+    value       = "${var.memcached_location}"
 }
 
 resource "aws_ssm_parameter" "output_queue_url" {

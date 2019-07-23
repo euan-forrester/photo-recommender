@@ -28,9 +28,9 @@ module "elastic_container_service" {
     extra_security_groups = ["${module.api_server.security_group_id}"]
 
     instance_type = "t2.micro"
-    cluster_desired_size = 18
+    cluster_desired_size = 20
     cluster_min_size = 1
-    cluster_max_size = 18
+    cluster_max_size = 30
     instances_log_retention_days = 1
 }
 
@@ -56,11 +56,29 @@ module "database" {
     mysql_database_password = "${var.database_password_dev}"
 }
 
+module "memcached" {
+    source = "../modules/memcached"
+
+    environment = "dev"
+    region = "${var.region}"
+
+    vpc_id                  = "${module.vpc.vpc_id}"
+    vpc_public_subnet_ids   = "${module.vpc.vpc_public_subnet_ids}"
+    vpc_cidr                = "${module.vpc.vpc_cidr_block}"
+    local_machine_cidr      = "${var.local_machine_cidr}"
+
+    memcached_node_type = "cache.t2.micro"
+    memcached_num_cache_nodes = 1 # Set to 0 to disable memcached in dev to save billing charges
+    memcached_az_mode = "single-az" # Single az in dev to save billing charges
+}
+
 module "scheduler" {
     source = "../modules/scheduler"
 
     environment = "dev"
     region = "${var.region}"
+
+    parameter_memcached_location = "${module.memcached.location}"
 
     ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
@@ -87,14 +105,9 @@ module "puller_flickr" {
     environment = "dev"
     region = "${var.region}"
 
-    vpc_id = "${module.vpc.vpc_id}"
-    vpc_public_subnet_ids = "${module.vpc.vpc_public_subnet_ids}"
-    vpc_cidr = "${module.vpc.vpc_cidr_block}"
-    local_machine_cidr = "${var.local_machine_cidr}"
+    parameter_memcached_location = "${module.memcached.location}"
 
-    memcached_node_type = "cache.t2.micro"
-    memcached_num_cache_nodes = 0 # Disable memcached in dev to save billing charges
-    memcached_az_mode = "cross-az"
+    memcached_location = "localhost:11211" # Disable cacheing Flickr API responses for now, so we can test performance
     memcached_ttl = 7200
 
     ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
@@ -132,6 +145,8 @@ module "ingester_database" {
     environment             = "dev"
     region                  = "${var.region}"
 
+    parameter_memcached_location = "${module.memcached.location}"
+
     ecs_cluster_id          = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
     ecs_instances_desired_count = 10
@@ -157,6 +172,8 @@ module "api_server" {
 
     environment             = "dev"
     region                  = "${var.region}"
+
+    parameter_memcached_location = "${module.memcached.location}"
 
     vpc_id                  = "${module.vpc.vpc_id}"
     vpc_public_subnet_ids   = "${module.vpc.vpc_public_subnet_ids}"

@@ -5,6 +5,13 @@ resource "aws_kms_key" "parameter_secrets" {
     deletion_window_in_days = 7
 }
 
+resource "aws_ssm_parameter" "parameter_memcached_location" {
+    name        = "/${var.environment}/api-server/parameter-memcached-location"
+    description = "Where to find a memcached instance to cache our parameter values"
+    type        = "String"
+    value       = "${var.parameter_memcached_location}"
+}
+
 resource "aws_ssm_parameter" "database_host" {
     name        = "/${var.environment}/api-server/database-host"
     description = "Host for the database from which we read our data"

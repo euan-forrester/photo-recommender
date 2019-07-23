@@ -8,4 +8,5 @@ ADD common/loop_command.sh /common/
 RUN pip install boto3
 RUN pip install jsonpickle
 RUN pip install mysql-connector-python
+RUN pip install pymemcache
 CMD [ "./common/loop_command.sh", "./ingester-database/ingester-database.py", "2" ]
