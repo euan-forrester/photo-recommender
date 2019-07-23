@@ -56,6 +56,22 @@ module "database" {
     mysql_database_password = "${var.database_password_dev}"
 }
 
+module "memcached" {
+    source = "../modules/memcached"
+
+    environment = "dev"
+    region = "${var.region}"
+
+    vpc_id                  = "${module.vpc.vpc_id}"
+    vpc_public_subnet_ids   = "${module.vpc.vpc_public_subnet_ids}"
+    vpc_cidr                = "${module.vpc.vpc_cidr_block}"
+    local_machine_cidr      = "${var.local_machine_cidr}"
+
+    memcached_node_type = "cache.t2.micro"
+    memcached_num_cache_nodes = 0 # Set to 0 to disable memcached in dev to save billing charges
+    memcached_az_mode = "single-az" # Single az in dev to save billing charges
+}
+
 module "scheduler" {
     source = "../modules/scheduler"
 
@@ -87,14 +103,7 @@ module "puller_flickr" {
     environment = "dev"
     region = "${var.region}"
 
-    vpc_id = "${module.vpc.vpc_id}"
-    vpc_public_subnet_ids = "${module.vpc.vpc_public_subnet_ids}"
-    vpc_cidr = "${module.vpc.vpc_cidr_block}"
-    local_machine_cidr = "${var.local_machine_cidr}"
-
-    memcached_node_type = "cache.t2.micro"
-    memcached_num_cache_nodes = 0 # Disable memcached in dev to save billing charges
-    memcached_az_mode = "cross-az"
+    memcached_location = "${module.memcached.location}"
     memcached_ttl = 7200
 
     ecs_cluster_id = "${module.elastic_container_service.cluster_id}"

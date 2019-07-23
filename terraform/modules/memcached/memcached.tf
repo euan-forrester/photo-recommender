@@ -1,5 +1,5 @@
 resource "aws_security_group" "elasticache" {
-    name        = "terraform-elasticache-${var.environment}"
+    name        = "memcached-${var.environment}"
     description = "Allow communication with the memcached instance"
     vpc_id      = "${var.vpc_id}"
 
@@ -19,14 +19,14 @@ resource "aws_security_group_rule" "elasticache-local-machine" {
 }
 
 resource "aws_elasticache_subnet_group" "public_subnet_group" {
-    name       = "public-elasticache-subnet-group-puller-flickr-memcached-${var.environment}"
+    name       = "public-elasticache-subnet-group-memcached-${var.environment}"
     subnet_ids = ["${var.vpc_public_subnet_ids}"]
 }
 
 resource "aws_elasticache_cluster" "memcached" {
     count                = "${var.memcached_num_cache_nodes != 0 ? 1 : 0}" # Don't create the resource at all if we specify 0 nodes. See https://itnext.io/things-i-wish-i-knew-about-terraform-before-jumping-into-it-43ee92a9dd65
 
-    cluster_id           = "puller-flickr-${var.environment}"
+    cluster_id           = "memcached-${var.environment}"
     engine               = "memcached"
     node_type            = "${var.memcached_node_type}"
     num_cache_nodes      = "${var.memcached_num_cache_nodes}"
