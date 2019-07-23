@@ -1,13 +1,16 @@
 import mysql.connector
+import logging
 
 class DatabaseBatchWriter:
 
-    def __init__(self, username, password, host, port, database):
+    def __init__(self, username, password, host, port, database, max_retries):
         self.cnx = mysql.connector.connect(user=username, password=password, host=host, port=port, database=database)
 
         self.cnx.autocommit = False
 
         self.cursor = self.cnx.cursor()
+
+        self.max_retries = max_retries
 
     def batch_write(self, sql_insert, create_value_tuple, items):
 
@@ -19,7 +22,40 @@ class DatabaseBatchWriter:
         for item in items:
             value_tuples.append(create_value_tuple(item))
 
-        self.cursor.executemany(sql_insert, value_tuples)
+        self._execute_with_retries(sql_insert, value_tuples)
+
+    def _execute_with_retries(self, sql_insert, value_tuples):
+       
+        num_retries = 0
+        result = None
+        success = False
+        error = None
+
+        while (num_retries < self.max_retries) and not success:
+            
+            if num_retries > 0:
+                logging.info("Retrying SQL query")
+
+            try:
+                result = self.cursor.executemany(sql_insert, value_tuples)
+                success = True
+
+            except mysql.connector.errors.InternalError as e:
+                # We seem to get occasional deadlock errors when having many processes writing lots to the database.
+                # There doesn't seem to be a way to determine that this happened from the exception object other than to test
+                # the string against "Deadlock found when trying to get lock".
+                #
+                # https://github.com/euan-forrester/photo-recommender/issues/34
+                
+                logging.info(f"Got MySQL InternalError {e}")
+                error = e
+
+            num_retries += 1
+
+        if not success:
+            raise error
+
+        return result 
 
     def shutdown(self):
         self.cnx.commit()

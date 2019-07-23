@@ -42,6 +42,7 @@ output_database_host                = config_helper.get("output-database-host")
 output_database_port                = config_helper.getInt("output-database-port")
 output_database_name                = config_helper.get("output-database-name")
 output_database_batch_size          = config_helper.getInt("output-database-batchsize")
+output_database_max_retries         = config_helper.getInt("output-database-maxretries")
 
 #
 # Receive some messages from the input queue and write them to the favorites database
@@ -50,9 +51,18 @@ output_database_batch_size          = config_helper.getInt("output-database-batc
 # and thus the difficult-to-reproduce problems that can come from long-running processes
 #
 
-queue = SQSQueueReader(queue_url=input_queue_url, batch_size=input_queue_batch_size, max_messages_to_read=input_queue_max_items_to_process)
+queue = SQSQueueReader(
+    queue_url=input_queue_url, 
+    batch_size=input_queue_batch_size, 
+    max_messages_to_read=input_queue_max_items_to_process)
 
-database = DatabaseBatchWriter(username=output_database_username, password=output_database_password, host=output_database_host, port=output_database_port, database=output_database_name)
+database = DatabaseBatchWriter(
+    username=output_database_username, 
+    password=output_database_password, 
+    host=output_database_host, 
+    port=output_database_port, 
+    database=output_database_name, 
+    max_retries=output_database_max_retries)
 
 photo_batch = []
 unwritten_message_batch = []
@@ -80,7 +90,7 @@ def write_batch(photo_batch, unwritten_message_batch):
 for queue_message in queue:
     photo = IngesterQueueItem.from_json(queue_message.get_message_body())
 
-    logging.info("Received message: Image owner: %s, image ID: %s, image URL: %s, image favorited by: %s" % (photo.get_image_owner(), photo.get_image_id(), photo.get_image_url(), photo.get_favorited_by()))
+    logging.debug("Received message: Image owner: %s, image ID: %s, image URL: %s, image favorited by: %s" % (photo.get_image_owner(), photo.get_image_id(), photo.get_image_url(), photo.get_favorited_by()))
 
     photo_batch.append(photo)
     unwritten_message_batch.append(queue_message)
