@@ -1,3 +1,10 @@
+resource "aws_ssm_parameter" "parameter_memcached_location" {
+    name        = "/${var.environment}/scheduler/parameter-memcached-location"
+    description = "Where to find a memcached instance to cache our parameter values"
+    type        = "String"
+    value       = "${var.parameter_memcached_location}"
+}
+
 resource "aws_ssm_parameter" "api_server_host" {
     name        = "/${var.environment}/scheduler/api-server-host"
     description = "Host for API server from which we get scheduling information"

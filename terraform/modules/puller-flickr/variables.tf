@@ -1,5 +1,6 @@
 variable "environment" {}
 variable "region" {}
+variable "parameter_memcached_location" {}
 variable "memcached_location" {}
 variable "memcached_ttl" {}
 variable "ecs_instances_desired_count" {}

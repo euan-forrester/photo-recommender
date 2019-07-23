@@ -1,5 +1,6 @@
 variable "environment" {}
 variable "region" {}
+variable "parameter_memcached_location" {}
 variable "api_server_host" {}
 variable "api_server_port" {}
 variable "ecs_instances_desired_count" {}

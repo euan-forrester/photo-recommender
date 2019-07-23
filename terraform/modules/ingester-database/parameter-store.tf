@@ -5,6 +5,13 @@ resource "aws_kms_key" "parameter_secrets" {
     deletion_window_in_days = 7
 }
 
+resource "aws_ssm_parameter" "parameter_memcached_location" {
+    name        = "/${var.environment}/ingester-database/parameter-memcached-location"
+    description = "Where to find a memcached instance to cache our parameter values"
+    type        = "String"
+    value       = "${var.parameter_memcached_location}"
+}
+
 resource "aws_ssm_parameter" "output_database_host" {
     name        = "/${var.environment}/ingester-database/output-database-host"
     description = "Host for the database into which we ingest data from the queue"

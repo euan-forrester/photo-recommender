@@ -68,7 +68,7 @@ module "memcached" {
     local_machine_cidr      = "${var.local_machine_cidr}"
 
     memcached_node_type = "cache.t2.micro"
-    memcached_num_cache_nodes = 0 # Set to 0 to disable memcached in dev to save billing charges
+    memcached_num_cache_nodes = 1 # Set to 0 to disable memcached in dev to save billing charges
     memcached_az_mode = "single-az" # Single az in dev to save billing charges
 }
 
@@ -77,6 +77,8 @@ module "scheduler" {
 
     environment = "dev"
     region = "${var.region}"
+
+    parameter_memcached_location = "${module.memcached.location}"
 
     ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
@@ -103,7 +105,9 @@ module "puller_flickr" {
     environment = "dev"
     region = "${var.region}"
 
-    memcached_location = "${module.memcached.location}"
+    parameter_memcached_location = "${module.memcached.location}"
+
+    memcached_location = "localhost:11211" # Disable cacheing Flickr API responses for now, so we can test performance
     memcached_ttl = 7200
 
     ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
@@ -141,6 +145,8 @@ module "ingester_database" {
     environment             = "dev"
     region                  = "${var.region}"
 
+    parameter_memcached_location = "${module.memcached.location}"
+
     ecs_cluster_id          = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
     ecs_instances_desired_count = 10
@@ -166,6 +172,8 @@ module "api_server" {
 
     environment             = "dev"
     region                  = "${var.region}"
+
+    parameter_memcached_location = "${module.memcached.location}"
 
     vpc_id                  = "${module.vpc.vpc_id}"
     vpc_public_subnet_ids   = "${module.vpc.vpc_public_subnet_ids}"
