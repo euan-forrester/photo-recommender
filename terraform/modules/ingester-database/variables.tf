@@ -6,6 +6,7 @@ variable "mysql_database_username" {}
 variable "mysql_database_password" {}
 variable "mysql_database_name" {}
 variable "mysql_database_batch_size" {}
+variable "mysql_database_maxretries" {}
 variable "ecs_instances_desired_count" {}
 variable "ecs_instances_memory" {}
 variable "ecs_instances_cpu" {}

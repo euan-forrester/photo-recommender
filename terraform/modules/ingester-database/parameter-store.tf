@@ -48,6 +48,13 @@ resource "aws_ssm_parameter" "output_database_batch_size" {
     value       = "${var.mysql_database_batch_size}"
 }
 
+resource "aws_ssm_parameter" "output_database_maxretries" {
+    name        = "/${var.environment}/ingester-database/output-database-maxretries"
+    description = "Number of items to retry a put operation to the database"
+    type        = "String"
+    value       = "${var.mysql_database_maxretries}"
+}
+
 resource "aws_ssm_parameter" "input_queue_url" {
     name        = "/${var.environment}/ingester-database/input-queue-url"
     description = "Endpoint of queue we use to ingest favorites data intended for the database"
