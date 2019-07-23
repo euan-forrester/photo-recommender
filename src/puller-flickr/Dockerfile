@@ -13,4 +13,5 @@ RUN pip install python-memcached
 RUN pip install django
 RUN pip install boto3
 RUN pip install jsonpickle
+RUN pip install pymemcache
 CMD [ "./common/loop_command.sh", "./puller-flickr/puller-flickr.py", "2" ]
