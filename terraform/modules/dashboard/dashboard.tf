@@ -7,76 +7,83 @@ resource "aws_cloudwatch_dashboard" "main" {
        {
           "x":0,
           "y":0,
+          "width":24,
+          "height":6,
+          ${data.template_file.time_to_get_all_data.rendered}
+       },
+       {
+          "x":0,
+          "y":6,
           "width":12,
           "height":6,
           ${data.template_file.scheduler_queue.rendered}
        },
        {
           "x":12,
-          "y":0,
+          "y":6,
           "width":12,
           "height":6,
           ${data.template_file.scheduler_response_queue.rendered}
        },
        {
           "x":0,
-          "y":6,
+          "y":12,
           "width":12,
           "height":6,
           ${data.template_file.ingester_queue.rendered}
        },
        {
           "x":12,
-          "y":6,
+          "y":12,
           "width":6,
           "height":6,
           ${data.template_file.ec2_network.rendered} 
        },
        {
           "x":18,
-          "y":6,
+          "y":12,
           "width":6,
           "height":6,
           ${data.template_file.ec2_cpu.rendered} 
        },
        {
           "x":0,
-          "y":12,
+          "y":18,
           "width":12,
           "height":6,
           ${data.template_file.database_io.rendered} 
        },
        {
           "x":12,
-          "y":12,
+          "y":18,
           "width":4,
           "height":6,
           ${data.template_file.database_cpu.rendered} 
        },
        {
           "x":16,
-          "y":12,
+          "y":18,
           "width":4,
           "height":6,
           ${data.template_file.database_disc.rendered} 
        },
        {
           "x":20,
-          "y":12,
+          "y":18,
           "width":4,
           "height":6,
           ${data.template_file.database_memory.rendered} 
        },
        {
           "x":0,
-          "y":18,
+          "y":24,
           "width":12,
           "height":6,
           ${data.template_file.ecs_cpu.rendered} 
        },
        {
           "x":12,
-          "y":18,
+          "y":24,
           "width":12,
           "height":6,
           ${data.template_file.ecs_memory.rendered} 
@@ -84,6 +91,18 @@ resource "aws_cloudwatch_dashboard" "main" {
     ]
   }
   EOF
+}
+
+data "template_file" "time_to_get_all_data" {
+    vars = {
+        title                       = "Time to get all data"
+        environment                 = "${var.environment}"
+        process_name                = "scheduler"
+        metric_name                 = "time_to_get_all_data"
+        region                      = "${var.region}"
+    }
+
+    template = "${file("${path.module}/generic_metric.tpl")}"
 }
 
 data "template_file" "scheduler_queue" {
