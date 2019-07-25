@@ -8,6 +8,7 @@ import logging
 from queuewriter import SQSQueueWriter
 from queuereader import SQSQueueReader
 from confighelper import ConfigHelper
+from metricshelper import MetricsHelper
 from schedulerqueueitem import SchedulerQueueItem
 from schedulerresponsequeueitem import SchedulerResponseQueueItem
 from usersstoreapiserver import UsersStoreAPIServer
@@ -47,15 +48,22 @@ scheduler_response_queue_max_items_to_process = config_helper.getInt("scheduler-
 
 scheduler_seconds_between_user_data_updates = config_helper.getInt("seconds-between-user-data-updates")
 
+ingester_queue_url                  = config_helper.get("ingester-queue-url")
+
 #
 # Initialize our users' store and queues
 # 
 
+metrics_helper = MetricsHelper(environment=config_helper.get_environment(), process_name="scheduler")
+
 users_store = UsersStoreAPIServer(host=api_server_host, port=api_server_port)
 
 scheduler_queue = SQSQueueWriter(scheduler_queue_url, scheduler_queue_batch_size)
+scheduler_queue_reader = SQSQueueReader(scheduler_queue_url, 0, 0) # We're just going to read the size from this queue, and not read any of its messages. We only write to this queue
 
 scheduler_response_queue = SQSQueueReader(scheduler_response_queue_url, scheduler_response_queue_batch_size, scheduler_response_queue_max_items_to_process)
+
+ingester_queue = SQSQueueReader(ingester_queue_url, 0, 0) # We're just going to read the size from this queue, not any of its messages
 
 #
 # Begin by requesting all of the users that haven't been updated in a while
@@ -116,6 +124,44 @@ finally:
     scheduler_response_queue.shutdown()
 
 logging.info("Ended processing scheduler response messages")
+
+#
+# Find any users who are currently updating, and see if we've finished updating
+#
+
+logging.info("Beginning looking for users who are still updating")
+
+try:
+    user_ids_still_updating = users_store.get_users_that_are_currently_updating()
+
+    if len(user_ids_still_updating) == 0:
+        logging.info("No user IDs are currently updating")
+
+    else:
+        scheduler_queue_num_messages            = scheduler_queue_reader.get_total_number_of_messages_available()
+        scheduler_response_queue_num_messages   = scheduler_response_queue.get_total_number_of_messages_available()
+        ingester_queue_num_messages             = ingester_queue.get_total_number_of_messages_available()
+
+        total_messages_in_system = scheduler_queue_num_messages + scheduler_response_queue_num_messages + ingester_queue_num_messages
+            
+        logging.info(f"Currently found {scheduler_queue_num_messages} scheduler messages, {scheduler_response_queue_num_messages} scheduler response messages, and {ingester_queue_num_messages} ingester messages, for a total of {total_messages_in_system}")
+
+        if total_messages_in_system == 0:
+            logging.info("No messages currently in the system, so we're done updating our users")
+            
+            for user_id in user_ids_still_updating:              
+                users_store.all_data_updated(user_id)
+                time_in_seconds = users_store.get_time_to_update_all_data(user_id)
+                logging.info(f"It took {time_in_seconds} to update user {user_id}")
+                metrics_helper.send_time("time_to_get_all_data", time_in_seconds)
+        else:
+            logging.info("There are still messages in the system, so we are not done updating our users")
+
+except UsersStoreException as e:
+    logging.error("Unable to talk to our users store. Exiting.", e)
+    sys.exit() 
+
+logging.info("Ended looking for users who are still updating")
 
 #
 # And we're finished

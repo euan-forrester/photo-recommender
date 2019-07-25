@@ -54,6 +54,9 @@ class ConfigHelperFile(ConfigHelper):
             logging.info(f"Reading in config file '{filename}'")
             self.config.read(filename)
 
+    def get_environment():
+        return self.environment
+
     def get(self, key, is_secret=False):
         try:
             value = self.config.get(self.environment, key)
@@ -109,6 +112,9 @@ class ConfigHelperParameterStore(ConfigHelper):
                 deserializer=serde.python_memcache_deserializer,
                 connect_timeout=ConfigHelperParameterStore.MEMCACHED_CONNECT_TIMEOUT,
                 timeout=ConfigHelperParameterStore.MEMCACHED_TIMEOUT)
+
+    def get_environment(self):
+        return self.environment
 
     def get(self, key, is_secret=False):
 

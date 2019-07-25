@@ -127,3 +127,4 @@ TODO:
 - Encrypt SQS messages in prod
 - Use templating lib for outputting HTML from API server
 - Add locking mechanism to Scheduler
+- Add uncaught exception handler + metric + alert to all processes

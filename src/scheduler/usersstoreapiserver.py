@@ -26,6 +26,36 @@ class UsersStoreAPIServer:
         except HTTPError as http_err:
             raise UsersStoreException from http_err
 
+    def get_users_that_are_currently_updating(self):
+
+        try:
+            response = requests.get(f"{self.url_prefix}/users/currently-updating")
+
+            response.raise_for_status()
+
+            response.encoding = "utf-8"
+
+            return response.json()
+
+        except HTTPError as http_err:
+            raise UsersStoreException from http_err
+
+    def get_time_to_update_all_data(self, user_id):
+
+        try:
+            response = requests.get(f"{self.url_prefix}/users/{user_id}/get-time-to-update-all-data")
+
+            response.raise_for_status()
+
+            response.encoding = "utf-8"
+
+            response_object = response.json()
+
+            return int(response_object['time_in_seconds'])
+
+        except HTTPError as http_err:
+            raise UsersStoreException from http_err
+
     def data_requested(self, user_id):
 
         try:
@@ -42,6 +72,18 @@ class UsersStoreAPIServer:
 
         try:
             response = requests.put(f"{self.url_prefix}/users/{user_id}/data-updated")
+
+            response.raise_for_status()
+
+            return
+
+        except HTTPError as http_err:
+            raise UsersStoreException from http_err
+
+    def all_data_updated(self, user_id):
+
+        try:
+            response = requests.put(f"{self.url_prefix}/users/{user_id}/all-data-updated")
 
             response.raise_for_status()
 

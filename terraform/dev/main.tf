@@ -97,6 +97,9 @@ module "scheduler" {
 
     scheduler_response_queue_batch_size = 10
     scheduler_response_queue_max_items_to_process = 10000
+
+    ingester_database_queue_url = "${module.ingester_database.ingester_queue_url}"
+    ingester_database_queue_arn = "${module.ingester_database.ingester_queue_arn}"
 }
 
 module "puller_flickr" {

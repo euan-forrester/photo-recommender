@@ -60,3 +60,10 @@ resource "aws_ssm_parameter" "scheduler_seconds_between_user_data_updates" {
     type        = "String"
     value       = "${var.scheduler_seconds_between_user_data_updates}"
 }
+
+resource "aws_ssm_parameter" "ingester_queue_url" {
+    name        = "/${var.environment}/scheduler/ingester-queue-url"
+    description = "Endpoint of queue we use to ingest data into the database, only used to check its size"
+    type        = "String"
+    value       = "${var.ingester_database_queue_url}"
+}
