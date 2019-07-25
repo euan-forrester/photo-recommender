@@ -56,7 +56,7 @@ class FavoritesStoreDatabase:
             # Took the scoring formula from https://www.flickr.com/groups/709526@N23/discuss/72157604460161681/72157604455830572
 
             cursor.execute("""
-                select possible_photos.image_id, possible_photos.image_owner, possible_photos.image_url, sum(neighbor_scores.score) as 'total_score' from
+                SELECT possible_photos.image_id, possible_photos.image_owner, possible_photos.image_url, sum(neighbor_scores.score) as 'total_score' from
                         (select image_id, image_owner, image_url, favorited_by from favorites 
                             where 
                                 favorited_by in (select distinct image_owner from favorites where favorited_by=%s) 
@@ -107,7 +107,7 @@ class FavoritesStoreDatabase:
 
         try:
             cursor.execute("""
-                select user_id from registered_users where TIMESTAMPDIFF(SECOND, IFNULL(data_last_requested_at, TIMESTAMP('1970-01-01')), NOW()) > %s;
+                SELECT user_id FROM registered_users WHERE TIMESTAMPDIFF(SECOND, IFNULL(data_last_requested_at, TIMESTAMP('1970-01-01')), NOW()) > %s;
             """, (num_seconds_between_updates,))
 
             users = []
@@ -124,6 +124,30 @@ class FavoritesStoreDatabase:
             cursor.close()
             cnx.close()            
 
+    def get_users_that_are_currently_updating(self):
+        cnx = self.cnxpool.get_connection()
+
+        cursor = cnx.cursor() 
+
+        try:
+            cursor.execute("""
+                SELECT user_id FROM registered_users WHERE IFNULL(all_data_last_successfully_processed_at, TIMESTAMP('1970-01-01')) < IFNULL(data_last_requested_at, TIMESTAMP('1970-01-01'));
+            """)
+
+            users = []
+
+            for row in self._iter_row(cursor):
+                users.append(row[0])
+
+            return users
+
+        except Exception as e:
+            raise FavoritesStoreException from e
+
+        finally:
+            cursor.close()
+            cnx.close() 
+
     def user_data_requested(self, user_id):
         cnx = self.cnxpool.get_connection()
 
@@ -131,7 +155,7 @@ class FavoritesStoreDatabase:
 
         try:
             cursor.execute("""
-                update registered_users set data_last_requested_at = NOW() where user_id=%s;
+                UPDATE registered_users SET data_last_requested_at = NOW() WHERE user_id=%s;
             """, (user_id,))
 
             cnx.commit()
@@ -150,7 +174,7 @@ class FavoritesStoreDatabase:
 
         try:
             cursor.execute("""
-                update registered_users set data_last_successfully_processed_at = NOW() where user_id=%s;
+                UPDATE registered_users SET data_last_successfully_processed_at = NOW() WHERE user_id=%s;
             """, (user_id,))
 
             cnx.commit()
@@ -161,6 +185,25 @@ class FavoritesStoreDatabase:
         finally:
             cursor.close()
             cnx.close()    
+
+    def all_user_data_updated(self, user_id):
+        cnx = self.cnxpool.get_connection()
+
+        cursor = cnx.cursor() 
+
+        try:
+            cursor.execute("""
+                UPDATE registered_users SET all_data_last_successfully_processed_at = NOW() WHERE user_id=%s;
+            """, (user_id,))
+
+            cnx.commit()
+
+        except Exception as e:
+            raise FavoritesStoreException from e
+
+        finally:
+            cursor.close()
+            cnx.close() 
 
     def _iter_row(self, cursor):
         while True:

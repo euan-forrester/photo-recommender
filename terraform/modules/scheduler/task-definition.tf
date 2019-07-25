@@ -24,7 +24,7 @@ data "aws_caller_identity" "scheduler" {
 
 resource "aws_iam_policy" "ecs-instance-scheduler-extra-policy" {
   name        = "scheduler-extra-policy"
-  description = "Allows the scheduler to read parameters, write to the scheduler queue, read from the scheduler response queue"
+  description = "Allows the scheduler to read parameters, write to the scheduler queue, read from the scheduler response queue, and get the number of messages in each of the 3 queues"
 
   policy = <<EOF
 {
@@ -40,7 +40,8 @@ resource "aws_iam_policy" "ecs-instance-scheduler-extra-policy" {
     {
       "Action": [
         "sqs:SendMessageBatch",
-        "sqs:SendMessage"
+        "sqs:SendMessage",
+        "sqs:GetQueueAttributes"
       ],
       "Effect": "Allow",
       "Resource": "${module.scheduler_queue.queue_arn}"
@@ -49,10 +50,18 @@ resource "aws_iam_policy" "ecs-instance-scheduler-extra-policy" {
       "Action": [
         "sqs:ReceiveMessage",
         "sqs:DeleteMessageBatch",
-        "sqs:DeleteMessage"
+        "sqs:DeleteMessage",
+        "sqs:GetQueueAttributes"
       ],
       "Effect": "Allow",
       "Resource": "${module.scheduler_response_queue.queue_arn}"
+    },
+    {
+      "Action": [
+        "sqs:GetQueueAttributes"
+      ],
+      "Effect": "Allow",
+      "Resource": "${var.ingester_database_queue_arn}"
     }
   ]
 }

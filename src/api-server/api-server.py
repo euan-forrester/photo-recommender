@@ -111,6 +111,17 @@ def get_users_that_need_update():
 
     return resp
 
+# Gets a list of registered users who are currently in the process of having their data refreshed
+@application.route("/users/currently-updating", methods = ['GET'])
+def get_users_that_are_currently_updating():
+
+    users = favorites_store.get_users_that_are_currently_updating()
+
+    resp = jsonify(users)
+    resp.status_code = status.HTTP_200_OK
+
+    return resp
+
 # Notifies that a particular user has had their data requested
 @application.route("/users/<user_id>/data-requested", methods = ['PUT'])
 def put_user_data_requested(user_id=None):
@@ -121,13 +132,23 @@ def put_user_data_requested(user_id=None):
 
     return "OK", status.HTTP_200_OK
 
-# Notifies that a particular user has had their data successfully updated
+# Notifies that a particular user has had their data successfully updated (i.e. for just themsolves)
 @application.route("/users/<user_id>/data-updated", methods = ['PUT'])
 def put_user_data_updated(user_id=None):
     if user_id is None:
         return user_not_specified()
 
     favorites_store.user_data_updated(user_id)
+
+    return "OK", status.HTTP_200_OK
+
+# Notifies that a particular user has had all of their data successfully updated (i.e. for all their neighbors)
+@application.route("/users/<user_id>/all-data-updated", methods = ['PUT'])
+def put_user_all_data_updated(user_id=None):
+    if user_id is None:
+        return user_not_specified()
+
+    favorites_store.all_user_data_updated(user_id)
 
     return "OK", status.HTTP_200_OK
 

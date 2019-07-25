@@ -73,6 +73,26 @@ class SQSQueueReader:
         if len(self.current_batch_finished) >= self.batch_size:
             self._purge_finished_messages()
 
+    def get_total_number_of_messages_available(self):
+
+        response = self.sqs.get_queue_attributes(
+            QueueUrl=self.queue_url,
+            AttributeNames=[
+                'ApproximateNumberOfMessages',
+                'ApproximateNumberOfMessagesNotVisible',
+                'ApproximateNumberOfMessagesDelayed'
+            ]
+        )
+
+        total_messages = 0
+
+        if 'Attributes' in response:
+            total_messages += int(response['Attributes']['ApproximateNumberOfMessages'])
+            total_messages += int(response['Attributes']['ApproximateNumberOfMessagesNotVisible'])
+            total_messages += int(response['Attributes']['ApproximateNumberOfMessagesDelayed'])
+
+        return total_messages
+
     def shutdown(self):
         self._purge_finished_messages()
 
