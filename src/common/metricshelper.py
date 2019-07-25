@@ -1,0 +1,38 @@
+import boto3
+
+class MetricsHelper:
+
+    '''
+    Wraps the functionality of sending metrics to CloudWatch
+    '''
+
+    def __init__(self, environment, process_name):
+        self.environment    = environment
+        self.process_name   = process_name
+        self.cloudwatch     = boto3.client('cloudwatch') # Region is read from the AWS_DEFAULT_REGION env var
+   
+    def send_time(self, metric_name, time_in_seconds):
+        self._send_metric(metric_name, time_in_seconds, "Seconds")
+
+    def _send_metric(self, metric_name, value, units):
+
+        response = self.cloudwatch.put_metric_data(
+            MetricData = [
+                {
+                    'MetricName': metric_name,
+                    'Dimensions': [
+                        {
+                            'Name': 'Environment',
+                            'Value': self.environment
+                        },
+                        {
+                            'Name': 'Process',
+                            'Value': self.process_name
+                        },
+                    ],
+                    'Unit': units,
+                    'Value': value
+                },
+            ],
+            Namespace = 'Photo Recommender'
+        )

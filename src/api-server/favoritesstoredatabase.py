@@ -107,7 +107,13 @@ class FavoritesStoreDatabase:
 
         try:
             cursor.execute("""
-                SELECT user_id FROM registered_users WHERE TIMESTAMPDIFF(SECOND, IFNULL(data_last_requested_at, TIMESTAMP('1970-01-01')), NOW()) > %s;
+                SELECT 
+                    user_id 
+                FROM 
+                    registered_users 
+                WHERE 
+                    TIMESTAMPDIFF(SECOND, IFNULL(data_last_requested_at, TIMESTAMP('1970-01-01')), NOW()) > %s
+                ;
             """, (num_seconds_between_updates,))
 
             users = []
@@ -131,7 +137,13 @@ class FavoritesStoreDatabase:
 
         try:
             cursor.execute("""
-                SELECT user_id FROM registered_users WHERE IFNULL(all_data_last_successfully_processed_at, TIMESTAMP('1970-01-01')) < IFNULL(data_last_requested_at, TIMESTAMP('1970-01-01'));
+                SELECT 
+                    user_id 
+                FROM 
+                    registered_users 
+                WHERE 
+                    IFNULL(all_data_last_successfully_processed_at, TIMESTAMP('1970-01-01')) < IFNULL(data_last_requested_at, TIMESTAMP('1970-01-01'))
+                ;
             """)
 
             users = []
@@ -155,7 +167,13 @@ class FavoritesStoreDatabase:
 
         try:
             cursor.execute("""
-                UPDATE registered_users SET data_last_requested_at = NOW() WHERE user_id=%s;
+                UPDATE 
+                    registered_users 
+                SET 
+                    data_last_requested_at = NOW() 
+                WHERE 
+                    user_id=%s
+                ;
             """, (user_id,))
 
             cnx.commit()
@@ -174,7 +192,12 @@ class FavoritesStoreDatabase:
 
         try:
             cursor.execute("""
-                UPDATE registered_users SET data_last_successfully_processed_at = NOW() WHERE user_id=%s;
+                UPDATE 
+                    registered_users 
+                SET 
+                    data_last_successfully_processed_at = NOW() 
+                WHERE 
+                    user_id=%s;
             """, (user_id,))
 
             cnx.commit()
@@ -193,7 +216,12 @@ class FavoritesStoreDatabase:
 
         try:
             cursor.execute("""
-                UPDATE registered_users SET all_data_last_successfully_processed_at = NOW() WHERE user_id=%s;
+                UPDATE 
+                    registered_users 
+                SET 
+                    all_data_last_successfully_processed_at = NOW() 
+                WHERE 
+                    user_id=%s;
             """, (user_id,))
 
             cnx.commit()
@@ -204,6 +232,42 @@ class FavoritesStoreDatabase:
         finally:
             cursor.close()
             cnx.close() 
+
+    def get_time_to_update_all_data(self, user_id):
+
+        cnx = self.cnxpool.get_connection()
+
+        cursor = cnx.cursor() 
+
+        try:
+            cursor.execute("""
+                SELECT 
+                    TIMESTAMPDIFF(
+                        SECOND, 
+                        IFNULL(data_last_requested_at, TIMESTAMP('1970-01-01')), 
+                        IFNULL(all_data_last_successfully_processed_at, TIMESTAMP('1970-01-01'))) 
+                AS 
+                    time_to_complete 
+                FROM
+                    registered_users
+                WHERE 
+                    user_id=%s
+                ;
+            """, (user_id,))
+     
+            row = self._get_first_row(cursor)
+                
+            return row[0]
+
+        except Exception as e:
+            raise FavoritesStoreException from e
+
+        finally:
+            cursor.close()
+            cnx.close()
+
+    def _get_first_row(self, cursor):
+        return cursor.fetchone()
 
     def _iter_row(self, cursor):
         while True:

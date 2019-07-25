@@ -62,6 +62,13 @@ resource "aws_iam_policy" "ecs-instance-scheduler-extra-policy" {
       ],
       "Effect": "Allow",
       "Resource": "${var.ingester_database_queue_arn}"
+    },
+    {
+      "Action": [
+        "cloudwatch:PutMetricData"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
     }
   ]
 }

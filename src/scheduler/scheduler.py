@@ -8,6 +8,7 @@ import logging
 from queuewriter import SQSQueueWriter
 from queuereader import SQSQueueReader
 from confighelper import ConfigHelper
+from metricshelper import MetricsHelper
 from schedulerqueueitem import SchedulerQueueItem
 from schedulerresponsequeueitem import SchedulerResponseQueueItem
 from usersstoreapiserver import UsersStoreAPIServer
@@ -52,6 +53,8 @@ ingester_queue_url                  = config_helper.get("ingester-queue-url")
 #
 # Initialize our users' store and queues
 # 
+
+metrics_helper = MetricsHelper(environment=config_helper.get_environment(), process_name="scheduler")
 
 users_store = UsersStoreAPIServer(host=api_server_host, port=api_server_port)
 
@@ -146,8 +149,11 @@ try:
         if total_messages_in_system == 0:
             logging.info("No messages currently in the system, so we're done updating our users")
             
-            for user_id in user_ids_still_updating:
+            for user_id in user_ids_still_updating:              
                 users_store.all_data_updated(user_id)
+                time_in_seconds = users_store.get_time_to_update_all_data(user_id)
+                logging.info(f"It took {time_in_seconds} to update user {user_id}")
+                metrics_helper.send_time("time_to_get_all_data", time_in_seconds)
         else:
             logging.info("There are still messages in the system, so we are not done updating our users")
 

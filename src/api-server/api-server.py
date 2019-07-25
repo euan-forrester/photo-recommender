@@ -152,6 +152,21 @@ def put_user_all_data_updated(user_id=None):
 
     return "OK", status.HTTP_200_OK
 
+# Notifies that a particular user has had all of their data successfully updated (i.e. for all their neighbors)
+@application.route("/users/<user_id>/get-time-to-update-all-data", methods = ['GET'])
+def get_time_to_update_all_data(user_id=None):
+    if user_id is None:
+        return user_not_specified()
+
+    response_object = {
+        'time_in_seconds': favorites_store.get_time_to_update_all_data(user_id)
+    }
+
+    resp = jsonify(response_object)
+    resp.status_code = status.HTTP_200_OK
+
+    return resp
+
 @application.errorhandler(status.HTTP_400_BAD_REQUEST)
 def user_not_specified(error=None):
     return "User not specified", status.HTTP_400_BAD_REQUEST
