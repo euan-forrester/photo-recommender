@@ -1,9 +1,7 @@
-import jsonpickle
-
 class IngesterQueueItem:
 
     '''
-    An item placed onto or read from the ingester queue. It represents a favorite (or equivalent) photo
+    An item placed onto or read from a batch message on the ingester queue. It represents a favorite (or equivalent) photo
     '''
 
     def __init__(self, image_id, image_url, image_owner, favorited_by):
@@ -23,11 +21,3 @@ class IngesterQueueItem:
 
     def get_favorited_by(self):
         return self.favorited_by
-
-    def to_json(self):
-        return jsonpickle.encode(self)
-
-    @staticmethod
-    def from_json(json):
-        return jsonpickle.decode(json)
-        

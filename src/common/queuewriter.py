@@ -22,6 +22,8 @@ class SQSQueueWriter:
                 'MessageBody': to_string(obj)
             }
 
+            logging.info(f"Sending message with a body containing {len(message['MessageBody']) / 1024} kB")
+
             current_batch.append(message)
 
             if len(current_batch) >= self.batch_size:

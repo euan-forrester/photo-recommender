@@ -7,6 +7,7 @@ from flickrapiwrapper import FlickrApiWrapper
 import argparse
 import logging
 from ingesterqueueitem import IngesterQueueItem
+from ingesterqueuebatchitem import IngesterQueueBatchItem
 from schedulerqueueitem import SchedulerQueueItem
 from schedulerresponsequeueitem import SchedulerResponseQueueItem
 from queuewriter import SQSQueueWriter
@@ -93,7 +94,9 @@ def process_user(scheduler_queue_item):
 
     logging.info(f"Found {len(favorite_photos)} photos to send to queue {output_queue_url} in batches of {output_queue_batch_size}")
 
-    output_queue.send_messages(objects=favorite_photos, to_string=lambda photo : photo.to_json())
+    batch_item = IngesterQueueBatchItem(favorite_photos) # There's a max of 256kB per message in SQS, and with 1000 photos our message bodies come in around 218kB. Will need to split them up if we get > 1000 photos/user
+
+    output_queue.send_messages(objects=[batch_item], to_string=lambda x : x.to_json())
 
     # And send a response to the scheduler saying that we've successfully processed this request
 

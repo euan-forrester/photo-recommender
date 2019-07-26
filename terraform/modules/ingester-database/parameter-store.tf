@@ -48,11 +48,11 @@ resource "aws_ssm_parameter" "output_database_name" {
     value       = "${var.mysql_database_name}"
 }
 
-resource "aws_ssm_parameter" "output_database_batch_size" {
-    name        = "/${var.environment}/ingester-database/output-database-batchsize"
-    description = "Number of items to put into the database in a single batch"
+resource "aws_ssm_parameter" "output_database_min_batch_size" {
+    name        = "/${var.environment}/ingester-database/output-database-min-batchsize"
+    description = "Minimum number of items to put into the database in a single batch"
     type        = "String"
-    value       = "${var.mysql_database_batch_size}"
+    value       = "${var.mysql_database_min_batch_size}"
 }
 
 resource "aws_ssm_parameter" "output_database_maxretries" {

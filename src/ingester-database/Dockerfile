@@ -2,6 +2,7 @@ FROM python:3-alpine
 ADD ingester-database/ingester-database.py /ingester-database/
 ADD ingester-database/databasebatchwriter.py /ingester-database/
 ADD common/ingesterqueueitem.py /common/
+ADD common/ingesterqueuebatchitem.py /common/
 ADD common/queuereader.py /common/
 ADD common/confighelper.py /common/
 ADD common/loop_command.sh /common/
