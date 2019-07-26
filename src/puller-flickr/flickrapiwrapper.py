@@ -10,7 +10,7 @@ class FlickrApiWrapper:
     Wraps around the flickrapi package: adds in retries to calls that fail, and external cacheing via memcached
     """
 
-    def __init__(self, flickr_api_key, flickr_api_secret, memcached_location, memcached_ttl, max_retries, max_favorites_per_call, max_favorites_to_get):
+    def __init__(self, flickr_api_key, flickr_api_secret, memcached_location, memcached_ttl, max_retries, max_favorites_per_call, max_favorites_to_get, max_calls_to_make):
 
         settings.configure(CACHES = {
             'default': {
@@ -21,12 +21,13 @@ class FlickrApiWrapper:
             }
         })
 
-        self.flickr = flickrapi.FlickrAPI(flickr_api_key, flickr_api_secret, format='parsed-json', cache=True)
-        self.flickr.cache = cache
+        self.flickr                 = flickrapi.FlickrAPI(flickr_api_key, flickr_api_secret, format='parsed-json', cache=True)
+        self.flickr.cache           = cache
 
-        self.max_retries = max_retries
+        self.max_retries            = max_retries
         self.max_favorites_per_call = max_favorites_per_call
-        self.max_favorites_to_get = max_favorites_to_get
+        self.max_favorites_to_get   = max_favorites_to_get
+        self.max_calls_to_make      = max_calls_to_make
 
     def get_person_info(self, user_id):
         
@@ -40,11 +41,15 @@ class FlickrApiWrapper:
 
     def get_favorites(self, user_id):
 
+        # We may want to put a limit on the number of pages that we request, because the Flickr API acts a bit weird.
+        # We frequently get back less than the number of favorites we ask for, and so getting 1000 favorites in batches of 500
+        # will generally require 3 calls rather than the expected 2. These calls are expensive, so we may want to limit them.
+
         got_all_favorites = False
         current_page = 1
         favorites = []
 
-        while not got_all_favorites and len(favorites) < self.max_favorites_to_get:
+        while not got_all_favorites and (len(favorites) < self.max_favorites_to_get) and (current_page <= self.max_calls_to_make):
             favorites_subset = self._get_favorites_page(user_id, current_page)
 
             if len(favorites_subset['photos']['photo']) > 0: # We can't just check if the number we got back == the number we requested, because frequently we can get back < the number we requested but there's still more available. This is likely due to not having permission to be able to view all of the ones we requested

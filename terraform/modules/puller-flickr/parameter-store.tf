@@ -48,6 +48,13 @@ resource "aws_ssm_parameter" "flickr_api_favorites_max_to_get" {
     value       = "${var.flickr_api_favorites_max_to_get}"
 }
 
+resource "aws_ssm_parameter" "flickr_api_favorites_max_calls_to_make" {
+    name        = "/${var.environment}/puller-flickr/flickr-api-favorites-maxcallstomake"
+    description = "Max number of calls to favorites endpoint to make per user."
+    type        = "String"
+    value       = "${var.flickr_api_favorites_max_calls_to_make}"
+}
+
 resource "aws_ssm_parameter" "memcached_ttl" {
     name        = "/${var.environment}/puller-flickr/memcached-ttl"
     description = "TTL in seconds of Flickr API calls put into memcached"
