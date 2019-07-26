@@ -41,6 +41,7 @@ flickr_api_secret                   = config_helper.get("flickr-api-secret", is_
 flickr_api_retries                  = config_helper.getInt("flickr-api-retries") 
 flickr_api_max_favorites_per_call   = config_helper.getInt("flickr-api-favorites-maxpercall")
 flickr_api_max_favorites_to_get     = config_helper.getInt("flickr-api-favorites-maxtoget")
+flickr_api_max_calls_to_make        = config_helper.getInt("flickr-api-favorites-maxcallstomake")
 
 memcached_location                  = config_helper.get("memcached-location")
 memcached_ttl                       = config_helper.getInt("memcached-ttl")
@@ -54,7 +55,15 @@ scheduler_queue_url                 = config_helper.get("scheduler-queue-url")
 scheduler_queue_batch_size          = config_helper.getInt("scheduler-queue-batchsize")
 scheduler_queue_max_items_to_process = config_helper.getInt("scheduler-queue-maxitemstoprocess")
 
-flickrapi = FlickrApiWrapper(flickr_api_key, flickr_api_secret, memcached_location, memcached_ttl, flickr_api_retries, flickr_api_max_favorites_per_call, flickr_api_max_favorites_to_get)
+flickrapi = FlickrApiWrapper(
+    flickr_api_key, 
+    flickr_api_secret, 
+    memcached_location, 
+    memcached_ttl, 
+    flickr_api_retries, 
+    flickr_api_max_favorites_per_call, 
+    flickr_api_max_favorites_to_get,
+    flickr_api_max_calls_to_make)
 
 scheduler_queue             = SQSQueueReader(queue_url=scheduler_queue_url,             batch_size=scheduler_queue_batch_size, max_messages_to_read=scheduler_queue_max_items_to_process)
 scheduler_response_queue    = SQSQueueWriter(queue_url=scheduler_response_queue_url,    batch_size=1) # We ignore the batch size by sending the messages one at a time, because we don't want to miss any if we have an error
@@ -94,9 +103,14 @@ def process_user(scheduler_queue_item):
 
     logging.info(f"Found {len(favorite_photos)} photos to send to queue {output_queue_url} in batches of {output_queue_batch_size}")
 
-    batch_item = IngesterQueueBatchItem(favorite_photos) # There's a max of 256kB per message in SQS, and with 1000 photos our message bodies come in around 218kB. Will need to split them up if we get > 1000 photos/user
+    if len(favorite_photos) > 0:
 
-    output_queue.send_messages(objects=[batch_item], to_string=lambda x : x.to_json())
+        batch_item = IngesterQueueBatchItem(favorite_photos) # There's a max of 256kB per message in SQS, and with 1000 photos our message bodies come in around 218kB. Will need to split them up if we get > 1000 photos/user
+
+        output_queue.send_messages(objects=[batch_item], to_string=lambda x : x.to_json())
+
+    else:
+        logging.info("Not sending a message because we didn't find any photos")
 
     # And send a response to the scheduler saying that we've successfully processed this request
 
