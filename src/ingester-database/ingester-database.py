@@ -6,6 +6,7 @@ sys.path.insert(0, '../common')
 import argparse
 import logging
 from ingesterqueueitem import IngesterQueueItem
+from ingesterqueuebatchitem import IngesterQueueBatchItem
 from queuereader import SQSQueueReader
 from confighelper import ConfigHelper
 from databasebatchwriter import DatabaseBatchWriter
@@ -41,7 +42,7 @@ output_database_password            = config_helper.get("output-database-passwor
 output_database_host                = config_helper.get("output-database-host")
 output_database_port                = config_helper.getInt("output-database-port")
 output_database_name                = config_helper.get("output-database-name")
-output_database_batch_size          = config_helper.getInt("output-database-batchsize")
+output_database_min_batch_size      = config_helper.getInt("output-database-min-batchsize")
 output_database_max_retries         = config_helper.getInt("output-database-maxretries")
 
 #
@@ -78,7 +79,7 @@ def write_batch(photo_batch, unwritten_message_batch):
             photo_batch
         )
 
-        logging.info("Wrote out batch of %d messages to database" % len(photo_batch))
+        logging.info(f"Wrote out batch of {len(photo_batch)} messages to database")
 
         # Only delete our messages after we've successfully inserted them into the database.
         # Otherwise, if there's an error inserting, we want all of these messages to get re-driven so we can try again.
@@ -88,14 +89,18 @@ def write_batch(photo_batch, unwritten_message_batch):
             queue.finished_with_message(successful_message)
 
 for queue_message in queue:
-    photo = IngesterQueueItem.from_json(queue_message.get_message_body())
+    photo_batch_queue_item = IngesterQueueBatchItem.from_json(queue_message.get_message_body())
 
-    logging.debug("Received message: Image owner: %s, image ID: %s, image URL: %s, image favorited by: %s" % (photo.get_image_owner(), photo.get_image_id(), photo.get_image_url(), photo.get_favorited_by()))
+    logging.info(f"Received batch item containing {len(photo_batch_queue_item.get_item_list())} individual items")
 
-    photo_batch.append(photo)
+    if logging.getLogger().getEffectiveLevel() <= logging.DEBUG:
+        for photo in photo_batch_queue_item.get_item_list():
+            logging.debug(f"Received item: image owner: {photo.get_image_owner()}, image ID: {photo.get_image_id()}, image URL: {photo.get_image_url()}, image favorited by: {photo.get_favorited_by()}")
+
+    photo_batch.extend(photo_batch_queue_item.get_item_list())
     unwritten_message_batch.append(queue_message)
 
-    if len(photo_batch) >= output_database_batch_size:
+    if len(photo_batch) >= output_database_min_batch_size:
 
         write_batch(photo_batch, unwritten_message_batch)
 

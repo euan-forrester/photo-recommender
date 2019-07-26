@@ -28,7 +28,7 @@ module "elastic_container_service" {
     extra_security_groups = ["${module.api_server.security_group_id}"]
 
     instance_type = "t2.micro"
-    cluster_desired_size = 20
+    cluster_desired_size = 30
     cluster_min_size = 1
     cluster_max_size = 30
     instances_log_retention_days = 1
@@ -115,7 +115,7 @@ module "puller_flickr" {
 
     ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 20
+    ecs_instances_desired_count = 30
     ecs_instances_memory = 64
     ecs_instances_cpu = 400
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
@@ -152,7 +152,7 @@ module "ingester_database" {
 
     ecs_cluster_id          = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 10
+    ecs_instances_desired_count = 20
     ecs_instances_memory    = 64
     ecs_instances_cpu       = 400
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
@@ -163,10 +163,10 @@ module "ingester_database" {
     mysql_database_username = "${module.database.database_username}"
     mysql_database_password = "${var.database_password_dev}"
     mysql_database_name     = "${module.database.database_name}"
-    mysql_database_batch_size = 1000
+    mysql_database_min_batch_size = 500
     mysql_database_maxretries = 3
 
-    input_queue_batch_size  = 10
+    input_queue_batch_size  = 1 # Each message takes a while to process because it contains many individual items, so only get one at a time so that we're not blocking other instances from picking them up
     input_queue_max_items_to_process = 10000
 }
 

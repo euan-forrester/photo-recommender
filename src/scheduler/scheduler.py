@@ -107,10 +107,12 @@ try:
 
         logging.info(f"Found {len(neighbors_to_request_data_for)} neighbors who need their data updated. Sending messages to queue {scheduler_queue_url} in batches of {scheduler_queue_batch_size}")
 
-        scheduler_queue.send_messages(objects=neighbors_to_request_data_for, to_string=lambda user : user.to_json())
+        if len(neighbors_to_request_data_for) > 0:
+            scheduler_queue.send_messages(objects=neighbors_to_request_data_for, to_string=lambda user : user.to_json())
 
-        for neighbor in neighbors_to_request_data_for:
-            logging.info(f"Requested data for user {neighbor.get_user_id()}")
+            if logging.getLogger().getEffectiveLevel() <= logging.INFO:
+                for neighbor in neighbors_to_request_data_for:
+                    logging.info(f"Requested data for user {neighbor.get_user_id()}")
 
         users_store.data_updated(response.get_user_id())
 
