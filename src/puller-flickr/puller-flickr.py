@@ -118,7 +118,7 @@ def process_user(scheduler_queue_item):
 
     # Output all of the photos we found to our output queue so they can be ingested into the database
 
-    logging.info(f"Found {len(favorite_photos)} photos to send to queue {output_queue_url} in batches of {output_queue_batch_size}")
+    logging.info(f"Found {len(favorite_photos)} photos to send to queue {output_queue_url} in one batch item")
 
     if len(favorite_photos) > 0:
 
