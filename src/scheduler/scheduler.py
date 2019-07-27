@@ -9,6 +9,7 @@ from queuewriter import SQSQueueWriter
 from queuereader import SQSQueueReader
 from confighelper import ConfigHelper
 from metricshelper import MetricsHelper
+from unhandledexceptionhelper import UnhandledExceptionHelper
 from schedulerqueueitem import SchedulerQueueItem
 from schedulerresponsequeueitem import SchedulerResponseQueueItem
 from usersstoreapiserver import UsersStoreAPIServer
@@ -51,10 +52,15 @@ scheduler_seconds_between_user_data_updates = config_helper.getInt("seconds-betw
 ingester_queue_url                  = config_helper.get("ingester-queue-url")
 
 #
+# Metrics and unhandled exceptions
+#
+
+metrics_helper              = MetricsHelper(environment=config_helper.get_environment(), process_name="scheduler")
+unhandled_exception_helper  = UnhandledExceptionHelper.setup_unhandled_exception_handler(metrics_helper=metrics_helper)
+
+#
 # Initialize our users' store and queues
 # 
-
-metrics_helper = MetricsHelper(environment=config_helper.get_environment(), process_name="scheduler")
 
 users_store = UsersStoreAPIServer(host=api_server_host, port=api_server_port)
 
