@@ -14,6 +14,8 @@ from confighelper import ConfigHelper
 from favoritesstoredatabase import FavoritesStoreDatabase
 from favoritesstoreexception import FavoritesStoreException
 from output import Output
+from metricshelper import MetricsHelper
+from unhandledexceptionhelper import UnhandledExceptionHelper
 
 #
 # Read in commandline arguments
@@ -47,6 +49,13 @@ database_connection_pool_size = config_helper.getInt("database-connection-pool-s
 server_host                 = config_helper.get("server-host")
 server_port                 = config_helper.getInt("server-port")
 default_num_photo_recommendations = config_helper.getInt('default-num-photo-recommendations')
+
+#
+# Metrics and unhandled exceptions
+#
+
+metrics_helper              = MetricsHelper(environment=config_helper.get_environment(), process_name="api-server")
+unhandled_exception_helper  = UnhandledExceptionHelper.setup_unhandled_exception_handler(metrics_helper=metrics_helper)
 
 #
 # Set up our data store

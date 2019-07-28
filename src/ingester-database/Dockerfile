@@ -5,6 +5,8 @@ ADD common/ingesterqueueitem.py /common/
 ADD common/ingesterqueuebatchitem.py /common/
 ADD common/queuereader.py /common/
 ADD common/confighelper.py /common/
+ADD common/metricshelper.py /common/
+ADD common/unhandledexceptionhelper.py /common/
 ADD common/loop_command.sh /common/
 RUN pip install boto3
 RUN pip install jsonpickle

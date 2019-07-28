@@ -14,6 +14,9 @@ class MetricsHelper:
     def send_time(self, metric_name, time_in_seconds):
         self._send_metric(metric_name, time_in_seconds, "Seconds")
 
+    def increment_count(self, metric_name, inc_amount=1):
+        self._send_metric(metric_name, inc_amount, "Count")
+
     def _send_metric(self, metric_name, value, units):
 
         response = self.cloudwatch.put_metric_data(

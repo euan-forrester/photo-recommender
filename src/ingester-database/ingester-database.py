@@ -10,6 +10,8 @@ from ingesterqueuebatchitem import IngesterQueueBatchItem
 from queuereader import SQSQueueReader
 from confighelper import ConfigHelper
 from databasebatchwriter import DatabaseBatchWriter
+from metricshelper import MetricsHelper
+from unhandledexceptionhelper import UnhandledExceptionHelper
 
 #
 # Read in commandline arguments
@@ -44,6 +46,13 @@ output_database_port                = config_helper.getInt("output-database-port
 output_database_name                = config_helper.get("output-database-name")
 output_database_min_batch_size      = config_helper.getInt("output-database-min-batchsize")
 output_database_max_retries         = config_helper.getInt("output-database-maxretries")
+
+#
+# Metrics and unhandled exceptions
+#
+
+metrics_helper              = MetricsHelper(environment=config_helper.get_environment(), process_name="ingester-database")
+unhandled_exception_helper  = UnhandledExceptionHelper.setup_unhandled_exception_handler(metrics_helper=metrics_helper)
 
 #
 # Receive some messages from the input queue and write them to the favorites database

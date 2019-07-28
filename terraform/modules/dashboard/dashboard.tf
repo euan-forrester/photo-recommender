@@ -87,6 +87,13 @@ resource "aws_cloudwatch_dashboard" "main" {
           "width":12,
           "height":6,
           ${data.template_file.ecs_memory.rendered} 
+       },
+       {
+          "x":0,
+          "y":30,
+          "width":12,
+          "height":6,
+          ${data.template_file.unhandled_exceptions.rendered} 
        }
     ]
   }
@@ -210,4 +217,15 @@ data "template_file" "ecs_memory" {
     }
 
     template = "${file("${path.module}/ecs_memory.tpl")}"
+}
+
+data "template_file" "unhandled_exceptions" {
+    vars = {
+        title                       = "Unhandled exceptions"
+        environment                 = "${var.environment}"
+        metric_name                 = "UnhandledException"
+        region                      = "${var.region}"
+    }
+
+    template = "${file("${path.module}/unhandled_exceptions.tpl")}"
 }

@@ -13,6 +13,8 @@ from schedulerresponsequeueitem import SchedulerResponseQueueItem
 from queuewriter import SQSQueueWriter
 from queuereader import SQSQueueReader
 from confighelper import ConfigHelper
+from metricshelper import MetricsHelper
+from unhandledexceptionhelper import UnhandledExceptionHelper
 
 #
 # Read in commandline arguments
@@ -55,6 +57,17 @@ scheduler_queue_url                 = config_helper.get("scheduler-queue-url")
 scheduler_queue_batch_size          = config_helper.getInt("scheduler-queue-batchsize")
 scheduler_queue_max_items_to_process = config_helper.getInt("scheduler-queue-maxitemstoprocess")
 
+#
+# Metrics and unhandled exceptions
+#
+
+metrics_helper              = MetricsHelper(environment=config_helper.get_environment(), process_name="puller-flickr")
+unhandled_exception_helper  = UnhandledExceptionHelper.setup_unhandled_exception_handler(metrics_helper=metrics_helper)
+
+#
+# Set up our API wrapper and queues
+#
+
 flickrapi = FlickrApiWrapper(
     flickr_api_key, 
     flickr_api_secret, 
@@ -68,6 +81,10 @@ flickrapi = FlickrApiWrapper(
 scheduler_queue             = SQSQueueReader(queue_url=scheduler_queue_url,             batch_size=scheduler_queue_batch_size, max_messages_to_read=scheduler_queue_max_items_to_process)
 scheduler_response_queue    = SQSQueueWriter(queue_url=scheduler_response_queue_url,    batch_size=1) # We ignore the batch size by sending the messages one at a time, because we don't want to miss any if we have an error
 output_queue                = SQSQueueWriter(queue_url=output_queue_url,                batch_size=output_queue_batch_size)
+
+#
+# Process items from our input queue
+#
 
 def process_user(scheduler_queue_item):
 
@@ -101,7 +118,7 @@ def process_user(scheduler_queue_item):
 
     # Output all of the photos we found to our output queue so they can be ingested into the database
 
-    logging.info(f"Found {len(favorite_photos)} photos to send to queue {output_queue_url} in batches of {output_queue_batch_size}")
+    logging.info(f"Found {len(favorite_photos)} photos to send to queue {output_queue_url} in one batch item")
 
     if len(favorite_photos) > 0:
 

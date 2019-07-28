@@ -61,7 +61,7 @@ class FlickrApiWrapper:
 
         favorites_up_to_max = favorites[0:self.max_favorites_to_get]
 
-        logging.info(f"Returning {len(favorites_up_to_max)} favorites which took {current_page - 1} calls")
+        logging.info(f"Returning {len(favorites_up_to_max)} favorites which took {current_page - 1} calls. Max favorites to get: {self.max_favorites_to_get}. Max calls to make: {self.max_calls_to_make}")
 
         return favorites_up_to_max 
 
