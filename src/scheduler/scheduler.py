@@ -37,6 +37,8 @@ logging.basicConfig(format='%(levelname)s: %(message)s', level=log_level)
 
 config_helper = ConfigHelper.get_config_helper(default_env_name="dev", aws_parameter_prefix="scheduler")
 
+metrics_namespace                   = config_helper.get("metrics-namespace")
+
 api_server_host                     = config_helper.get("api-server-host")
 api_server_port                     = config_helper.getInt("api-server-port")
 
@@ -55,7 +57,7 @@ ingester_queue_url                  = config_helper.get("ingester-queue-url")
 # Metrics and unhandled exceptions
 #
 
-metrics_helper              = MetricsHelper(environment=config_helper.get_environment(), process_name="scheduler")
+metrics_helper              = MetricsHelper(environment=config_helper.get_environment(), process_name="scheduler", metrics_namespace=metrics_namespace)
 unhandled_exception_helper  = UnhandledExceptionHelper.setup_unhandled_exception_handler(metrics_helper=metrics_helper)
 
 #

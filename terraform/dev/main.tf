@@ -28,9 +28,9 @@ module "elastic_container_service" {
     extra_security_groups = ["${module.api_server.security_group_id}"]
 
     instance_type = "t2.micro"
-    cluster_desired_size = 0
+    cluster_desired_size = 2
     cluster_min_size = 0
-    cluster_max_size = 0
+    cluster_max_size = 2
     instances_log_retention_days = 1
 }
 
@@ -77,6 +77,7 @@ module "scheduler" {
 
     environment = "dev"
     region = "${var.region}"
+    metrics_namespace = "${var.metrics_namespace}"
 
     parameter_memcached_location = "${module.memcached.location}"
 
@@ -107,6 +108,7 @@ module "puller_flickr" {
 
     environment = "dev"
     region = "${var.region}"
+    metrics_namespace = "${var.metrics_namespace}"
 
     parameter_memcached_location = "${module.memcached.location}"
 
@@ -148,6 +150,7 @@ module "ingester_database" {
 
     environment             = "dev"
     region                  = "${var.region}"
+    metrics_namespace       = "${var.metrics_namespace}"
 
     parameter_memcached_location = "${module.memcached.location}"
 
@@ -176,6 +179,7 @@ module "api_server" {
 
     environment             = "dev"
     region                  = "${var.region}"
+    metrics_namespace       = "${var.metrics_namespace}"
 
     parameter_memcached_location = "${module.memcached.location}"
 
@@ -216,6 +220,7 @@ module "dashboard" {
 
     environment = "dev"
     region      = "${var.region}"
+    metrics_namespace = "${var.metrics_namespace}"
 
     scheduler_queue_base_name               = "${module.scheduler.scheduler_queue_base_name}"
     scheduler_queue_full_name               = "${module.scheduler.scheduler_queue_full_name}"
@@ -240,6 +245,7 @@ module "alarms" {
 
     environment     = "dev"
     region          = "${var.region}"
+    metrics_namespace = "${var.metrics_namespace}"
     topic_name      = "photo-recommender"
     alarms_email    = "${var.alarms_email}"
 

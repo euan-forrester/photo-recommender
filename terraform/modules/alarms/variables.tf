@@ -1,5 +1,6 @@
 variable "environment" {}
 variable "region" {}
+variable "metrics_namespace" {}
 variable "topic_name" {}
 variable "alarms_email" {}
 variable "unhandled_exceptions_threshold" {}

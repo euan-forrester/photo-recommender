@@ -5,6 +5,13 @@ resource "aws_kms_key" "parameter_secrets" {
     deletion_window_in_days = 7
 }
 
+resource "aws_ssm_parameter" "metrics_namespace" {
+    name        = "/${var.environment}/api-server/metrics-namespace"
+    description = "Namespace that our metrics go in"
+    type        = "String"
+    value       = "${var.metrics_namespace}"
+}
+
 resource "aws_ssm_parameter" "parameter_memcached_location" {
     name        = "/${var.environment}/api-server/parameter-memcached-location"
     description = "Where to find a memcached instance to cache our parameter values"

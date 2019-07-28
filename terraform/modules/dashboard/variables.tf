@@ -1,5 +1,6 @@
 variable "environment" {}
 variable "region" {}
+variable "metrics_namespace" {}
 
 variable "scheduler_queue_base_name" {}
 variable "scheduler_queue_full_name" {}

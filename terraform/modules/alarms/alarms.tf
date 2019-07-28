@@ -5,7 +5,7 @@ resource "aws_cloudwatch_metric_alarm" "unhandled_exceptions" {
     comparison_operator       = "GreaterThanOrEqualToThreshold"
     evaluation_periods        = "1"
     metric_name               = "UnhandledException"
-    namespace                 = "Photo Recommender"
+    namespace                 = "${var.metrics_namespace}"
     period                    = "300"
     statistic                 = "Sum"
     threshold                 = "${var.unhandled_exceptions_threshold}"

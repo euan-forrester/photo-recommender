@@ -39,6 +39,7 @@ logging.basicConfig(format='%(levelname)s: %(message)s', level=log_level)
 
 config_helper = ConfigHelper.get_config_helper(default_env_name="dev", aws_parameter_prefix="api-server")
 
+metrics_namespace           = config_helper.get("metrics-namespace")
 database_username           = config_helper.get("database-username")
 database_password           = config_helper.get("database-password", is_secret=True)
 database_host               = config_helper.get("database-host")
@@ -54,7 +55,7 @@ default_num_photo_recommendations = config_helper.getInt('default-num-photo-reco
 # Metrics and unhandled exceptions
 #
 
-metrics_helper              = MetricsHelper(environment=config_helper.get_environment(), process_name="api-server")
+metrics_helper              = MetricsHelper(environment=config_helper.get_environment(), process_name="api-server", metrics_namespace=metrics_namespace)
 unhandled_exception_helper  = UnhandledExceptionHelper.setup_unhandled_exception_handler(metrics_helper=metrics_helper)
 
 #

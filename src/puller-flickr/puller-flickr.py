@@ -38,6 +38,8 @@ logging.basicConfig(format='%(levelname)s: %(message)s', level=log_level)
 
 config_helper = ConfigHelper.get_config_helper(default_env_name="dev", aws_parameter_prefix="puller-flickr")
 
+metrics_namespace                   = config_helper.get("metrics-namespace")
+
 flickr_api_key                      = config_helper.get("flickr-api-key")
 flickr_api_secret                   = config_helper.get("flickr-api-secret", is_secret=True)
 flickr_api_retries                  = config_helper.getInt("flickr-api-retries") 
@@ -61,7 +63,7 @@ scheduler_queue_max_items_to_process = config_helper.getInt("scheduler-queue-max
 # Metrics and unhandled exceptions
 #
 
-metrics_helper              = MetricsHelper(environment=config_helper.get_environment(), process_name="puller-flickr")
+metrics_helper              = MetricsHelper(environment=config_helper.get_environment(), process_name="puller-flickr", metrics_namespace=metrics_namespace)
 unhandled_exception_helper  = UnhandledExceptionHelper.setup_unhandled_exception_handler(metrics_helper=metrics_helper)
 
 #

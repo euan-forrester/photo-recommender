@@ -1,5 +1,6 @@
 variable "environment" {}
 variable "region" {}
+variable "metrics_namespace" {}
 variable "parameter_memcached_location" {}
 variable "mysql_database_host" {}
 variable "mysql_database_port" {}

@@ -223,6 +223,7 @@ data "template_file" "unhandled_exceptions" {
     vars = {
         title                       = "Unhandled exceptions"
         environment                 = "${var.environment}"
+        metrics_namespace           = "${var.metrics_namespace}"
         metric_name                 = "UnhandledException"
         region                      = "${var.region}"
     }
