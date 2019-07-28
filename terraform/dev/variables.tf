@@ -1,4 +1,5 @@
 variable "region" { default = "us-west-2" }
+variable "alarms_email" {}
 variable "local_machine_cidr" {}
 variable "local_machine_public_key" {}
 variable "flickr_api_key" {}
