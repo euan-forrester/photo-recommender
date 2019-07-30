@@ -6,10 +6,11 @@ class MetricsHelper:
     Wraps the functionality of sending metrics to CloudWatch
     '''
 
-    def __init__(self, environment, process_name):
-        self.environment    = environment
-        self.process_name   = process_name
-        self.cloudwatch     = boto3.client('cloudwatch') # Region is read from the AWS_DEFAULT_REGION env var
+    def __init__(self, environment, process_name, metrics_namespace):
+        self.environment        = environment
+        self.process_name       = process_name
+        self.metrics_namespace  = metrics_namespace
+        self.cloudwatch         = boto3.client('cloudwatch') # Region is read from the AWS_DEFAULT_REGION env var
    
     def send_time(self, metric_name, time_in_seconds):
         self._send_metric(metric_name, time_in_seconds, "Seconds")
@@ -37,5 +38,5 @@ class MetricsHelper:
                     'Value': value
                 },
             ],
-            Namespace = 'Photo Recommender'
+            Namespace = self.metrics_namespace
         )

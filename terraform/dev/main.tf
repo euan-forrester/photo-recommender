@@ -28,9 +28,9 @@ module "elastic_container_service" {
     extra_security_groups = ["${module.api_server.security_group_id}"]
 
     instance_type = "t2.micro"
-    cluster_desired_size = 30
-    cluster_min_size = 1
-    cluster_max_size = 30
+    cluster_desired_size = 2
+    cluster_min_size = 0
+    cluster_max_size = 2
     instances_log_retention_days = 1
 }
 
@@ -77,6 +77,7 @@ module "scheduler" {
 
     environment = "dev"
     region = "${var.region}"
+    metrics_namespace = "${var.metrics_namespace}"
 
     parameter_memcached_location = "${module.memcached.location}"
 
@@ -107,6 +108,7 @@ module "puller_flickr" {
 
     environment = "dev"
     region = "${var.region}"
+    metrics_namespace = "${var.metrics_namespace}"
 
     parameter_memcached_location = "${module.memcached.location}"
 
@@ -115,7 +117,7 @@ module "puller_flickr" {
 
     ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 30
+    ecs_instances_desired_count = 1
     ecs_instances_memory = 64
     ecs_instances_cpu = 400
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
@@ -148,12 +150,13 @@ module "ingester_database" {
 
     environment             = "dev"
     region                  = "${var.region}"
+    metrics_namespace       = "${var.metrics_namespace}"
 
     parameter_memcached_location = "${module.memcached.location}"
 
     ecs_cluster_id          = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 20
+    ecs_instances_desired_count = 1
     ecs_instances_memory    = 64
     ecs_instances_cpu       = 400
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
@@ -176,6 +179,7 @@ module "api_server" {
 
     environment             = "dev"
     region                  = "${var.region}"
+    metrics_namespace       = "${var.metrics_namespace}"
 
     parameter_memcached_location = "${module.memcached.location}"
 
@@ -216,6 +220,7 @@ module "dashboard" {
 
     environment = "dev"
     region      = "${var.region}"
+    metrics_namespace = "${var.metrics_namespace}"
 
     scheduler_queue_base_name               = "${module.scheduler.scheduler_queue_base_name}"
     scheduler_queue_full_name               = "${module.scheduler.scheduler_queue_full_name}"
@@ -233,4 +238,16 @@ module "dashboard" {
 
     ecs_autoscaling_group_name              = "${module.elastic_container_service.autoscaling_group_name}"
     ecs_cluster_name                        = "${module.elastic_container_service.cluster_full_name}"
+}
+
+module "alarms" {
+    source = "../modules/alarms"
+
+    environment     = "dev"
+    region          = "${var.region}"
+    metrics_namespace = "${var.metrics_namespace}"
+    topic_name      = "photo-recommender"
+    alarms_email    = "${var.alarms_email}"
+
+    unhandled_exceptions_threshold = 1
 }

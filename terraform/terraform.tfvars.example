@@ -9,3 +9,7 @@ flickr_secret_key = ""
 flickr_user_id = ""
 
 database_password_dev = ""
+
+# Email address where you'll receive alarms about problems with the system. 
+# After running terraform for the first time, you'll receive an email that you need to acknowledge an to allow this
+alarms_email = ""

@@ -35,6 +35,8 @@ logging.basicConfig(format='%(levelname)s: %(message)s', level=log_level)
 
 config_helper = ConfigHelper.get_config_helper(default_env_name="dev", aws_parameter_prefix="ingester-database")
 
+metrics_namespace                   = config_helper.get("metrics-namespace")
+
 input_queue_url                     = config_helper.get("input-queue-url")
 input_queue_batch_size              = config_helper.getInt("input-queue-batchsize")
 input_queue_max_items_to_process    = config_helper.getInt("input-queue-maxitemstoprocess")
@@ -51,7 +53,7 @@ output_database_max_retries         = config_helper.getInt("output-database-maxr
 # Metrics and unhandled exceptions
 #
 
-metrics_helper              = MetricsHelper(environment=config_helper.get_environment(), process_name="ingester-database")
+metrics_helper              = MetricsHelper(environment=config_helper.get_environment(), process_name="ingester-database", metrics_namespace=metrics_namespace)
 unhandled_exception_helper  = UnhandledExceptionHelper.setup_unhandled_exception_handler(metrics_helper=metrics_helper)
 
 #

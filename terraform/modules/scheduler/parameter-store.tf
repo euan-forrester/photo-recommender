@@ -1,3 +1,10 @@
+resource "aws_ssm_parameter" "metrics_namespace" {
+    name        = "/${var.environment}/scheduler/metrics-namespace"
+    description = "Namespace that our metrics go in"
+    type        = "String"
+    value       = "${var.metrics_namespace}"
+}
+
 resource "aws_ssm_parameter" "parameter_memcached_location" {
     name        = "/${var.environment}/scheduler/parameter-memcached-location"
     description = "Where to find a memcached instance to cache our parameter values"

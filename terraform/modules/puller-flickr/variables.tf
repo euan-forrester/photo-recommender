@@ -1,5 +1,6 @@
 variable "environment" {}
 variable "region" {}
+variable "metrics_namespace" {}
 variable "parameter_memcached_location" {}
 variable "memcached_location" {}
 variable "memcached_ttl" {}
