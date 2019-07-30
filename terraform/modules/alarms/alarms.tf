@@ -9,8 +9,10 @@ resource "aws_cloudwatch_metric_alarm" "unhandled_exceptions" {
     period                    = "300"
     statistic                 = "Sum"
     threshold                 = "${var.unhandled_exceptions_threshold}"
+    treat_missing_data        = "notBreaching" # No news is good news for exceptions
     alarm_description         = "Alerts if a process encounters unhandled exceptions"
     alarm_actions             = [ "${aws_sns_topic.alarms.arn}" ]
+    ok_actions                = [ "${aws_sns_topic.alarms.arn}" ]
 
     dimensions {
         Environment = "${var.environment}"
