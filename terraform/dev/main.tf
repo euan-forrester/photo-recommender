@@ -28,9 +28,9 @@ module "elastic_container_service" {
     extra_security_groups = ["${module.api_server.security_group_id}"]
 
     instance_type = "t2.micro"
-    cluster_desired_size = 2
+    cluster_desired_size = 0
     cluster_min_size = 0
-    cluster_max_size = 2
+    cluster_max_size = 0
     instances_log_retention_days = 1
 }
 
@@ -250,4 +250,7 @@ module "alarms" {
     alarms_email    = "${var.alarms_email}"
 
     unhandled_exceptions_threshold = 1
+
+    dead_letter_queue_names = [ "${module.scheduler.scheduler_queue_dead_letter_full_name}", "${module.scheduler.scheduler_response_queue_dead_letter_full_name}", "${module.ingester_database.ingester_queue_dead_letter_full_name}"]
+    dead_letter_queue_items_threshold = 1
 }
