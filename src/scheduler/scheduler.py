@@ -94,6 +94,7 @@ try:
 
 except UsersStoreException as e:
     logging.error("Unable to talk to our users store. Exiting.", e)
+    metrics_helper.increment_count("UsersStoreException")
     sys.exit()
 
 logging.info("Ended looking for users who haven't been updated in a while")
@@ -128,6 +129,7 @@ try:
 
 except UsersStoreException as e:
     logging.error("Unable to talk to our users store. Exiting.", e)
+    metrics_helper.increment_count("UsersStoreException")
     sys.exit()
 
 finally:
@@ -169,6 +171,7 @@ try:
 
 except UsersStoreException as e:
     logging.error("Unable to talk to our users store. Exiting.", e)
+    metrics_helper.increment_count("UsersStoreException")
     sys.exit() 
 
 logging.info("Ended looking for users who are still updating")

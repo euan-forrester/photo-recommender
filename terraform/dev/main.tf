@@ -253,4 +253,6 @@ module "alarms" {
 
     dead_letter_queue_names = [ "${module.scheduler.scheduler_queue_dead_letter_full_name}", "${module.scheduler.scheduler_response_queue_dead_letter_full_name}", "${module.ingester_database.ingester_queue_dead_letter_full_name}"]
     dead_letter_queue_items_threshold = 1
+
+    scheduler_users_store_exception_threshold = 1
 }
