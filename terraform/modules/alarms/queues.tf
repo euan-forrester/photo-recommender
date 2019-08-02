@@ -41,3 +41,25 @@ resource "aws_cloudwatch_metric_alarm" "queue_item_size" {
         QueueName   = "${element(var.queue_names, count.index)}" # Taken from https://github.com/hashicorp/terraform/issues/8600
     }
 }
+
+resource "aws_cloudwatch_metric_alarm" "queue_item_age" {
+    count                     = "${var.enable_alarms == "true" ? length(var.queue_names) : 0}" # Don't create this if we turn off alarms (e.g. for dev)
+
+    alarm_name                = "${element(var.queue_names, count.index)} item age" # Need to have a different name for each one, or else we only see one in the UI
+    comparison_operator       = "GreaterThanOrEqualToThreshold"
+    evaluation_periods        = "1"
+    metric_name               = "ApproximateAgeOfOldestMessage"
+    namespace                 = "AWS/SQS"
+    period                    = "300"
+    statistic                 = "Maximum"
+    threshold                 = "${var.queue_item_age_threshold}"
+    treat_missing_data        = "ignore" # Maintain alarm state on missing data - sometimes data will just be missing for queues for some reason
+    alarm_description         = "Alerts if a queue has items that are too old. Has the process that consumes them stopped?"
+    alarm_actions             = [ "${aws_sns_topic.alarms.arn}" ]
+    insufficient_data_actions = [ "${aws_sns_topic.alarms.arn}" ]
+    ok_actions                = [ "${aws_sns_topic.alarms.arn}" ]
+
+    dimensions {
+        QueueName   = "${element(var.queue_names, count.index)}" # Taken from https://github.com/hashicorp/terraform/issues/8600
+    }
+}
