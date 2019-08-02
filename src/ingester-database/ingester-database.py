@@ -75,7 +75,8 @@ database = DatabaseBatchWriter(
     host=output_database_host, 
     port=output_database_port, 
     database=output_database_name, 
-    max_retries=output_database_max_retries)
+    max_retries=output_database_max_retries,
+    metrics_helper=metrics_helper)
 
 photo_batch = []
 unwritten_message_batch = []
