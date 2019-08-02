@@ -1,5 +1,5 @@
 resource "aws_cloudwatch_metric_alarm" "unhandled_exceptions" {
-    count                     = "${var.unhandled_exceptions_threshold > 0 ? length(var.process_names) : 0}" # Don't create this if we specify a 0 or negative threshold (e.g. for dev)
+    count                     = "${var.enable_alarms == "true" ? length(var.process_names) : 0}" # Don't create this if we turn off alarms (e.g. for dev)
 
     alarm_name                = "Unhandled exceptions in ${element(var.process_names, count.index)}" # Need to have a different name for each one, or else we only see one in the UI
     comparison_operator       = "GreaterThanOrEqualToThreshold"
@@ -22,7 +22,7 @@ resource "aws_cloudwatch_metric_alarm" "unhandled_exceptions" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "users_store_exception" {
-    count                     = "${var.scheduler_users_store_exception_threshold > 0 ? 1 : 0}" # Don't create this if we specify a 0 or negative threshold (e.g. for dev)
+    count                     = "${var.enable_alarms == "true" ? 1 : 0}" # Don't create this if we turn off alarms (e.g. for dev)
 
     alarm_name                = "Scheduler encountered UsersStoreException"
     comparison_operator       = "GreaterThanOrEqualToThreshold"
@@ -44,8 +44,54 @@ resource "aws_cloudwatch_metric_alarm" "users_store_exception" {
     }
 }
 
+resource "aws_cloudwatch_metric_alarm" "favorites_store_exception" {
+    count                     = "${var.enable_alarms == "true" ? 1 : 0}" # Don't create this if we turn off alarms (e.g. for dev)
+
+    alarm_name                = "API server encountered FavoritesStoreException"
+    comparison_operator       = "GreaterThanOrEqualToThreshold"
+    evaluation_periods        = "1"
+    metric_name               = "FavoritesStoreException"
+    namespace                 = "${var.metrics_namespace}"
+    period                    = "300"
+    statistic                 = "Sum"
+    threshold                 = "${var.api_server_favorites_store_exception_threshold}"
+    treat_missing_data        = "notBreaching" # No news is good news for exceptions
+    alarm_description         = "Alerts if the API server is unable to talk to the database"
+    alarm_actions             = [ "${aws_sns_topic.alarms.arn}" ]
+    insufficient_data_actions = [ "${aws_sns_topic.alarms.arn}" ]
+    ok_actions                = [ "${aws_sns_topic.alarms.arn}" ]
+
+    dimensions {
+        Environment = "${var.environment}"
+        Process     = "api-server"
+    }
+}
+
+resource "aws_cloudwatch_metric_alarm" "api_server_exception" {
+    count                     = "${var.enable_alarms == "true" ? 1 : 0}" # Don't create this if we turn off alarms (e.g. for dev)
+
+    alarm_name                = "API server encountered a generic Exception"
+    comparison_operator       = "GreaterThanOrEqualToThreshold"
+    evaluation_periods        = "1"
+    metric_name               = "Exception"
+    namespace                 = "${var.metrics_namespace}"
+    period                    = "300"
+    statistic                 = "Sum"
+    threshold                 = "${var.api_server_generic_exception_threshold}"
+    treat_missing_data        = "notBreaching" # No news is good news for exceptions
+    alarm_description         = "Alerts if the API server encounters a generic Exception"
+    alarm_actions             = [ "${aws_sns_topic.alarms.arn}" ]
+    insufficient_data_actions = [ "${aws_sns_topic.alarms.arn}" ]
+    ok_actions                = [ "${aws_sns_topic.alarms.arn}" ]
+
+    dimensions {
+        Environment = "${var.environment}"
+        Process     = "api-server"
+    }
+}
+
 resource "aws_cloudwatch_metric_alarm" "dead_letter_queue_items" {
-    count                     = "${var.dead_letter_queue_items_threshold > 0 ? length(var.dead_letter_queue_names) : 0}" # Don't create this if we specify a 0 or negative threshold (e.g. for dev)
+    count                     = "${var.enable_alarms == "true" ? length(var.dead_letter_queue_names) : 0}" # Don't create this if we turn off alarms (e.g. for dev)
 
     alarm_name                = "${element(var.dead_letter_queue_names, count.index)} items" # Need to have a different name for each one, or else we only see one in the UI
     comparison_operator       = "GreaterThanOrEqualToThreshold"
@@ -55,7 +101,7 @@ resource "aws_cloudwatch_metric_alarm" "dead_letter_queue_items" {
     period                    = "300"
     statistic                 = "Sum"
     threshold                 = "${var.dead_letter_queue_items_threshold}"
-    treat_missing_data        = "missing"
+    treat_missing_data        = "ignore" # Maintain alarm state on missing data - sometimes data will just be missing for queues for some reason
     alarm_description         = "Alerts if a dead-letter queue has items in it"
     alarm_actions             = [ "${aws_sns_topic.alarms.arn}" ]
     insufficient_data_actions = [ "${aws_sns_topic.alarms.arn}" ]

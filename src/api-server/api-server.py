@@ -6,6 +6,7 @@ sys.path.insert(0, '../common')
 import argparse
 import logging
 import atexit
+import traceback
 from flask import Flask
 from flask import request
 from flask import jsonify
@@ -184,6 +185,23 @@ def user_not_specified(error=None):
 @application.errorhandler(status.HTTP_400_BAD_REQUEST)
 def parameter_not_specified(param_name, error=None):
     return f"Parameter {param_name} not specified", status.HTTP_400_BAD_REQUEST
+
+@application.errorhandler(FavoritesStoreException)
+def encountered_favorites_store_exception(e):
+    metrics_helper.increment_count("FavoritesStoreException")
+    logging.error("Encountered FavoritesStoreException: %s", e)
+    log_traceback(e)
+    return "Internal server error", status.HTTP_500_INTERNAL_SERVER_ERROR
+
+@application.errorhandler(Exception)
+def encountered_exception(e):
+    metrics_helper.increment_count("Exception")
+    logging.error("Encountered general Exception: %s", e)
+    log_traceback(e)
+    return "Internal server error", status.HTTP_500_INTERNAL_SERVER_ERROR
+
+def log_traceback(exception):
+    logging.error("Traceback: \n%s", "".join(traceback.format_tb(exception.__traceback__)))
 
 if __name__ == '__main__':
     # Note that running Flask like this results in the output saying "lazy loading" and I'm not sure what that means.
