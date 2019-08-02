@@ -264,9 +264,13 @@ module "alarms" {
     dead_letter_queue_items_threshold = 1
 
     scheduler_users_store_exception_threshold = 1
+
     api_server_favorites_store_exception_threshold = 1
     api_server_generic_exception_threshold = 1
+    
     ingester_database_batch_writer_exception_threshold = 1
+    
     puller_flickr_max_batch_size_exceeded_error_threshold = 1
     puller_flickr_max_neighbors_exceeded_error_threshold = 1
+    puller_flickr_max_flickr_api_exceptions_threshold = 1
 }

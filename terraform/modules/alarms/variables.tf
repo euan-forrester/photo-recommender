@@ -16,6 +16,7 @@ variable "queue_writer_error_threshold" {}
 variable "ingester_database_batch_writer_exception_threshold" {}
 variable "puller_flickr_max_batch_size_exceeded_error_threshold" {}
 variable "puller_flickr_max_neighbors_exceeded_error_threshold" {}
+variable "puller_flickr_max_flickr_api_exceptions_threshold" {}
 variable "process_names" { 
     type = "list" 
     default = ["api-server", "scheduler", "puller-flickr", "ingester-database"]
