@@ -28,7 +28,7 @@ module "elastic_container_service" {
     extra_security_groups = ["${module.api_server.security_group_id}"]
 
     instance_type = "t2.micro"
-    cluster_desired_size = 1
+    cluster_desired_size = 2
     cluster_min_size = 0
     cluster_max_size = 2
     instances_log_retention_days = 1
@@ -83,7 +83,7 @@ module "scheduler" {
 
     ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 0
+    ecs_instances_desired_count = 1
     ecs_instances_memory = 64
     ecs_instances_cpu = 400
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
@@ -117,7 +117,7 @@ module "puller_flickr" {
 
     ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 0
+    ecs_instances_desired_count = 1
     ecs_instances_memory = 64
     ecs_instances_cpu = 400
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
@@ -156,7 +156,7 @@ module "ingester_database" {
 
     ecs_cluster_id          = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 0
+    ecs_instances_desired_count = 1
     ecs_instances_memory    = 64
     ecs_instances_cpu       = 400
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"

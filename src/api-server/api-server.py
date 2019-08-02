@@ -178,6 +178,11 @@ def get_time_to_update_all_data(user_id=None):
 
     return resp
 
+@application.route("/favicon.ico", methods = ['GET'])
+def get_favicon():
+    # Browsers like to call this, and without defining this route we see 404 errors in our logs
+    return "OK", status.HTTP_200_OK
+
 @application.errorhandler(status.HTTP_400_BAD_REQUEST)
 def user_not_specified(error=None):
     return "User not specified", status.HTTP_400_BAD_REQUEST

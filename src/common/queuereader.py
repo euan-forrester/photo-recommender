@@ -64,13 +64,7 @@ class SQSQueueReader:
 
             if 'Messages' in response:
                 self.current_batch_read  = response['Messages']
-                self.total_messages_read += len(self.current_batch_read)
-
-            else:
-                logging.warn(f"Failed to get messages from queue {self.queue_url}")
-                SQSQueueReader._log_sender_fault_and_reason(response)
-                self.metrics_helper.increment_count("QueueReaderError") 
-                raise QueueReaderException(f"Failed to get messages from queue {self.queue_url}")             
+                self.total_messages_read += len(self.current_batch_read)          
 
         if len(self.current_batch_read) == 0:
             raise StopIteration()
