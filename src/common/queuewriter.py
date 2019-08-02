@@ -1,6 +1,15 @@
 import boto3
 import logging
 
+class QueueWriterException(Exception):
+    '''
+    Thrown when we have an error writing to a queue. 
+
+    In general we do not want to catch this exception so that the process dies and the messages that were read which caused these
+    messages to be written are redriven.
+    '''
+    pass
+
 class SQSQueueWriter:
 
     '''
@@ -50,6 +59,8 @@ class SQSQueueWriter:
                 logging.warn(f"{len(response['Failed'])} messages in batch of {len(current_batch)} were not sent successfully")
 
                 for failed_message in response['Failed']:
-                    logging.warn("Failed message: ", failed_message)
+                    logging.warn(f"Failed message: {failed_message}")
 
                 metrics_helper.increment_count("QueueWriterError")
+
+                raise QueueWriterException(f"Failed to send {len(response['Failed'])} of {len(current_batch)} messages to queue {self.queue_url}")
