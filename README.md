@@ -115,6 +115,13 @@ docker tag <ID of image you just built> <URI of api-server-dev repository in ECR
 docker push <URI of api-server-dev repository in ECR>
 ```
 
+```
+docker build -f ../../src/scheduler/Dockerfile ../../src
+docker images
+docker tag <ID of image you just built> <URI of scheduler-dev repository in ECR: use AWS console to find>
+docker push <URI of scheduler-dev repository in ECR>
+```
+
 TODO:
 
 - Upgrade to terraform v0.12
