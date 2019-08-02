@@ -254,6 +254,9 @@ module "alarms" {
 
     unhandled_exceptions_threshold = 1
 
+    queue_names = [ "${module.scheduler.scheduler_queue_full_name}", "${module.scheduler.scheduler_response_queue_full_name}", "${module.ingester_database.ingester_queue_full_name}"]
+    queue_item_size_threshold = 235520 # 230kB -- 256kB is the absolute max
+
     dead_letter_queue_names = [ "${module.scheduler.scheduler_queue_dead_letter_full_name}", "${module.scheduler.scheduler_response_queue_dead_letter_full_name}", "${module.ingester_database.ingester_queue_dead_letter_full_name}"]
     dead_letter_queue_items_threshold = 1
 
