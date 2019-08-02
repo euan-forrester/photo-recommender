@@ -11,9 +11,19 @@ variable "api_server_favorites_store_exception_threshold" {}
 variable "api_server_generic_exception_threshold" {}
 variable "queue_item_size_threshold" {}
 variable "queue_item_age_threshold" {}
+variable "queue_reader_error_threshold" {}
+variable "queue_writer_error_threshold" {}
 variable "process_names" { 
     type = "list" 
     default = ["api-server", "scheduler", "puller-flickr", "ingester-database"]
+}
+variable "process_names_that_read_from_queues" { 
+    type = "list" 
+    default = ["scheduler", "puller-flickr", "ingester-database"]
+}
+variable "process_names_that_write_to_queues" { 
+    type = "list" 
+    default = ["scheduler", "puller-flickr"]
 }
 variable "queue_names" { type = "list" }
 variable "dead_letter_queue_names" { type = "list" }

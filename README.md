@@ -20,7 +20,8 @@ This project uses:
 - RDS for the initial stab at data storage, but consider changing to Clickhouse: https://clickhouse.yandex/ or Redshift https://aws.amazon.com/redshift/
 - A bunch of Python libs, most notably Flask and gunicorn
 - ALB for load balancing
-- Random other parts of AWS like ElastiCache, Parameter Store, CloudWatch. and Key Management Service
+- CloudWatch for metrics & alarms
+- Random other parts of AWS like ElastiCache, Parameter Store. and Key Management Service
 
 I plan to use:
 

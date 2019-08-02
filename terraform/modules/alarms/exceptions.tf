@@ -21,6 +21,52 @@ resource "aws_cloudwatch_metric_alarm" "unhandled_exceptions" {
     }
 }
 
+resource "aws_cloudwatch_metric_alarm" "queue_reader_error" {
+    count                     = "${var.enable_alarms == "true" ? length(var.process_names_that_read_from_queues) : 0}" # Don't create this if we turn off alarms (e.g. for dev)
+
+    alarm_name                = "QueueReaderError in ${element(var.process_names_that_read_from_queues, count.index)}" # Need to have a different name for each one, or else we only see one in the UI
+    comparison_operator       = "GreaterThanOrEqualToThreshold"
+    evaluation_periods        = "1"
+    metric_name               = "QueueReaderError"
+    namespace                 = "${var.metrics_namespace}"
+    period                    = "300"
+    statistic                 = "Sum"
+    threshold                 = "${var.queue_reader_error_threshold}"
+    treat_missing_data        = "notBreaching" # No news is good news for exceptions
+    alarm_description         = "Alerts if a process encounters an error reading from a queue"
+    alarm_actions             = [ "${aws_sns_topic.alarms.arn}" ]
+    insufficient_data_actions = [ "${aws_sns_topic.alarms.arn}" ]
+    ok_actions                = [ "${aws_sns_topic.alarms.arn}" ]
+
+    dimensions {
+        Environment = "${var.environment}"
+        Process     = "${element(var.process_names_that_read_from_queues, count.index)}" # Taken from https://github.com/hashicorp/terraform/issues/8600
+    }
+}
+
+resource "aws_cloudwatch_metric_alarm" "queue_writer_error" {
+    count                     = "${var.enable_alarms == "true" ? length(var.process_names_that_write_to_queues) : 0}" # Don't create this if we turn off alarms (e.g. for dev)
+
+    alarm_name                = "QueueWriterError in ${element(var.process_names_that_write_to_queues, count.index)}" # Need to have a different name for each one, or else we only see one in the UI
+    comparison_operator       = "GreaterThanOrEqualToThreshold"
+    evaluation_periods        = "1"
+    metric_name               = "QueueWriterError"
+    namespace                 = "${var.metrics_namespace}"
+    period                    = "300"
+    statistic                 = "Sum"
+    threshold                 = "${var.queue_writer_error_threshold}"
+    treat_missing_data        = "notBreaching" # No news is good news for exceptions
+    alarm_description         = "Alerts if a process encounters an error writing to a queue"
+    alarm_actions             = [ "${aws_sns_topic.alarms.arn}" ]
+    insufficient_data_actions = [ "${aws_sns_topic.alarms.arn}" ]
+    ok_actions                = [ "${aws_sns_topic.alarms.arn}" ]
+
+    dimensions {
+        Environment = "${var.environment}"
+        Process     = "${element(var.process_names_that_write_to_queues, count.index)}" # Taken from https://github.com/hashicorp/terraform/issues/8600
+    }
+}
+
 resource "aws_cloudwatch_metric_alarm" "users_store_exception" {
     count                     = "${var.enable_alarms == "true" ? 1 : 0}" # Don't create this if we turn off alarms (e.g. for dev)
 

@@ -80,9 +80,9 @@ flickrapi = FlickrApiWrapper(
     flickr_api_max_favorites_to_get,
     flickr_api_max_calls_to_make)
 
-scheduler_queue             = SQSQueueReader(queue_url=scheduler_queue_url,             batch_size=scheduler_queue_batch_size, max_messages_to_read=scheduler_queue_max_items_to_process)
-scheduler_response_queue    = SQSQueueWriter(queue_url=scheduler_response_queue_url,    batch_size=1) # We ignore the batch size by sending the messages one at a time, because we don't want to miss any if we have an error
-output_queue                = SQSQueueWriter(queue_url=output_queue_url,                batch_size=output_queue_batch_size)
+scheduler_queue             = SQSQueueReader(queue_url=scheduler_queue_url,             batch_size=scheduler_queue_batch_size, max_messages_to_read=scheduler_queue_max_items_to_process,   metrics_helper=metrics_helper)
+scheduler_response_queue    = SQSQueueWriter(queue_url=scheduler_response_queue_url,    batch_size=1,                                                                                       metrics_helper=metrics_helper) # We ignore the batch size by sending the messages one at a time, because we don't want to miss any if we have an error
+output_queue                = SQSQueueWriter(queue_url=output_queue_url,                batch_size=output_queue_batch_size,                                                                 metrics_helper=metrics_helper)
 
 #
 # Process items from our input queue

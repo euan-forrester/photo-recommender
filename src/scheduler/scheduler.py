@@ -66,12 +66,12 @@ unhandled_exception_helper  = UnhandledExceptionHelper.setup_unhandled_exception
 
 users_store = UsersStoreAPIServer(host=api_server_host, port=api_server_port)
 
-scheduler_queue = SQSQueueWriter(scheduler_queue_url, scheduler_queue_batch_size)
-scheduler_queue_reader = SQSQueueReader(scheduler_queue_url, 0, 0) # We're just going to read the size from this queue, and not read any of its messages. We only write to this queue
+scheduler_queue = SQSQueueWriter(scheduler_queue_url, scheduler_queue_batch_size, metrics_helper)
+scheduler_queue_reader = SQSQueueReader(scheduler_queue_url, 0, 0, metrics_helper) # We're just going to read the size from this queue, and not read any of its messages. We only write to this queue
 
-scheduler_response_queue = SQSQueueReader(scheduler_response_queue_url, scheduler_response_queue_batch_size, scheduler_response_queue_max_items_to_process)
+scheduler_response_queue = SQSQueueReader(scheduler_response_queue_url, scheduler_response_queue_batch_size, scheduler_response_queue_max_items_to_process, metrics_helper)
 
-ingester_queue = SQSQueueReader(ingester_queue_url, 0, 0) # We're just going to read the size from this queue, not any of its messages
+ingester_queue = SQSQueueReader(ingester_queue_url, 0, 0, metrics_helper) # We're just going to read the size from this queue, not any of its messages
 
 #
 # Begin by requesting all of the users that haven't been updated in a while
