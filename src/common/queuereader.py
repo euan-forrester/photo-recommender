@@ -17,6 +17,14 @@ class SQSMessage:
     def _get_message_receipt_handle(self):
         return self.message_receipt_handle
 
+class QueueReaderException(Exception):
+    '''
+    Thrown when we have an error reading from a queue. 
+
+    In general we do not want to catch this exception so that the process dies and the queue can be re-read later.
+    '''
+    pass
+
 class SQSQueueReader:
 
     '''
@@ -61,7 +69,8 @@ class SQSQueueReader:
             else:
                 logging.warn(f"Failed to get messages from queue {self.queue_url}")
                 SQSQueueReader._log_sender_fault_and_reason(response)
-                self.metrics_helper.increment_count("QueueReaderError")               
+                self.metrics_helper.increment_count("QueueReaderError") 
+                raise QueueReaderException(f"Failed to get messages from queue {self.queue_url}")             
 
         if len(self.current_batch_read) == 0:
             raise StopIteration()
@@ -101,6 +110,7 @@ class SQSQueueReader:
             logging.warn(f"Failed to get attributes from queue {self.queue_url}")
             SQSQueueReader._log_sender_fault_and_reason(response)
             self.metrics_helper.increment_count("QueueReaderError")
+            raise QueueReaderException(f"Failed to get attributes from queue {self.queue_url}") 
 
         return total_messages
 
@@ -138,6 +148,7 @@ class SQSQueueReader:
                 logging.warn(f"Unable to delete {num_failed_messages} messages from queue {self.queue_url}")
                 SQSQueueReader._log_sender_fault_and_reason(response)
                 self.metrics_helper.increment_count("QueueReaderError")
+                raise QueueReaderException(f"Unable to delete {num_failed_messages} messages from queue {self.queue_url}")
 
     @staticmethod
     def _log_sender_fault_and_reason(response):
