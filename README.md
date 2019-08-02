@@ -119,7 +119,6 @@ TODO:
 
 - Upgrade to terraform v0.12
 - Make a build pipeline
-- Metrics and alarms
 - Consider moving MySQL passwords into config files rather than passing on command line from terraform script
 - Add tests
 - Lock python lib version numbers (see https://docs.docker.com/samples/library/python/#pythonversion-alpine to lock python version)
@@ -127,4 +126,3 @@ TODO:
 - Encrypt SQS messages in prod
 - Use templating lib for outputting HTML from API server
 - Add locking mechanism to Scheduler
-- Add uncaught exception handler + metric + alert to all processes
