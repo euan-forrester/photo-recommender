@@ -1,9 +1,12 @@
 import mysql.connector
 import logging
 
+class DatabaseBatchWriterException(Exception):
+    pass
+
 class DatabaseBatchWriter:
 
-    def __init__(self, username, password, host, port, database, max_retries):
+    def __init__(self, username, password, host, port, database, max_retries, metrics_helper):
         self.cnx = mysql.connector.connect(user=username, password=password, host=host, port=port, database=database)
 
         self.cnx.autocommit = False
@@ -47,13 +50,14 @@ class DatabaseBatchWriter:
                 #
                 # https://github.com/euan-forrester/photo-recommender/issues/34
                 
-                logging.info(f"Got MySQL InternalError {e}")
+                logging.info(f"Got MySQL InternalError {e} on retry {num_retries} of {self.max_retries}")
                 error = e
 
             num_retries += 1
 
         if not success:
-            raise error
+            metrics_helper.increment_count("DatabaseBatchWriterException")
+            raise DatabaseBatchWriterException(f"Unable to write to database after {self.max_retries} retries") from error
 
         return result 
 

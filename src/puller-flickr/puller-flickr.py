@@ -78,11 +78,12 @@ flickrapi = FlickrApiWrapper(
     flickr_api_retries, 
     flickr_api_max_favorites_per_call, 
     flickr_api_max_favorites_to_get,
-    flickr_api_max_calls_to_make)
+    flickr_api_max_calls_to_make,
+    metrics_helper)
 
-scheduler_queue             = SQSQueueReader(queue_url=scheduler_queue_url,             batch_size=scheduler_queue_batch_size, max_messages_to_read=scheduler_queue_max_items_to_process)
-scheduler_response_queue    = SQSQueueWriter(queue_url=scheduler_response_queue_url,    batch_size=1) # We ignore the batch size by sending the messages one at a time, because we don't want to miss any if we have an error
-output_queue                = SQSQueueWriter(queue_url=output_queue_url,                batch_size=output_queue_batch_size)
+scheduler_queue             = SQSQueueReader(queue_url=scheduler_queue_url,             batch_size=scheduler_queue_batch_size, max_messages_to_read=scheduler_queue_max_items_to_process,   metrics_helper=metrics_helper)
+scheduler_response_queue    = SQSQueueWriter(queue_url=scheduler_response_queue_url,    batch_size=1,                                                                                       metrics_helper=metrics_helper) # We ignore the batch size by sending the messages one at a time, because we don't want to miss any if we have an error
+output_queue                = SQSQueueWriter(queue_url=output_queue_url,                batch_size=output_queue_batch_size,                                                                 metrics_helper=metrics_helper)
 
 #
 # Process items from our input queue
@@ -126,6 +127,10 @@ def process_user(scheduler_queue_item):
 
         batch_item = IngesterQueueBatchItem(favorite_photos) # There's a max of 256kB per message in SQS, and with 1000 photos our message bodies come in around 218kB. Will need to split them up if we get > 1000 photos/user
 
+        if batch_item.get_max_items_exceeded():
+            logging.warn(f"User {flickr_user_id} exceeded max number of batched favorite photos: has {len(favorite_photos)} favorites. Consider putting this list is S3 rather than in this SQS message")
+            metrics_helper.increment_count("MaxBatchSizeExceeded")
+
         output_queue.send_messages(objects=[batch_item], to_string=lambda x : x.to_json())
 
     else:
@@ -140,7 +145,7 @@ def process_user(scheduler_queue_item):
 
     if scheduler_response_queue_item.get_max_neighbors_exceeded():
         logging.warn(f"User {flickr_user_id} exceeded max number of neighbors: has {len(my_neighbors_list)} neighbors. Consider putting this list is S3 rather than in this SQS message")
-        # FIXME: Increment a metric here so that we can alert on this
+        metrics_helper.increment_count("MaxNeighborsExceeded")
 
     scheduler_response_queue.send_messages(objects=[scheduler_response_queue_item], to_string=lambda x: x.to_json()) # Sends messages one at a time, regardless of what the batch size is set to. We don't want to batch them up then miss sending one if we have an error later
 

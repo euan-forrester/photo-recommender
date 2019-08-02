@@ -20,7 +20,8 @@ This project uses:
 - RDS for the initial stab at data storage, but consider changing to Clickhouse: https://clickhouse.yandex/ or Redshift https://aws.amazon.com/redshift/
 - A bunch of Python libs, most notably Flask and gunicorn
 - ALB for load balancing
-- Random other parts of AWS like ElastiCache, Parameter Store, CloudWatch. and Key Management Service
+- CloudWatch for metrics & alarms
+- Random other parts of AWS like ElastiCache, Parameter Store. and Key Management Service
 
 I plan to use:
 
@@ -115,11 +116,17 @@ docker tag <ID of image you just built> <URI of api-server-dev repository in ECR
 docker push <URI of api-server-dev repository in ECR>
 ```
 
+```
+docker build -f ../../src/scheduler/Dockerfile ../../src
+docker images
+docker tag <ID of image you just built> <URI of scheduler-dev repository in ECR: use AWS console to find>
+docker push <URI of scheduler-dev repository in ECR>
+```
+
 TODO:
 
 - Upgrade to terraform v0.12
 - Make a build pipeline
-- Metrics and alarms
 - Consider moving MySQL passwords into config files rather than passing on command line from terraform script
 - Add tests
 - Lock python lib version numbers (see https://docs.docker.com/samples/library/python/#pythonversion-alpine to lock python version)
@@ -127,4 +134,3 @@ TODO:
 - Encrypt SQS messages in prod
 - Use templating lib for outputting HTML from API server
 - Add locking mechanism to Scheduler
-- Add uncaught exception handler + metric + alert to all processes

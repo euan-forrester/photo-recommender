@@ -1,13 +1,22 @@
 import boto3
 import logging
 
+class QueueWriterException(Exception):
+    '''
+    Thrown when we have an error writing to a queue. 
+
+    In general we do not want to catch this exception so that the process dies and the messages that were read which caused these
+    messages to be written are redriven.
+    '''
+    pass
+
 class SQSQueueWriter:
 
     '''
     Wraps an SQS queue and allows for sending messages to that queue
     '''
 
-    def __init__(self, queue_url, batch_size):
+    def __init__(self, queue_url, batch_size, metrics_helper):
         self.sqs        = boto3.client('sqs') # Region is read from the AWS_DEFAULT_REGION env var. Seems necessary even though it's superfluous because it's in the queue URL
         self.queue_url  = queue_url
         self.batch_size = batch_size
@@ -45,11 +54,13 @@ class SQSQueueWriter:
             )
 
             if len(current_batch) == len(response['Successful']):
-                logging.info("All %d messages in batch sent successfully" % (len(current_batch)))
+                logging.info(f"All {len(current_batch)} messages in batch sent successfully")
             else:
-                logging.warn("%d messages in batch of %d were not sent successfully" % (len(response['Failed']), len(current_batch)))
+                logging.warn(f"{len(response['Failed'])} messages in batch of {len(current_batch)} were not sent successfully")
 
                 for failed_message in response['Failed']:
-                    logging.warn("Failed message: ", failed_message)
+                    logging.warn(f"Failed message: {failed_message}")
 
-                # TODO: Increment a metric that we can alert on
+                metrics_helper.increment_count("QueueWriterError")
+
+                raise QueueWriterException(f"Failed to send {len(response['Failed'])} of {len(current_batch)} messages to queue {self.queue_url}")

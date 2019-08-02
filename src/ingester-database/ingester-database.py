@@ -66,7 +66,8 @@ unhandled_exception_helper  = UnhandledExceptionHelper.setup_unhandled_exception
 queue = SQSQueueReader(
     queue_url=input_queue_url, 
     batch_size=input_queue_batch_size, 
-    max_messages_to_read=input_queue_max_items_to_process)
+    max_messages_to_read=input_queue_max_items_to_process,
+    metrics_helper=metrics_helper)
 
 database = DatabaseBatchWriter(
     username=output_database_username, 
@@ -74,7 +75,8 @@ database = DatabaseBatchWriter(
     host=output_database_host, 
     port=output_database_port, 
     database=output_database_name, 
-    max_retries=output_database_max_retries)
+    max_retries=output_database_max_retries,
+    metrics_helper=metrics_helper)
 
 photo_batch = []
 unwritten_message_batch = []

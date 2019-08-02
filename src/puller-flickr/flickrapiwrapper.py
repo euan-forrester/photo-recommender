@@ -4,13 +4,16 @@ import requests
 from django.core.cache import cache
 from django.conf import settings
 
+class FlickrApiException(Exception):
+    pass
+
 class FlickrApiWrapper:
 
     """
     Wraps around the flickrapi package: adds in retries to calls that fail, and external cacheing via memcached
     """
 
-    def __init__(self, flickr_api_key, flickr_api_secret, memcached_location, memcached_ttl, max_retries, max_favorites_per_call, max_favorites_to_get, max_calls_to_make):
+    def __init__(self, flickr_api_key, flickr_api_secret, memcached_location, memcached_ttl, max_retries, max_favorites_per_call, max_favorites_to_get, max_calls_to_make, metrics_helper):
 
         settings.configure(CACHES = {
             'default': {
@@ -28,6 +31,8 @@ class FlickrApiWrapper:
         self.max_favorites_per_call = max_favorites_per_call
         self.max_favorites_to_get   = max_favorites_to_get
         self.max_calls_to_make      = max_calls_to_make
+
+        self.metrics_helper         = metrics_helper
 
     def get_person_info(self, user_id):
         
@@ -115,6 +120,7 @@ class FlickrApiWrapper:
             num_retries += 1
 
         if not success:
-            raise error
+            metrics_helper.increment_count("FlickrApiException")
+            raise FlickrApiException(f"Failed contacting Flickr API after {self.max_retries} retries") from error
 
         return result 

@@ -54,7 +54,7 @@ class ConfigHelperFile(ConfigHelper):
             logging.info(f"Reading in config file '{filename}'")
             self.config.read(filename)
 
-    def get_environment():
+    def get_environment(self):
         return self.environment
 
     def get(self, key, is_secret=False):

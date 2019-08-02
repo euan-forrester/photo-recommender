@@ -17,6 +17,14 @@ class SQSMessage:
     def _get_message_receipt_handle(self):
         return self.message_receipt_handle
 
+class QueueReaderException(Exception):
+    '''
+    Thrown when we have an error reading from a queue. 
+
+    In general we do not want to catch this exception so that the process dies and the queue can be re-read later.
+    '''
+    pass
+
 class SQSQueueReader:
 
     '''
@@ -31,14 +39,15 @@ class SQSQueueReader:
     count against their number of redrives and possibly get them sent to the dead-letter queue prematurely.
     '''
 
-    def __init__(self, queue_url, batch_size, max_messages_to_read):
+    def __init__(self, queue_url, batch_size, max_messages_to_read, metrics_helper):
         self.sqs                    = boto3.client('sqs') # Region is read from the AWS_DEFAULT_REGION env var. Seems necessary even though it's superfluous because it's in the queue URL
         self.queue_url              = queue_url
         self.batch_size             = batch_size
         self.max_messages_to_read   = max_messages_to_read
         self.current_batch_read     = [] # Remaining portion of the last batch of messages read from the queue
         self.total_messages_read    = 0  # Total number of messages that we've read from the queue
-        self.current_batch_finished = [] # The current batch of messages that have been successfully processed
+        self.current_batch_finished = [] # The current batch of messages that have been successfully processed'
+        self.metrics_helper         = metrics_helper
 
     def __iter__(self):
         return self
@@ -55,7 +64,7 @@ class SQSQueueReader:
 
             if 'Messages' in response:
                 self.current_batch_read  = response['Messages']
-                self.total_messages_read += len(self.current_batch_read)
+                self.total_messages_read += len(self.current_batch_read)          
 
         if len(self.current_batch_read) == 0:
             raise StopIteration()
@@ -91,6 +100,12 @@ class SQSQueueReader:
             total_messages += int(response['Attributes']['ApproximateNumberOfMessagesNotVisible'])
             total_messages += int(response['Attributes']['ApproximateNumberOfMessagesDelayed'])
 
+        else:
+            logging.warn(f"Failed to get attributes from queue {self.queue_url}")
+            SQSQueueReader._log_sender_fault_and_reason(response)
+            self.metrics_helper.increment_count("QueueReaderError")
+            raise QueueReaderException(f"Failed to get attributes from queue {self.queue_url}") 
+
         return total_messages
 
     def shutdown(self):
@@ -124,6 +139,12 @@ class SQSQueueReader:
             num_failed_messages = len(response['Failed'])
 
             if num_failed_messages > 0:
-                logging.warn("Unable to delete %d messages. Last SenderFault: %s Last reason: %s" % (num_failed_messages, response['Failed'][num_failed_messages - 1]['SenderFault']. response['Failed'][num_failed_messages - 1]['Message']))
+                logging.warn(f"Unable to delete {num_failed_messages} messages from queue {self.queue_url}")
+                SQSQueueReader._log_sender_fault_and_reason(response)
+                self.metrics_helper.increment_count("QueueReaderError")
+                raise QueueReaderException(f"Unable to delete {num_failed_messages} messages from queue {self.queue_url}")
 
-                # TODO: Increment a metric here so that we can alert on it
+    @staticmethod
+    def _log_sender_fault_and_reason(response):
+        logging.warn(f"Last SenderFault: {response['Failed'][num_failed_messages - 1]['SenderFault']} Last reason: {response['Failed'][num_failed_messages - 1]['Message']}")
+

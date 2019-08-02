@@ -245,9 +245,32 @@ module "alarms" {
 
     environment     = "dev"
     region          = "${var.region}"
+
+    enable_alarms   = "true"
+
     metrics_namespace = "${var.metrics_namespace}"
     topic_name      = "photo-recommender"
     alarms_email    = "${var.alarms_email}"
 
     unhandled_exceptions_threshold = 1
+
+    queue_names = [ "${module.scheduler.scheduler_queue_full_name}", "${module.scheduler.scheduler_response_queue_full_name}", "${module.ingester_database.ingester_queue_full_name}"]
+    queue_item_size_threshold = 235520 # 230kB -- 256kB is the absolute max
+    queue_item_age_threshold = 300 # 5 minutes
+    queue_reader_error_threshold = 1
+    queue_writer_error_threshold = 1
+
+    dead_letter_queue_names = [ "${module.scheduler.scheduler_queue_dead_letter_full_name}", "${module.scheduler.scheduler_response_queue_dead_letter_full_name}", "${module.ingester_database.ingester_queue_dead_letter_full_name}"]
+    dead_letter_queue_items_threshold = 1
+
+    scheduler_users_store_exception_threshold = 1
+
+    api_server_favorites_store_exception_threshold = 1
+    api_server_generic_exception_threshold = 1
+    
+    ingester_database_batch_writer_exception_threshold = 1
+    
+    puller_flickr_max_batch_size_exceeded_error_threshold = 1
+    puller_flickr_max_neighbors_exceeded_error_threshold = 1
+    puller_flickr_max_flickr_api_exceptions_threshold = 1
 }
