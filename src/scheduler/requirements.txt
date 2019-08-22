@@ -1,0 +1,5 @@
+boto3==1.9.214
+jsonpickle==1.2
+mysql-connector-python==8.0.17
+requests==2.22.0
+pymemcache==2.2.2
