@@ -129,7 +129,7 @@ TODO:
 - Make a build pipeline
 - Consider moving MySQL passwords into config files rather than passing on command line from terraform script
 - Add tests
-- Lock python lib version numbers (see https://docs.docker.com/samples/library/python/#pythonversion-alpine to lock python version)
+- Look into how to lock versions of python dependencies of our dependencies (rather than just the packages we explicitly reference)
 - Have the prod load balancer only listen on https
 - Encrypt SQS messages in prod
 - Use templating lib for outputting HTML from API server
