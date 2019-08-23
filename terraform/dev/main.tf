@@ -28,9 +28,9 @@ module "elastic_container_service" {
     extra_security_groups = ["${module.api_server.security_group_id}"]
 
     instance_type = "t2.micro"
-    cluster_desired_size = 2
+    cluster_desired_size = 3
     cluster_min_size = 0
-    cluster_max_size = 2
+    cluster_max_size = 3
     instances_log_retention_days = 1
 }
 
@@ -97,11 +97,39 @@ module "scheduler" {
 
     puller_queue_batch_size = 10
 
-    puller_response_queue_batch_size = 10
-    puller_response_queue_max_items_to_process = 10000
-
     ingester_database_queue_url = "${module.ingester_database.ingester_queue_url}"
     ingester_database_queue_arn = "${module.ingester_database.ingester_queue_arn}"
+}
+
+module "puller-response-reader" {
+    source = "../modules/puller-response-reader"
+
+    environment = "dev"
+    region = "${var.region}"
+    metrics_namespace = "${var.metrics_namespace}"
+
+    parameter_memcached_location = "${module.memcached.location}"
+
+    ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
+    ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
+    ecs_instances_desired_count = 1
+    ecs_instances_memory = 64
+    ecs_instances_cpu = 400
+    ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
+    ecs_days_to_keep_images = 1
+
+    api_server_host = "${module.api_server.load_balancer_host}"
+    api_server_port = "${module.api_server.load_balancer_port}"
+
+    puller_queue_url = "${module.scheduler.puller_queue_url}"
+    puller_queue_arn = "${module.scheduler.puller_queue_arn}"
+    puller_response_queue_url = "${module.scheduler.puller_response_queue_url}"
+    puller_response_queue_arn = "${module.scheduler.puller_response_queue_arn}"
+
+    puller_queue_batch_size = 10
+
+    puller_response_queue_batch_size = 1 # Each message takes a while to process, so hoarding a bunch of messages in an individual instance means that other instances may be underutilized
+    puller_response_queue_max_items_to_process = 10000
 }
 
 module "puller_flickr" {
@@ -265,7 +293,7 @@ module "alarms" {
     dead_letter_queue_names = [ "${module.scheduler.puller_queue_dead_letter_full_name}", "${module.scheduler.puller_response_queue_dead_letter_full_name}", "${module.ingester_database.ingester_queue_dead_letter_full_name}"]
     dead_letter_queue_items_threshold = 1
 
-    scheduler_users_store_exception_threshold = 1
+    users_store_exception_threshold = 1
 
     api_server_favorites_store_exception_threshold = 1
     api_server_generic_exception_threshold = 1

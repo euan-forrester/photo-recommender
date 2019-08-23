@@ -23,6 +23,14 @@
             "Environment",
             "${environment}",
             "Process",
+            "puller-response-reader"
+        ],
+        [
+            "Photo Recommender",
+            "${metric_name}",
+            "Environment",
+            "${environment}",
+            "Process",
             "puller-flickr"
         ],
         [

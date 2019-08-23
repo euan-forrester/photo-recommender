@@ -68,25 +68,25 @@ resource "aws_cloudwatch_metric_alarm" "queue_writer_error" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "users_store_exception" {
-    count                     = "${var.enable_alarms == "true" ? 1 : 0}" # Don't create this if we turn off alarms (e.g. for dev)
+    count                     = "${var.enable_alarms == "true" ? length(var.process_names_that_use_api_server) : 0}" # Don't create this if we turn off alarms (e.g. for dev)
 
-    alarm_name                = "Scheduler encountered UsersStoreException"
+    alarm_name                = "UsersStoreException in ${element(var.process_names_that_use_api_server, count.index)}" # Need to have a different name for each one, or else we only see one in the UI
     comparison_operator       = "GreaterThanOrEqualToThreshold"
     evaluation_periods        = "1"
     metric_name               = "UsersStoreException"
     namespace                 = "${var.metrics_namespace}"
     period                    = "300"
     statistic                 = "Sum"
-    threshold                 = "${var.scheduler_users_store_exception_threshold}"
+    threshold                 = "${var.users_store_exception_threshold}"
     treat_missing_data        = "notBreaching" # No news is good news for exceptions
-    alarm_description         = "Alerts if the Scheduler is unable to talk to the API server"
+    alarm_description         = "Alerts if a process is unable to talk to the API server"
     alarm_actions             = [ "${aws_sns_topic.alarms.arn}" ]
     insufficient_data_actions = [ "${aws_sns_topic.alarms.arn}" ]
     ok_actions                = [ "${aws_sns_topic.alarms.arn}" ]
 
     dimensions {
         Environment = "${var.environment}"
-        Process     = "scheduler"
+        Process     = "${element(var.process_names_that_use_api_server, count.index)}" # Taken from https://github.com/hashicorp/terraform/issues/8600
     }
 }
 

@@ -1,5 +1,5 @@
 FROM python:3.7.4-alpine
-ADD scheduler/scheduler.py /scheduler/
+ADD puller-response-reader/puller-response-reader.py /puller-response-reader/
 ADD common/usersstoreapiserver.py /common/
 ADD common/usersstoreexception.py /common/
 ADD common/pullerqueueitem.py /common/
@@ -12,7 +12,7 @@ ADD common/unhandledexceptionhelper.py /common/
 ADD common/loop_command.sh /common/
 # Take advantage of layer cacheing, so that everything referenced by this file is cached if the file doesn't change:
 # https://blog.realkinetic.com/building-minimal-docker-containers-for-python-applications-37d0272c52f3
-COPY scheduler/requirements.txt /
+COPY puller-response-reader/requirements.txt /
 RUN pip install -r /requirements.txt
-WORKDIR scheduler/
-CMD [ "../common/loop_command.sh", "./scheduler.py", "2" ]
+WORKDIR puller-response-reader/
+CMD [ "../common/loop_command.sh", "./puller-response-reader.py", "2" ]

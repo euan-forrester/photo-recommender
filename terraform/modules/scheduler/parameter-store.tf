@@ -47,20 +47,6 @@ resource "aws_ssm_parameter" "puller_response_queue_url" {
     value       = "${module.puller_response_queue.queue_url}"
 }
 
-resource "aws_ssm_parameter" "puller_response_queue_batch_size" {
-    name        = "/${var.environment}/scheduler/puller-response-queue-batchsize"
-    description = "Number of items to take off of the puller response queue in a single batch"
-    type        = "String"
-    value       = "${var.puller_response_queue_batch_size}"
-}
-
-resource "aws_ssm_parameter" "puller_response_queue_max_items_to_process" {
-    name        = "/${var.environment}/scheduler/puller-response-queue-maxitemstoprocess"
-    description = "Maximum number of items to take off the puller response queue before exiting"
-    type        = "String"
-    value       = "${var.puller_response_queue_max_items_to_process}"
-}
-
 resource "aws_ssm_parameter" "scheduler_seconds_between_user_data_updates" {
     name        = "/${var.environment}/scheduler/seconds-between-user-data-updates"
     description = "Number of seconds between requests from the scheduler to update user data from each provider"

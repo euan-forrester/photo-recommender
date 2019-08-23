@@ -46,8 +46,6 @@ puller_queue_url                    = config_helper.get("puller-queue-url")
 puller_queue_batch_size             = config_helper.getInt("puller-queue-batchsize")
 
 puller_response_queue_url           = config_helper.get("puller-response-queue-url")
-puller_response_queue_batch_size    = config_helper.getInt("puller-response-queue-batchsize")
-puller_response_queue_max_items_to_process = config_helper.getInt("puller-response-queue-maxitemstoprocess")
 
 scheduler_seconds_between_user_data_updates = config_helper.getInt("seconds-between-user-data-updates")
 
@@ -64,14 +62,13 @@ unhandled_exception_helper  = UnhandledExceptionHelper.setup_unhandled_exception
 # Initialize our users' store and queues
 # 
 
-users_store = UsersStoreAPIServer(host=api_server_host, port=api_server_port)
+users_store             = UsersStoreAPIServer(host=api_server_host, port=api_server_port)
 
-puller_queue = SQSQueueWriter(puller_queue_url, puller_queue_batch_size, metrics_helper)
-puller_queue_reader = SQSQueueReader(puller_queue_url, 0, 0, metrics_helper) # We're just going to read the size from this queue, and not read any of its messages. We only write to this queue
+puller_queue            = SQSQueueWriter(puller_queue_url, puller_queue_batch_size, metrics_helper)
 
-puller_response_queue = SQSQueueReader(puller_response_queue_url, puller_response_queue_batch_size, puller_response_queue_max_items_to_process, metrics_helper)
-
-ingester_queue = SQSQueueReader(ingester_queue_url, 0, 0, metrics_helper) # We're just going to read the size from this queue, not any of its messages
+puller_queue_reader     = SQSQueueReader(puller_queue_url,          0, 0, metrics_helper) # We're just going to read the size from this queue, and not read any of its messages. We only write to this queue
+puller_response_queue   = SQSQueueReader(puller_response_queue_url, 0, 0, metrics_helper) # We're just going to read the size from this queue, not any of its messages
+ingester_queue          = SQSQueueReader(ingester_queue_url,        0, 0, metrics_helper) # We're just going to read the size from this queue, not any of its messages
 
 #
 # Begin by requesting all of the users that haven't been updated in a while
@@ -98,44 +95,6 @@ except UsersStoreException as e:
     sys.exit()
 
 logging.info("Ended looking for users who haven't been updated in a while")
-
-#
-# Process any puller response messages. If they contain a list of neighbors to request data for, then request those as well
-#
-
-logging.info("Beginning processing puller response messages")
-
-try:
-
-    for queue_message in puller_response_queue:
-        response = PullerResponseQueueItem.from_json(queue_message.get_message_body())
-
-        logging.info(f"Received response message: User ID: {response.get_user_id()}, is registered user: {str(response.get_is_registered_user())}")
-
-        neighbors_to_request_data_for = [PullerQueueItem(user_id=user_id, is_registered_user=False) for user_id in response.get_neighbor_list()]
-
-        logging.info(f"Found {len(neighbors_to_request_data_for)} neighbors who need their data updated. Sending messages to queue {puller_queue_url} in batches of {puller_queue_batch_size}")
-
-        if len(neighbors_to_request_data_for) > 0:
-            puller_queue.send_messages(objects=neighbors_to_request_data_for, to_string=lambda user : user.to_json())
-
-            if logging.getLogger().getEffectiveLevel() <= logging.INFO:
-                for neighbor in neighbors_to_request_data_for:
-                    logging.info(f"Requested data for user {neighbor.get_user_id()}")
-
-        users_store.data_updated(response.get_user_id())
-
-        puller_response_queue.finished_with_message(queue_message)
-
-except UsersStoreException as e:
-    logging.error("Unable to talk to our users store. Exiting.", e)
-    metrics_helper.increment_count("UsersStoreException")
-    sys.exit()
-
-finally:
-    puller_response_queue.shutdown()
-
-logging.info("Ended processing puller response messages")
 
 #
 # Find any users who are currently updating, and see if we've finished updating
