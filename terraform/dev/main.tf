@@ -95,10 +95,10 @@ module "scheduler" {
 
     scheduler_seconds_between_user_data_updates = 7200
 
-    scheduler_queue_batch_size = 10
+    puller_queue_batch_size = 10
 
-    scheduler_response_queue_batch_size = 10
-    scheduler_response_queue_max_items_to_process = 10000
+    puller_response_queue_batch_size = 10
+    puller_response_queue_max_items_to_process = 10000
 
     ingester_database_queue_url = "${module.ingester_database.ingester_queue_url}"
     ingester_database_queue_arn = "${module.ingester_database.ingester_queue_arn}"
@@ -136,14 +136,14 @@ module "puller_flickr" {
     output_queue_arn = "${module.ingester_database.ingester_queue_arn}"
     output_queue_batch_size = 10
 
-    scheduler_queue_url = "${module.scheduler.scheduler_queue_url}"
-    scheduler_queue_arn = "${module.scheduler.scheduler_queue_arn}"
-    scheduler_queue_batch_size = 1 # Each message takes a while to process, so hoarding a bunch of messages in an individual instance means that other instances may be underutilized
-    scheduler_queue_max_items_to_process = 1000
+    puller_queue_url = "${module.scheduler.puller_queue_url}"
+    puller_queue_arn = "${module.scheduler.puller_queue_arn}"
+    puller_queue_batch_size = 1 # Each message takes a while to process, so hoarding a bunch of messages in an individual instance means that other instances may be underutilized
+    puller_queue_max_items_to_process = 1000
 
-    scheduler_response_queue_url = "${module.scheduler.scheduler_response_queue_url}"
-    scheduler_response_queue_arn = "${module.scheduler.scheduler_response_queue_arn}"
-    scheduler_response_queue_batch_size = 10
+    puller_response_queue_url = "${module.scheduler.puller_response_queue_url}"
+    puller_response_queue_arn = "${module.scheduler.puller_response_queue_arn}"
+    puller_response_queue_batch_size = 10
 }
 
 module "ingester_database" {
@@ -224,13 +224,13 @@ module "dashboard" {
     region      = "${var.region}"
     metrics_namespace = "${var.metrics_namespace}"
 
-    scheduler_queue_base_name               = "${module.scheduler.scheduler_queue_base_name}"
-    scheduler_queue_full_name               = "${module.scheduler.scheduler_queue_full_name}"
-    scheduler_queue_dead_letter_full_name   = "${module.scheduler.scheduler_queue_dead_letter_full_name}"
+    puller_queue_base_name               = "${module.scheduler.puller_queue_base_name}"
+    puller_queue_full_name               = "${module.scheduler.puller_queue_full_name}"
+    puller_queue_dead_letter_full_name   = "${module.scheduler.puller_queue_dead_letter_full_name}"
 
-    scheduler_response_queue_base_name              = "${module.scheduler.scheduler_response_queue_base_name}"
-    scheduler_response_queue_full_name              = "${module.scheduler.scheduler_response_queue_full_name}"
-    scheduler_response_queue_dead_letter_full_name  = "${module.scheduler.scheduler_response_queue_dead_letter_full_name}"
+    puller_response_queue_base_name              = "${module.scheduler.puller_response_queue_base_name}"
+    puller_response_queue_full_name              = "${module.scheduler.puller_response_queue_full_name}"
+    puller_response_queue_dead_letter_full_name  = "${module.scheduler.puller_response_queue_dead_letter_full_name}"
 
     ingester_queue_base_name                = "${module.ingester_database.ingester_queue_base_name}"
     ingester_queue_full_name                = "${module.ingester_database.ingester_queue_full_name}"
@@ -256,13 +256,13 @@ module "alarms" {
 
     unhandled_exceptions_threshold = 1
 
-    queue_names = [ "${module.scheduler.scheduler_queue_full_name}", "${module.scheduler.scheduler_response_queue_full_name}", "${module.ingester_database.ingester_queue_full_name}"]
+    queue_names = [ "${module.scheduler.puller_queue_full_name}", "${module.scheduler.puller_response_queue_full_name}", "${module.ingester_database.ingester_queue_full_name}"]
     queue_item_size_threshold = 235520 # 230kB -- 256kB is the absolute max
     queue_item_age_threshold = 500 # 8.3 minutes
     queue_reader_error_threshold = 1
     queue_writer_error_threshold = 1
 
-    dead_letter_queue_names = [ "${module.scheduler.scheduler_queue_dead_letter_full_name}", "${module.scheduler.scheduler_response_queue_dead_letter_full_name}", "${module.ingester_database.ingester_queue_dead_letter_full_name}"]
+    dead_letter_queue_names = [ "${module.scheduler.puller_queue_dead_letter_full_name}", "${module.scheduler.puller_response_queue_dead_letter_full_name}", "${module.ingester_database.ingester_queue_dead_letter_full_name}"]
     dead_letter_queue_items_threshold = 1
 
     scheduler_users_store_exception_threshold = 1

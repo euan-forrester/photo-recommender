@@ -90,30 +90,30 @@ resource "aws_ssm_parameter" "output_queue_batch_size" {
     value       = "${var.output_queue_batch_size}"
 }
 
-resource "aws_ssm_parameter" "scheduler_queue_url" {
-    name        = "/${var.environment}/puller-flickr/scheduler-queue-url"
+resource "aws_ssm_parameter" "puller_queue_url" {
+    name        = "/${var.environment}/puller-flickr/puller-queue-url"
     description = "URL of the queue to get requests for data to be pulled"
     type        = "String"
-    value       = "${var.scheduler_queue_url}"
+    value       = "${var.puller_queue_url}"
 }
 
-resource "aws_ssm_parameter" "scheduler_queue_batch_size" {
-    name        = "/${var.environment}/puller-flickr/scheduler-queue-batchsize"
-    description = "Number of items to get from the scheduler queue in a single batch"
+resource "aws_ssm_parameter" "puller_queue_batch_size" {
+    name        = "/${var.environment}/puller-flickr/puller-queue-batchsize"
+    description = "Number of items to get from the puller queue in a single batch"
     type        = "String"
-    value       = "${var.scheduler_queue_batch_size}"
+    value       = "${var.puller_queue_batch_size}"
 }
 
-resource "aws_ssm_parameter" "scheduler_queue_max_items_to_process" {
-    name        = "/${var.environment}/puller-flickr/scheduler-queue-maxitemstoprocess"
-    description = "Maximum number of items to get from the scheduler queue before exiting"
+resource "aws_ssm_parameter" "puller_queue_max_items_to_process" {
+    name        = "/${var.environment}/puller-flickr/puller-queue-maxitemstoprocess"
+    description = "Maximum number of items to get from the puller queue before exiting"
     type        = "String"
-    value       = "${var.scheduler_queue_max_items_to_process}"
+    value       = "${var.puller_queue_max_items_to_process}"
 }
 
-resource "aws_ssm_parameter" "scheduler_response_queue_url" {
-    name        = "/${var.environment}/puller-flickr/scheduler-response-queue-url"
+resource "aws_ssm_parameter" "puller_response_queue_url" {
+    name        = "/${var.environment}/puller-flickr/puller-response-queue-url"
     description = "URL where we put messages saying we've successfully pulled data"
     type        = "String"
-    value       = "${var.scheduler_response_queue_url}"
+    value       = "${var.puller_response_queue_url}"
 }

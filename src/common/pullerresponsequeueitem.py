@@ -1,6 +1,6 @@
 import jsonpickle
 
-class SchedulerResponseQueueItem:
+class PullerResponseQueueItem:
 
     # The max size of an SQS message is 256kB, and a user ID takes about 16 bytes to store (12 digits, plus quotes, comma, and space).
     # If we start to exceed this threshold, we should switch to storing the neighbor list in S3 
@@ -8,14 +8,14 @@ class SchedulerResponseQueueItem:
     MAX_NUM_NEIGHBORS = 16000 
 
     '''
-    An item placed onto or read from the scheduler response queue. It represents a user
+    An item placed onto or read from the puller response queue. It represents a user
     '''
 
     def __init__(self, user_id, is_registered_user, neighbor_list):
         self.user_id                = user_id
         self.is_registered_user     = is_registered_user
-        self.max_neighbors_exceeded = len(neighbor_list) > SchedulerResponseQueueItem.MAX_NUM_NEIGHBORS
-        self.neighbor_list          = neighbor_list[:SchedulerResponseQueueItem.MAX_NUM_NEIGHBORS]
+        self.max_neighbors_exceeded = len(neighbor_list) > PullerResponseQueueItem.MAX_NUM_NEIGHBORS
+        self.neighbor_list          = neighbor_list[:PullerResponseQueueItem.MAX_NUM_NEIGHBORS]
    
     def get_user_id(self):
         return self.user_id

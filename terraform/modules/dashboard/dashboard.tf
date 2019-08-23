@@ -16,14 +16,14 @@ resource "aws_cloudwatch_dashboard" "main" {
           "y":6,
           "width":12,
           "height":6,
-          ${data.template_file.scheduler_queue.rendered}
+          ${data.template_file.puller_queue.rendered}
        },
        {
           "x":12,
           "y":6,
           "width":12,
           "height":6,
-          ${data.template_file.scheduler_response_queue.rendered}
+          ${data.template_file.puller_response_queue.rendered}
        },
        {
           "x":0,
@@ -112,22 +112,22 @@ data "template_file" "time_to_get_all_data" {
     template = "${file("${path.module}/generic_metric.tpl")}"
 }
 
-data "template_file" "scheduler_queue" {
+data "template_file" "puller_queue" {
     vars = {
-        queue_full_name             = "${var.scheduler_queue_full_name}"
-        queue_base_name             = "${var.scheduler_queue_base_name}"
-        queue_dead_letter_full_name = "${var.scheduler_queue_dead_letter_full_name}"
+        queue_full_name             = "${var.puller_queue_full_name}"
+        queue_base_name             = "${var.puller_queue_base_name}"
+        queue_dead_letter_full_name = "${var.puller_queue_dead_letter_full_name}"
         region                      = "${var.region}"
     }
 
     template = "${file("${path.module}/sqs_queue.tpl")}"
 }
 
-data "template_file" "scheduler_response_queue" {
+data "template_file" "puller_response_queue" {
     vars = {
-        queue_full_name             = "${var.scheduler_response_queue_full_name}"
-        queue_base_name             = "${var.scheduler_response_queue_base_name}"
-        queue_dead_letter_full_name = "${var.scheduler_response_queue_dead_letter_full_name}"
+        queue_full_name             = "${var.puller_response_queue_full_name}"
+        queue_base_name             = "${var.puller_response_queue_base_name}"
+        queue_dead_letter_full_name = "${var.puller_response_queue_dead_letter_full_name}"
         region                      = "${var.region}"
     }
 

@@ -44,7 +44,7 @@ resource "aws_iam_policy" "ecs-instance-scheduler-extra-policy" {
         "sqs:GetQueueAttributes"
       ],
       "Effect": "Allow",
-      "Resource": "${module.scheduler_queue.queue_arn}"
+      "Resource": "${module.puller_queue.queue_arn}"
     },
     {
       "Action": [
@@ -54,7 +54,7 @@ resource "aws_iam_policy" "ecs-instance-scheduler-extra-policy" {
         "sqs:GetQueueAttributes"
       ],
       "Effect": "Allow",
-      "Resource": "${module.scheduler_response_queue.queue_arn}"
+      "Resource": "${module.puller_response_queue.queue_arn}"
     },
     {
       "Action": [

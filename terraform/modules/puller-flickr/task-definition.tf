@@ -58,7 +58,7 @@ resource "aws_iam_policy" "ecs-instance-puller-flickr-extra-policy" {
         "sqs:SendMessage"
       ],
       "Effect": "Allow",
-      "Resource": "${var.scheduler_response_queue_arn}"
+      "Resource": "${var.puller_response_queue_arn}"
     },
     {
       "Action": [
@@ -67,7 +67,7 @@ resource "aws_iam_policy" "ecs-instance-puller-flickr-extra-policy" {
         "sqs:DeleteMessage"
       ],
       "Effect": "Allow",
-      "Resource": "${var.scheduler_queue_arn}"
+      "Resource": "${var.puller_queue_arn}"
     }
   ]
 }
