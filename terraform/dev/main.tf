@@ -52,6 +52,7 @@ module "database" {
     mysql_database_size_gb  = 5
     mysql_multi_az          = false # Disable database multi-AZ in dev to save billing charges
     mysql_backup_retention_period_days = 3
+    mysql_deletion_protection = false # No need for deletion protection in dev
 
     mysql_database_password = "${var.database_password_dev}"
 }
@@ -190,6 +191,7 @@ module "api_server" {
     load_balancer_port      = 4444
     api_server_port         = 4445
 
+    retain_load_balancer_access_logs_after_destroy = "false" # For dev, we don't care about retaining these logs after doing a terraform destroy
     load_balancer_days_to_keep_access_logs = 1
     load_balancer_access_logs_bucket = "api-server-access-logs-dev"
     load_balancer_access_logs_prefix = "api-server-lb-dev"
@@ -256,7 +258,7 @@ module "alarms" {
 
     queue_names = [ "${module.scheduler.scheduler_queue_full_name}", "${module.scheduler.scheduler_response_queue_full_name}", "${module.ingester_database.ingester_queue_full_name}"]
     queue_item_size_threshold = 235520 # 230kB -- 256kB is the absolute max
-    queue_item_age_threshold = 300 # 5 minutes
+    queue_item_age_threshold = 500 # 8.3 minutes
     queue_reader_error_threshold = 1
     queue_writer_error_threshold = 1
 

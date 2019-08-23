@@ -39,7 +39,7 @@ resource "aws_kms_key" "logs" {
 }
 
 resource "aws_cloudwatch_log_group" "log_group" {
-    name                = "${var.cluster_name}"
+    name                = "${var.cluster_name}-${var.environment}"
     retention_in_days   = "${var.instances_log_retention_days}"
     kms_key_id          = "${aws_kms_key.logs.arn}"
 }
