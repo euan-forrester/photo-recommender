@@ -38,6 +38,14 @@
             "${cluster_name}",
             "ServiceName",
             "scheduler-${environment}"
+        ],
+        [
+            "AWS/ECS",
+            "MemoryUtilization",
+            "ClusterName",
+            "${cluster_name}",
+            "ServiceName",
+            "puller-response-reader-${environment}"
         ]
     ],
     "period":300,

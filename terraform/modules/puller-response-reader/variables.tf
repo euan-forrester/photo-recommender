@@ -12,6 +12,9 @@ variable "ecs_instances_log_configuration" {}
 variable "ecs_instances_role_name" {}
 variable "ecs_days_to_keep_images" {}
 variable "puller_queue_batch_size" {}
-variable "scheduler_seconds_between_user_data_updates" {}
-variable "ingester_database_queue_url" {}
-variable "ingester_database_queue_arn" {}
+variable "puller_response_queue_batch_size" {}
+variable "puller_response_queue_max_items_to_process" {}
+variable "puller_queue_url" {}
+variable "puller_queue_arn" {}
+variable "puller_response_queue_url" {}
+variable "puller_response_queue_arn" {}
