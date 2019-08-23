@@ -2,8 +2,8 @@ FROM python:3.7.4-alpine
 ADD scheduler/scheduler.py /scheduler/
 ADD scheduler/usersstoreapiserver.py /scheduler/
 ADD scheduler/usersstoreexception.py /scheduler/
-ADD common/schedulerqueueitem.py /common/
-ADD common/schedulerresponsequeueitem.py /common/
+ADD common/pullerqueueitem.py /common/
+ADD common/pullerresponsequeueitem.py /common/
 ADD common/queuereader.py /common/
 ADD common/queuewriter.py /common/
 ADD common/confighelper.py /common/

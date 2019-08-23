@@ -8,8 +8,8 @@ import argparse
 import logging
 from ingesterqueueitem import IngesterQueueItem
 from ingesterqueuebatchitem import IngesterQueueBatchItem
-from schedulerqueueitem import SchedulerQueueItem
-from schedulerresponsequeueitem import SchedulerResponseQueueItem
+from pullerqueueitem import PullerQueueItem
+from pullerresponsequeueitem import PullerResponseQueueItem
 from queuewriter import SQSQueueWriter
 from queuereader import SQSQueueReader
 from confighelper import ConfigHelper
@@ -53,11 +53,11 @@ memcached_ttl                       = config_helper.getInt("memcached-ttl")
 output_queue_url                    = config_helper.get("output-queue-url")
 output_queue_batch_size             = config_helper.getInt("output-queue-batchsize")
 
-scheduler_response_queue_url        = config_helper.get("scheduler-response-queue-url")
+puller_response_queue_url           = config_helper.get("puller-response-queue-url")
 
-scheduler_queue_url                 = config_helper.get("scheduler-queue-url")
-scheduler_queue_batch_size          = config_helper.getInt("scheduler-queue-batchsize")
-scheduler_queue_max_items_to_process = config_helper.getInt("scheduler-queue-maxitemstoprocess")
+puller_queue_url                    = config_helper.get("puller-queue-url")
+puller_queue_batch_size             = config_helper.getInt("puller-queue-batchsize")
+puller_queue_max_items_to_process   = config_helper.getInt("puller-queue-maxitemstoprocess")
 
 #
 # Metrics and unhandled exceptions
@@ -81,15 +81,15 @@ flickrapi = FlickrApiWrapper(
     flickr_api_max_calls_to_make,
     metrics_helper)
 
-scheduler_queue             = SQSQueueReader(queue_url=scheduler_queue_url,             batch_size=scheduler_queue_batch_size, max_messages_to_read=scheduler_queue_max_items_to_process,   metrics_helper=metrics_helper)
-scheduler_response_queue    = SQSQueueWriter(queue_url=scheduler_response_queue_url,    batch_size=1,                                                                                       metrics_helper=metrics_helper) # We ignore the batch size by sending the messages one at a time, because we don't want to miss any if we have an error
-output_queue                = SQSQueueWriter(queue_url=output_queue_url,                batch_size=output_queue_batch_size,                                                                 metrics_helper=metrics_helper)
+puller_queue            = SQSQueueReader(queue_url=puller_queue_url,            batch_size=puller_queue_batch_size, max_messages_to_read=puller_queue_max_items_to_process,   metrics_helper=metrics_helper)
+puller_response_queue   = SQSQueueWriter(queue_url=puller_response_queue_url,   batch_size=1,                                                                                       metrics_helper=metrics_helper) # We ignore the batch size by sending the messages one at a time, because we don't want to miss any if we have an error
+output_queue            = SQSQueueWriter(queue_url=output_queue_url,            batch_size=output_queue_batch_size,                                                                 metrics_helper=metrics_helper)
 
 #
 # Process items from our input queue
 #
 
-def process_user(scheduler_queue_item):
+def process_user(puller_queue_item):
 
     # We will need to build a set of "neighbors" to our user. A "neighbor" is someone who took a photo that the user favorited.
     # We will use each neighbor's photos to assign a score to that neighbor, which we will then use to assign a score to each of their favorites.
@@ -98,8 +98,8 @@ def process_user(scheduler_queue_item):
     # That's because it might be a while before the ingester_database process finishes ingesting the data we just pulled here, so the Scheduler
     # won't be able to find out the list of neighbors from the database until an unspecified time in the future
 
-    flickr_user_id      = scheduler_queue_item.get_user_id()
-    is_registered_user  = scheduler_queue_item.get_is_registered_user()
+    flickr_user_id      = puller_queue_item.get_user_id()
+    is_registered_user  = puller_queue_item.get_is_registered_user()
 
     logging.info(f"Getting favourites for requested user {flickr_user_id}")
 
@@ -141,13 +141,13 @@ def process_user(scheduler_queue_item):
     if not is_registered_user:
         my_neighbors_list = [] # The Scheduler doesn't care about neighbors of neighbors, so if this isn't a registered user then don't bother to send them. They'll just be a bunch of data for no reason, and might exceed the max and cause unnecessary trouble
 
-    scheduler_response_queue_item = SchedulerResponseQueueItem(user_id=flickr_user_id, is_registered_user=is_registered_user, neighbor_list=my_neighbors_list) 
+    puller_response_queue_item = PullerResponseQueueItem(user_id=flickr_user_id, is_registered_user=is_registered_user, neighbor_list=my_neighbors_list) 
 
-    if scheduler_response_queue_item.get_max_neighbors_exceeded():
+    if puller_response_queue_item.get_max_neighbors_exceeded():
         logging.warn(f"User {flickr_user_id} exceeded max number of neighbors: has {len(my_neighbors_list)} neighbors. Consider putting this list is S3 rather than in this SQS message")
         metrics_helper.increment_count("MaxNeighborsExceeded")
 
-    scheduler_response_queue.send_messages(objects=[scheduler_response_queue_item], to_string=lambda x: x.to_json()) # Sends messages one at a time, regardless of what the batch size is set to. We don't want to batch them up then miss sending one if we have an error later
+    puller_response_queue.send_messages(objects=[puller_response_queue_item], to_string=lambda x: x.to_json()) # Sends messages one at a time, regardless of what the batch size is set to. We don't want to batch them up then miss sending one if we have an error later
 
     logging.info(f"Finished processing for requested user {flickr_user_id}")
 
@@ -155,18 +155,18 @@ def process_user(scheduler_queue_item):
 # Call Flickr to get my favorites, and the favorites of the users who created them
 #
 
-logging.info(f"About to query queue {scheduler_queue_url} for requests")
+logging.info(f"About to query queue {puller_queue_url} for requests")
 
 try:
 
-    for queue_message in scheduler_queue:
-        scheduler_queue_item = SchedulerQueueItem.from_json(queue_message.get_message_body())
+    for queue_message in puller_queue:
+        puller_queue_item = PullerQueueItem.from_json(queue_message.get_message_body())
 
-        process_user(scheduler_queue_item)
+        process_user(puller_queue_item)
 
-        scheduler_queue.finished_with_message(queue_message)
+        puller_queue.finished_with_message(queue_message)
 
 finally:
-    scheduler_queue.shutdown()
+    puller_queue.shutdown()
 
 logging.info("Successfully finished processing")

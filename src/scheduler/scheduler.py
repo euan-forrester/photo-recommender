@@ -10,8 +10,8 @@ from queuereader import SQSQueueReader
 from confighelper import ConfigHelper
 from metricshelper import MetricsHelper
 from unhandledexceptionhelper import UnhandledExceptionHelper
-from schedulerqueueitem import SchedulerQueueItem
-from schedulerresponsequeueitem import SchedulerResponseQueueItem
+from pullerqueueitem import PullerQueueItem
+from pullerresponsequeueitem import PullerResponseQueueItem
 from usersstoreapiserver import UsersStoreAPIServer
 from usersstoreexception import UsersStoreException
 
@@ -42,12 +42,12 @@ metrics_namespace                   = config_helper.get("metrics-namespace")
 api_server_host                     = config_helper.get("api-server-host")
 api_server_port                     = config_helper.getInt("api-server-port")
 
-scheduler_queue_url                 = config_helper.get("scheduler-queue-url")
-scheduler_queue_batch_size          = config_helper.getInt("scheduler-queue-batchsize")
+puller_queue_url                    = config_helper.get("puller-queue-url")
+puller_queue_batch_size             = config_helper.getInt("puller-queue-batchsize")
 
-scheduler_response_queue_url        = config_helper.get("scheduler-response-queue-url")
-scheduler_response_queue_batch_size = config_helper.getInt("scheduler-response-queue-batchsize")
-scheduler_response_queue_max_items_to_process = config_helper.getInt("scheduler-response-queue-maxitemstoprocess")
+puller_response_queue_url           = config_helper.get("puller-response-queue-url")
+puller_response_queue_batch_size    = config_helper.getInt("puller-response-queue-batchsize")
+puller_response_queue_max_items_to_process = config_helper.getInt("puller-response-queue-maxitemstoprocess")
 
 scheduler_seconds_between_user_data_updates = config_helper.getInt("seconds-between-user-data-updates")
 
@@ -66,10 +66,10 @@ unhandled_exception_helper  = UnhandledExceptionHelper.setup_unhandled_exception
 
 users_store = UsersStoreAPIServer(host=api_server_host, port=api_server_port)
 
-scheduler_queue = SQSQueueWriter(scheduler_queue_url, scheduler_queue_batch_size, metrics_helper)
-scheduler_queue_reader = SQSQueueReader(scheduler_queue_url, 0, 0, metrics_helper) # We're just going to read the size from this queue, and not read any of its messages. We only write to this queue
+puller_queue = SQSQueueWriter(puller_queue_url, puller_queue_batch_size, metrics_helper)
+puller_queue_reader = SQSQueueReader(puller_queue_url, 0, 0, metrics_helper) # We're just going to read the size from this queue, and not read any of its messages. We only write to this queue
 
-scheduler_response_queue = SQSQueueReader(scheduler_response_queue_url, scheduler_response_queue_batch_size, scheduler_response_queue_max_items_to_process, metrics_helper)
+puller_response_queue = SQSQueueReader(puller_response_queue_url, puller_response_queue_batch_size, puller_response_queue_max_items_to_process, metrics_helper)
 
 ingester_queue = SQSQueueReader(ingester_queue_url, 0, 0, metrics_helper) # We're just going to read the size from this queue, not any of its messages
 
@@ -82,11 +82,11 @@ logging.info("Beginning looking for users who haven't been updated in a while")
 try:
     users_ids_to_request_data_for = users_store.get_users_to_request_data_for(scheduler_seconds_between_user_data_updates)
 
-    users_to_request_data_for = [SchedulerQueueItem(user_id=user_id, is_registered_user=True) for user_id in users_ids_to_request_data_for]
+    users_to_request_data_for = [PullerQueueItem(user_id=user_id, is_registered_user=True) for user_id in users_ids_to_request_data_for]
 
-    logging.info(f"Found {len(users_to_request_data_for)} registered users who need their data updated. Sending messages to queue {scheduler_queue_url} in batches of {scheduler_queue_batch_size}")
+    logging.info(f"Found {len(users_to_request_data_for)} registered users who need their data updated. Sending messages to queue {puller_queue_url} in batches of {puller_queue_batch_size}")
 
-    scheduler_queue.send_messages(objects=users_to_request_data_for, to_string=lambda user : user.to_json())
+    puller_queue.send_messages(objects=users_to_request_data_for, to_string=lambda user : user.to_json())
 
     for user in users_to_request_data_for:
         logging.info(f"Requested data for user {user.get_user_id()}")
@@ -100,24 +100,24 @@ except UsersStoreException as e:
 logging.info("Ended looking for users who haven't been updated in a while")
 
 #
-# Process any scheduler response messages. If they contain a list of neighbors to request data for, then request those as well
+# Process any puller response messages. If they contain a list of neighbors to request data for, then request those as well
 #
 
-logging.info("Beginning processing scheduler response messages")
+logging.info("Beginning processing puller response messages")
 
 try:
 
-    for queue_message in scheduler_response_queue:
-        response = SchedulerResponseQueueItem.from_json(queue_message.get_message_body())
+    for queue_message in puller_response_queue:
+        response = PullerResponseQueueItem.from_json(queue_message.get_message_body())
 
         logging.info(f"Received response message: User ID: {response.get_user_id()}, is registered user: {str(response.get_is_registered_user())}")
 
-        neighbors_to_request_data_for = [SchedulerQueueItem(user_id=user_id, is_registered_user=False) for user_id in response.get_neighbor_list()]
+        neighbors_to_request_data_for = [PullerQueueItem(user_id=user_id, is_registered_user=False) for user_id in response.get_neighbor_list()]
 
-        logging.info(f"Found {len(neighbors_to_request_data_for)} neighbors who need their data updated. Sending messages to queue {scheduler_queue_url} in batches of {scheduler_queue_batch_size}")
+        logging.info(f"Found {len(neighbors_to_request_data_for)} neighbors who need their data updated. Sending messages to queue {puller_queue_url} in batches of {puller_queue_batch_size}")
 
         if len(neighbors_to_request_data_for) > 0:
-            scheduler_queue.send_messages(objects=neighbors_to_request_data_for, to_string=lambda user : user.to_json())
+            puller_queue.send_messages(objects=neighbors_to_request_data_for, to_string=lambda user : user.to_json())
 
             if logging.getLogger().getEffectiveLevel() <= logging.INFO:
                 for neighbor in neighbors_to_request_data_for:
@@ -125,7 +125,7 @@ try:
 
         users_store.data_updated(response.get_user_id())
 
-        scheduler_response_queue.finished_with_message(queue_message)
+        puller_response_queue.finished_with_message(queue_message)
 
 except UsersStoreException as e:
     logging.error("Unable to talk to our users store. Exiting.", e)
@@ -133,9 +133,9 @@ except UsersStoreException as e:
     sys.exit()
 
 finally:
-    scheduler_response_queue.shutdown()
+    puller_response_queue.shutdown()
 
-logging.info("Ended processing scheduler response messages")
+logging.info("Ended processing puller response messages")
 
 #
 # Find any users who are currently updating, and see if we've finished updating
@@ -150,13 +150,13 @@ try:
         logging.info("No user IDs are currently updating")
 
     else:
-        scheduler_queue_num_messages            = scheduler_queue_reader.get_total_number_of_messages_available()
-        scheduler_response_queue_num_messages   = scheduler_response_queue.get_total_number_of_messages_available()
-        ingester_queue_num_messages             = ingester_queue.get_total_number_of_messages_available()
+        puller_queue_num_messages            = puller_queue_reader.get_total_number_of_messages_available()
+        puller_response_queue_num_messages   = puller_response_queue.get_total_number_of_messages_available()
+        ingester_queue_num_messages          = ingester_queue.get_total_number_of_messages_available()
 
-        total_messages_in_system = scheduler_queue_num_messages + scheduler_response_queue_num_messages + ingester_queue_num_messages
+        total_messages_in_system = puller_queue_num_messages + puller_response_queue_num_messages + ingester_queue_num_messages
             
-        logging.info(f"Currently found {scheduler_queue_num_messages} scheduler messages, {scheduler_response_queue_num_messages} scheduler response messages, and {ingester_queue_num_messages} ingester messages, for a total of {total_messages_in_system}")
+        logging.info(f"Currently found {puller_queue_num_messages} puller messages, {puller_response_queue_num_messages} puller response messages, and {ingester_queue_num_messages} ingester messages, for a total of {total_messages_in_system}")
 
         if total_messages_in_system == 0:
             logging.info("No messages currently in the system, so we're done updating our users")

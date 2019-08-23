@@ -1,9 +1,9 @@
 import jsonpickle
 
-class SchedulerQueueItem:
+class PullerQueueItem:
 
     '''
-    An item placed onto or read from the scheduler queue. It represents a user
+    An item placed onto or read from the puller queue. It represents a user
     '''
 
     def __init__(self, user_id, is_registered_user):
