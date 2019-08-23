@@ -36,6 +36,8 @@ resource "aws_lb_target_group" "load_balancer" {
         unhealthy_threshold = 3
         matcher             = "200"
     }
+
+    depends_on              = ["aws_lb.api_server"] # https://github.com/cds-snc/aws-ecs-fargate/issues/1
 }
 
 resource "aws_lb_listener" "load_balancer" {  
@@ -88,6 +90,7 @@ data "aws_elb_service_account" "main" {}
 resource "aws_s3_bucket" "load_balancer_access_logs" {
     bucket = "${var.load_balancer_access_logs_bucket}"
     acl    = "bucket-owner-full-control"
+    force_destroy = "${!var.retain_load_balancer_access_logs_after_destroy}"
     policy = <<EOF
 {
   "Id": "Policy1429136655940",

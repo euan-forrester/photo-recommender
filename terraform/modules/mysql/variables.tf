@@ -12,3 +12,4 @@ variable "vpc_cidr" {}
 variable "backup_retention_period_days" {}
 variable "init_script_file" {}
 variable "storage_encrypted" {}
+variable "deletion_protection" {}

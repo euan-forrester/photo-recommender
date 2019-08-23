@@ -36,7 +36,10 @@ resource "aws_db_instance" "mysql_database" {
     auto_minor_version_upgrade      = true
     backup_retention_period         = "${var.backup_retention_period_days}"
     copy_tags_to_snapshot           = true
-    deletion_protection             = false
+
+    deletion_protection             = "${var.deletion_protection}"
+    skip_final_snapshot             = "${!var.deletion_protection}"
+    final_snapshot_identifier       = "${var.database_name}-${var.environment}-final-snapshot"
 
     enabled_cloudwatch_logs_exports = [ "error", "general", "slowquery" ]
     monitoring_interval             = 0

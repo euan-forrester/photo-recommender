@@ -25,4 +25,5 @@ variable "load_balancer_port" {}
 variable "load_balancer_days_to_keep_access_logs" {}
 variable "load_balancer_access_logs_bucket" {}
 variable "load_balancer_access_logs_prefix" {}
+variable "retain_load_balancer_access_logs_after_destroy" {}
 variable "default_num_photo_recommendations" {}

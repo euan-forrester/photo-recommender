@@ -52,6 +52,7 @@ module "database" {
     mysql_database_size_gb  = 5
     mysql_multi_az          = false # Disable database multi-AZ in dev to save billing charges
     mysql_backup_retention_period_days = 3
+    mysql_deletion_protection = false # No need for deletion protection in dev
 
     mysql_database_password = "${var.database_password_dev}"
 }
@@ -190,6 +191,7 @@ module "api_server" {
     load_balancer_port      = 4444
     api_server_port         = 4445
 
+    retain_load_balancer_access_logs_after_destroy = "false" # For dev, we don't care about retaining these logs after doing a terraform destroy
     load_balancer_days_to_keep_access_logs = 1
     load_balancer_access_logs_bucket = "api-server-access-logs-dev"
     load_balancer_access_logs_prefix = "api-server-lb-dev"

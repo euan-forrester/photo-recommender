@@ -14,5 +14,6 @@ module "mysql" {
     multi_az              = "${var.mysql_multi_az}"
     database_password     = "${var.mysql_database_password}"
     backup_retention_period_days = "${var.mysql_backup_retention_period_days}"
+    deletion_protection   = "${var.mysql_deletion_protection}"
     init_script_file      = "database/photo_recommender_init.sql"
 }
