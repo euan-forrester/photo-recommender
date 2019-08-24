@@ -4,3 +4,4 @@ django==2.2.4
 boto3==1.9.214
 jsonpickle==1.2
 pymemcache==2.2.2
+diskcache==4.0.0

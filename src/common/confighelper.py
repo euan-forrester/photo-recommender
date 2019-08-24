@@ -5,6 +5,7 @@ import logging
 import os
 from pymemcache.client.base import Client
 from pymemcache import serde
+from diskcache import Cache
 
 class ConfigHelper:
     
@@ -23,15 +24,19 @@ class ConfigHelper:
             return ConfigHelperParameterStore(environment=ENVIRONMENT, key_prefix=aws_parameter_prefix)
 
     @staticmethod
-    def _log(param, value, is_secret, is_cached=False):
-        logging.info(f"Got parameter {param} {ConfigHelper._get_is_cached_log_string(is_cached)} with value {ConfigHelper._get_value_log_string(value, is_secret)}")
+    def _log(param, value, is_secret, cache_type="none"):
+        logging.info(f"Got parameter {param} {ConfigHelper._get_cache_type_log_string(cache_type)} with value {ConfigHelper._get_value_log_string(value, is_secret)}")
 
     @staticmethod
-    def _get_is_cached_log_string(is_cached):
-        if is_cached:
-            return "from the cache"
-        else:
-            return "directly from the store" 
+    def _get_cache_type_log_string(cache_type):
+        
+        log_string = {
+            "memcached":    "from memcached",
+            "disc":         "from the disc cache",
+            "none":         "directly from the store"
+        }
+
+        return log_string[cache_type]
 
     @staticmethod
     def _get_value_log_string(value, is_secret):
@@ -82,9 +87,10 @@ class ConfigHelperParameterStore(ConfigHelper):
     Reads config items from the AWS Parameter Store
     '''
 
-    MEMCACHED_TTL = 300             # 5 minutes
+    CACHE_TTL = 300                 # 5 minutes
     MEMCACHED_CONNECT_TIMEOUT = 5   # 5 seconds
     MEMCACHED_TIMEOUT = 5           # 5 seconds
+    DISC_CACHE_PATH = "/disc-cache"
 
     def __init__(self, environment, key_prefix):
         self.environment    = environment
@@ -92,6 +98,10 @@ class ConfigHelperParameterStore(ConfigHelper):
         self.ssm            = boto3.client('ssm') # Region is read from the AWS_DEFAULT_REGION env var
         self.memcached_location = self._get_from_parameter_store(self._get_full_path("parameter-memcached-location"))
         self.memcached_client = None
+
+        self.disc_cache     = Cache(directory=ConfigHelperParameterStore.DISC_CACHE_PATH)
+
+        logging.info(f"Opened disc-based parameter cache in {ConfigHelperParameterStore.DISC_CACHE_PATH}")
 
         if self.memcached_location is None:
             logging.info(f"Could not find parameter memcached location in parameter store at {self._get_full_path('parameter-memcached-location')}")
@@ -120,37 +130,72 @@ class ConfigHelperParameterStore(ConfigHelper):
 
         # With lots of container instances running, each one is constantly getting values from 
         # the parameter store and we can start to see ourselves getting throttled. So,
-        # put all of our values into memcached instead
+        # put all of our values into a cache instead
+        #
+        # Ideally, we'll use memcached since all our instances can share it. But we also have
+        # a separate cache on disc for secrets (or if memcached is unavailable). 
 
         full_path = self._get_full_path(key)
 
         if is_secret or self.memcached_client is None:
-            # Don't cache secret parameters because they'll be stored unencrypted in the cache
+            # Don't put secrets in memcached because they'll be stored unencrypted and will potentially
+            # be publicly accessible. Instead let's cache them on our local filesystem. They'll still be
+            # unencrypted, but at least they'll be harder to get at.
+            # Also if we don't have access to memcached, let's at least cache on our local filesystem.
+
+            value_from_disc_cache = self._get_from_disc_cache(full_path)
+
+            if value_from_disc_cache is not None:
+                ConfigHelper._log(full_path, value_from_disc_cache, is_secret, cache_type="disc")
+                return value_from_disc_cache
+
             value = self._get_from_parameter_store(full_path, is_secret)
-            ConfigHelper._log(full_path, value, is_secret, is_cached=False)
+
+            ConfigHelper._log(full_path, value, is_secret, cache_type="none")
+
+            self._write_to_disc_cache(full_path, value)
+
             return value
 
-        value_from_cache = self._get_from_cache(full_path)
+        value_from_memcached = self._get_from_memcached(full_path)
 
-        if value_from_cache is not None:
-            ConfigHelper._log(full_path, value_from_cache, is_secret, is_cached=True)
-            return value_from_cache
+        if value_from_memcached is not None:
+            ConfigHelper._log(full_path, value_from_memcached, is_secret, cache_type="memcached")
+            return value_from_memcached
 
         value = self._get_from_parameter_store(full_path, is_secret)
 
-        ConfigHelper._log(full_path, value, is_secret, is_cached=False)
+        ConfigHelper._log(full_path, value, is_secret, cache_type="none")
 
-        self._write_to_cache(full_path, value)
+        self._write_to_memcached(full_path, value)
 
         return value
 
-    def _get_from_cache(self, full_path):
+    def _get_from_disc_cache(self, full_path):
+
+        # This can raise a diskcache.Timeout error if it fails to talk to its database. We could just swallow
+        # the exception and return None so that we get the result from the real parameter store instead, 
+        # since this isn't fatal. But let's let it through so that we can observe if this happens rather than 
+        # silently hitting the parameter store over and over
+        #
+        # We could increment a metric here that we can alarm on, but that will require a bit of a convoluted dance
+        # to init the MetricsHelper because it requires a ConfigHelper.
+
+        return self.disc_cache.get(key=full_path, default=None, retry=False)
+
+    def _write_to_disc_cache(self, full_path, value):
+
+        # See note in _get_from_disc_cache() re timeout
+
+        self.disc_cache.set(key=full_path, value=value, expire=ConfigHelperParameterStore.CACHE_TTL, retry=False)
+
+    def _get_from_memcached(self, full_path):
 
         return self.memcached_client.get(full_path)
 
-    def _write_to_cache(self, full_path, value):
+    def _write_to_memcached(self, full_path, value):
 
-        self.memcached_client.set(full_path, value, ConfigHelperParameterStore.MEMCACHED_TTL)        
+        self.memcached_client.set(full_path, value, ConfigHelperParameterStore.CACHE_TTL)        
 
     def _get_from_parameter_store(self, full_path, is_secret=False):
         

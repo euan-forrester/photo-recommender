@@ -4,3 +4,4 @@ gunicorn==19.9.0
 mysql-connector-python==8.0.17
 boto3==1.9.214
 pymemcache==2.2.2
+diskcache==4.0.0

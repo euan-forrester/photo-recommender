@@ -3,3 +3,4 @@ jsonpickle==1.2
 mysql-connector-python==8.0.17
 requests==2.22.0
 pymemcache==2.2.2
+diskcache==4.0.0
