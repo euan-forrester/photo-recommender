@@ -94,6 +94,13 @@ resource "aws_cloudwatch_dashboard" "main" {
           "width":12,
           "height":6,
           ${data.template_file.unhandled_exceptions.rendered} 
+       },
+       {
+          "x":12,
+          "y":30,
+          "width":12,
+          "height":6,
+          ${data.template_file.timing.rendered} 
        }
     ]
   }
@@ -229,4 +236,15 @@ data "template_file" "unhandled_exceptions" {
     }
 
     template = "${file("${path.module}/unhandled_exceptions.tpl")}"
+}
+
+data "template_file" "timing" {
+    vars = {
+        title                       = "Timing"
+        environment                 = "${var.environment}"
+        metrics_namespace           = "${var.metrics_namespace}"
+        region                      = "${var.region}"
+    }
+
+    template = "${file("${path.module}/timing.tpl")}"
 }

@@ -60,3 +60,18 @@ resource "aws_ssm_parameter" "ingester_queue_url" {
     type        = "String"
     value       = "${var.ingester_database_queue_url}"
 }
+
+resource "aws_ssm_parameter" "max_iterations_before_exit" {
+    name        = "/${var.environment}/scheduler/max-iterations-before-exit"
+    description = "Number of times we iterate over our tasks before exiting and being restarted"
+    type        = "String"
+    value       = "${var.max_iterations_before_exit}"
+}
+
+resource "aws_ssm_parameter" "sleep_ms_between_iterations" {
+    name        = "/${var.environment}/scheduler/sleep-ms-between-iterations"
+    description = "Number of milliseconds we sleep between iterations"
+    type        = "String"
+    value       = "${var.sleep_ms_between_iterations}"
+}
+

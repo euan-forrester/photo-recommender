@@ -120,7 +120,9 @@ class FlickrApiWrapper:
             num_retries += 1
 
         if not success:
-            metrics_helper.increment_count("FlickrApiException")
+            self.metrics_helper.increment_count("FlickrApiException")
             raise FlickrApiException(f"Failed contacting Flickr API after {self.max_retries} retries") from error
+
+        self.metrics_helper.increment_count("flickr_api_retries", num_retries - 1)
 
         return result 

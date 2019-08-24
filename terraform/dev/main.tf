@@ -27,10 +27,10 @@ module "elastic_container_service" {
 
     extra_security_groups = ["${module.api_server.security_group_id}"]
 
-    instance_type = "t2.micro"
-    cluster_desired_size = 3
+    instance_type = "t2.micro"#"c5.large"#"t2.micro"
+    cluster_desired_size = 2#20
     cluster_min_size = 0
-    cluster_max_size = 3
+    cluster_max_size = 2#20
     instances_log_retention_days = 1
 }
 
@@ -46,7 +46,7 @@ module "database" {
     local_machine_cidr      = "${var.local_machine_cidr}"
 
     mysql_database_name     = "photorecommender"
-    mysql_instance_type     = "db.t2.micro" 
+    mysql_instance_type     = "db.t2.micro"#"db.m5.large"#"db.t2.micro" 
     mysql_storage_encrypted = false # db.t2.micro doesn't support encryption at rest -- needs to be at least db.t2.small
     mysql_storage_type      = "gp2" # General purpose SSD
     mysql_database_size_gb  = 5
@@ -86,7 +86,7 @@ module "scheduler" {
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
     ecs_instances_desired_count = 1
     ecs_instances_memory = 64
-    ecs_instances_cpu = 400
+    ecs_instances_cpu = 200
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
     ecs_days_to_keep_images = 1
 
@@ -99,6 +99,9 @@ module "scheduler" {
 
     ingester_database_queue_url = "${module.ingester_database.ingester_queue_url}"
     ingester_database_queue_arn = "${module.ingester_database.ingester_queue_arn}"
+
+    max_iterations_before_exit = 1000
+    sleep_ms_between_iterations = 500
 }
 
 module "puller-response-reader" {
@@ -112,9 +115,9 @@ module "puller-response-reader" {
 
     ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 1
+    ecs_instances_desired_count = 1#20
     ecs_instances_memory = 64
-    ecs_instances_cpu = 400
+    ecs_instances_cpu = 200
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
     ecs_days_to_keep_images = 1
 
@@ -146,9 +149,9 @@ module "puller_flickr" {
 
     ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 1
+    ecs_instances_desired_count = 1#150
     ecs_instances_memory = 64
-    ecs_instances_cpu = 400
+    ecs_instances_cpu = 100
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
     ecs_days_to_keep_images = 1
 
@@ -185,9 +188,9 @@ module "ingester_database" {
 
     ecs_cluster_id          = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 1
+    ecs_instances_desired_count = 1#100
     ecs_instances_memory    = 64
-    ecs_instances_cpu       = 400
+    ecs_instances_cpu       = 100
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
     ecs_days_to_keep_images = 1
 
@@ -196,7 +199,7 @@ module "ingester_database" {
     mysql_database_username = "${module.database.database_username}"
     mysql_database_password = "${var.database_password_dev}"
     mysql_database_name     = "${module.database.database_name}"
-    mysql_database_min_batch_size = 500
+    mysql_database_min_batch_size = 50 # Small batches here to take advantage of having lots of instances. Otherwise, messages get tied up getting batched with other messages while some instances are sitting unused
     mysql_database_maxretries = 3
 
     input_queue_batch_size  = 1 # Each message takes a while to process because it contains many individual items, so only get one at a time so that we're not blocking other instances from picking them up
@@ -232,11 +235,11 @@ module "api_server" {
     mysql_database_password = "${var.database_password_dev}"
     mysql_database_name     = "${module.database.database_name}"
     mysql_database_fetch_batch_size = 10000
-    mysql_database_connection_pool_size = 10
+    mysql_database_connection_pool_size = 20
 
     ecs_cluster_id          = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 1
+    ecs_instances_desired_count = 1#15
     ecs_instances_memory    = 256
     ecs_instances_cpu       = 100
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
