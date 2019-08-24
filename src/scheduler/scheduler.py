@@ -5,6 +5,7 @@ sys.path.insert(0, '../common')
 
 import argparse
 import logging
+import time
 from queuewriter import SQSQueueWriter
 from queuereader import SQSQueueReader
 from confighelper import ConfigHelper
@@ -51,6 +52,9 @@ scheduler_seconds_between_user_data_updates = config_helper.getInt("seconds-betw
 
 ingester_queue_url                  = config_helper.get("ingester-queue-url")
 
+max_iterations_before_exit          = config_helper.getInt("max-iterations-before-exit")
+sleep_ms_between_iterations         = config_helper.getInt("sleep-ms-between-iterations")
+
 #
 # Metrics and unhandled exceptions
 #
@@ -74,66 +78,76 @@ ingester_queue          = SQSQueueReader(ingester_queue_url,        0, 0, metric
 # Begin by requesting all of the users that haven't been updated in a while
 #
 
-logging.info("Beginning looking for users who haven't been updated in a while")
+num_iterations = 0
 
-try:
-    users_ids_to_request_data_for = users_store.get_users_to_request_data_for(scheduler_seconds_between_user_data_updates)
+while num_iterations < max_iterations_before_exit:
 
-    users_to_request_data_for = [PullerQueueItem(user_id=user_id, is_registered_user=True) for user_id in users_ids_to_request_data_for]
+    logging.info("Beginning looking for users who haven't been updated in a while")
 
-    logging.info(f"Found {len(users_to_request_data_for)} registered users who need their data updated. Sending messages to queue {puller_queue_url} in batches of {puller_queue_batch_size}")
+    try:
+        users_ids_to_request_data_for = users_store.get_users_to_request_data_for(scheduler_seconds_between_user_data_updates)
 
-    puller_queue.send_messages(objects=users_to_request_data_for, to_string=lambda user : user.to_json())
+        users_to_request_data_for = [PullerQueueItem(user_id=user_id, is_registered_user=True) for user_id in users_ids_to_request_data_for]
 
-    for user in users_to_request_data_for:
-        logging.info(f"Requested data for user {user.get_user_id()}")
-        users_store.data_requested(user.get_user_id())
+        logging.info(f"Found {len(users_to_request_data_for)} registered users who need their data updated. Sending messages to queue {puller_queue_url} in batches of {puller_queue_batch_size}")
 
-except UsersStoreException as e:
-    logging.error("Unable to talk to our users store. Exiting.", e)
-    metrics_helper.increment_count("UsersStoreException")
-    sys.exit()
+        puller_queue.send_messages(objects=users_to_request_data_for, to_string=lambda user : user.to_json())
 
-logging.info("Ended looking for users who haven't been updated in a while")
+        for user in users_to_request_data_for:
+            logging.info(f"Requested data for user {user.get_user_id()}")
+            users_store.data_requested(user.get_user_id())
 
-#
-# Find any users who are currently updating, and see if we've finished updating
-#
+    except UsersStoreException as e:
+        logging.error("Unable to talk to our users store. Exiting.", e)
+        metrics_helper.increment_count("UsersStoreException")
+        sys.exit()
 
-logging.info("Beginning looking for users who are still updating")
+    logging.info("Ended looking for users who haven't been updated in a while")
 
-try:
-    user_ids_still_updating = users_store.get_users_that_are_currently_updating()
+    #
+    # Find any users who are currently updating, and see if we've finished updating
+    #
 
-    if len(user_ids_still_updating) == 0:
-        logging.info("No user IDs are currently updating")
+    logging.info("Beginning looking for users who are still updating")
 
-    else:
-        puller_queue_num_messages            = puller_queue_reader.get_total_number_of_messages_available()
-        puller_response_queue_num_messages   = puller_response_queue.get_total_number_of_messages_available()
-        ingester_queue_num_messages          = ingester_queue.get_total_number_of_messages_available()
+    try:
+        user_ids_still_updating = users_store.get_users_that_are_currently_updating()
 
-        total_messages_in_system = puller_queue_num_messages + puller_response_queue_num_messages + ingester_queue_num_messages
-            
-        logging.info(f"Currently found {puller_queue_num_messages} puller messages, {puller_response_queue_num_messages} puller response messages, and {ingester_queue_num_messages} ingester messages, for a total of {total_messages_in_system}")
+        if len(user_ids_still_updating) == 0:
+            logging.info("No user IDs are currently updating")
 
-        if total_messages_in_system == 0:
-            logging.info("No messages currently in the system, so we're done updating our users")
-            
-            for user_id in user_ids_still_updating:              
-                users_store.all_data_updated(user_id)
-                time_in_seconds = users_store.get_time_to_update_all_data(user_id)
-                logging.info(f"It took {time_in_seconds} to update user {user_id}")
-                metrics_helper.send_time("time_to_get_all_data", time_in_seconds)
         else:
-            logging.info("There are still messages in the system, so we are not done updating our users")
+            puller_queue_num_messages            = puller_queue_reader.get_total_number_of_messages_available()
+            puller_response_queue_num_messages   = puller_response_queue.get_total_number_of_messages_available()
+            ingester_queue_num_messages          = ingester_queue.get_total_number_of_messages_available()
 
-except UsersStoreException as e:
-    logging.error("Unable to talk to our users store. Exiting.", e)
-    metrics_helper.increment_count("UsersStoreException")
-    sys.exit() 
+            total_messages_in_system = puller_queue_num_messages + puller_response_queue_num_messages + ingester_queue_num_messages
+                
+            logging.info(f"Currently found {puller_queue_num_messages} puller messages, {puller_response_queue_num_messages} puller response messages, and {ingester_queue_num_messages} ingester messages, for a total of {total_messages_in_system}")
 
-logging.info("Ended looking for users who are still updating")
+            if total_messages_in_system == 0:
+                logging.info("No messages currently in the system, so we're done updating our users")
+                
+                for user_id in user_ids_still_updating:              
+                    users_store.all_data_updated(user_id)
+                    time_in_seconds = users_store.get_time_to_update_all_data(user_id)
+                    logging.info(f"It took {time_in_seconds} to update user {user_id}")
+                    metrics_helper.send_time("time_to_get_all_data", time_in_seconds)
+            else:
+                logging.info("There are still messages in the system, so we are not done updating our users")
+
+    except UsersStoreException as e:
+        logging.error("Unable to talk to our users store. Exiting.", e)
+        metrics_helper.increment_count("UsersStoreException")
+        sys.exit() 
+
+    logging.info("Ended looking for users who are still updating")
+
+    logging.info(f"Finished iteration {num_iterations} of {max_iterations_before_exit}. Sleeping for {sleep_ms_between_iterations} ms")
+
+    time.sleep(sleep_ms_between_iterations / 1000.0)
+
+    num_iterations += 1
 
 #
 # And we're finished

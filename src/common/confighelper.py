@@ -96,15 +96,21 @@ class ConfigHelperParameterStore(ConfigHelper):
         self.environment    = environment
         self.key_prefix     = key_prefix
         self.ssm            = boto3.client('ssm') # Region is read from the AWS_DEFAULT_REGION env var
-        self.memcached_location = self._get_from_parameter_store(self._get_full_path("parameter-memcached-location"))
         self.memcached_client = None
-
         self.disc_cache     = Cache(directory=ConfigHelperParameterStore.DISC_CACHE_PATH)
 
         logging.info(f"Opened disc-based parameter cache in {ConfigHelperParameterStore.DISC_CACHE_PATH}")
 
+        memcached_location_parameter_full_path = self._get_full_path("parameter-memcached-location")
+
+        # With a lot of instances, even getting just this one parameter from the parameter store every time can get us throttled, so store it in the disc cache
+        self.memcached_location = self._get_from_disc_cache(memcached_location_parameter_full_path)
+
         if self.memcached_location is None:
-            logging.info(f"Could not find parameter memcached location in parameter store at {self._get_full_path('parameter-memcached-location')}")
+            self.memcached_location = self._get_from_parameter_store(memcached_location_parameter_full_path)
+
+        if self.memcached_location is None:
+            logging.info(f"Could not find parameter memcached location in parameter store at {memcached_location_parameter_full_path}")
 
         else:
             logging.info(f"Found parameter memcached location {self.memcached_location}")

@@ -5,6 +5,7 @@ sys.path.insert(0, '../common')
 
 import argparse
 import logging
+import time
 from ingesterqueueitem import IngesterQueueItem
 from ingesterqueuebatchitem import IngesterQueueBatchItem
 from queuereader import SQSQueueReader
@@ -85,6 +86,8 @@ def write_batch(photo_batch, unwritten_message_batch):
 
     if len(photo_batch) > 0:
 
+        begin_database_write = time.perf_counter()
+
         # INSERT IGNORE means to ignore any errors that occur while inserting, particularly key errors indicating duplicate entries.
         database.batch_write(
             "INSERT IGNORE INTO favorites (image_id, image_owner, image_url, favorited_by) VALUES (%s, %s, %s, %s)", 
@@ -92,7 +95,13 @@ def write_batch(photo_batch, unwritten_message_batch):
             photo_batch
         )
 
-        logging.info(f"Wrote out batch of {len(photo_batch)} messages to database")
+        end_database_write = time.perf_counter()
+
+        database_write_duration = end_database_write - begin_database_write
+
+        metrics_helper.send_time("database_write_duration", database_write_duration)
+
+        logging.info(f"Wrote out batch of {len(photo_batch)} messages to database. Took {database_write_duration} seconds.")
 
         # Only delete our messages after we've successfully inserted them into the database.
         # Otherwise, if there's an error inserting, we want all of these messages to get re-driven so we can try again.
@@ -102,6 +111,9 @@ def write_batch(photo_batch, unwritten_message_batch):
             queue.finished_with_message(successful_message)
 
 for queue_message in queue:
+
+    begin_process_batch_message = time.perf_counter()
+
     photo_batch_queue_item = IngesterQueueBatchItem.from_json(queue_message.get_message_body())
 
     logging.info(f"Received batch item containing {len(photo_batch_queue_item.get_item_list())} individual items")
@@ -119,6 +131,12 @@ for queue_message in queue:
 
         photo_batch = []
         unwritten_message_batch = []
+
+    end_process_batch_message = time.perf_counter()
+
+    process_batch_message_duration = end_process_batch_message - begin_process_batch_message
+    metrics_helper.send_time("process_batch_message_duration", process_batch_message_duration)
+    logging.info(f"Took {process_batch_message_duration} seconds to process batch message")
 
 # Write out any remaining items that didn't make a full batch
 write_batch(photo_batch, unwritten_message_batch)

@@ -6,6 +6,7 @@ sys.path.insert(0, '../common')
 from flickrapiwrapper import FlickrApiWrapper
 import argparse
 import logging
+import time
 from ingesterqueueitem import IngesterQueueItem
 from ingesterqueuebatchitem import IngesterQueueBatchItem
 from pullerqueueitem import PullerQueueItem
@@ -98,12 +99,17 @@ def process_user(puller_queue_item):
     # That's because it might be a while before the ingester_database process finishes ingesting the data we just pulled here, so the Scheduler
     # won't be able to find out the list of neighbors from the database until an unspecified time in the future
 
+    begin_process_user = time.perf_counter()
+
     flickr_user_id      = puller_queue_item.get_user_id()
     is_registered_user  = puller_queue_item.get_is_registered_user()
 
     logging.info(f"Getting favourites for requested user {flickr_user_id}")
 
+    begin_query_flickr = time.perf_counter()
     my_favorites = flickrapi.get_favorites(flickr_user_id)
+    end_query_flickr = time.perf_counter()
+
     favorite_photos = []
 
     my_neighbors = set()
@@ -149,7 +155,15 @@ def process_user(puller_queue_item):
 
     puller_response_queue.send_messages(objects=[puller_response_queue_item], to_string=lambda x: x.to_json()) # Sends messages one at a time, regardless of what the batch size is set to. We don't want to batch them up then miss sending one if we have an error later
 
-    logging.info(f"Finished processing for requested user {flickr_user_id}")
+    end_process_user = time.perf_counter()
+
+    duration_to_process_user = end_process_user - begin_process_user
+    duration_to_query_flickr = end_query_flickr - begin_query_flickr
+
+    metrics_helper.send_time("duration_to_process_user", duration_to_process_user)
+    metrics_helper.send_time("duration_to_query_flickr", duration_to_query_flickr)
+
+    logging.info(f"Finished processing for requested user {flickr_user_id}. Took {duration_to_process_user} seconds, of which {duration_to_query_flickr} seconds was spent querying Flickr")
 
 #
 # Call Flickr to get my favorites, and the favorites of the users who created them

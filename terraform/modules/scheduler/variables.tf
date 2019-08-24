@@ -15,3 +15,5 @@ variable "puller_queue_batch_size" {}
 variable "scheduler_seconds_between_user_data_updates" {}
 variable "ingester_database_queue_url" {}
 variable "ingester_database_queue_arn" {}
+variable "max_iterations_before_exit" {}
+variable "sleep_ms_between_iterations" {}
