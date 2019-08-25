@@ -178,6 +178,33 @@ def get_time_to_update_all_data(user_id=None):
 
     return resp
 
+@application.route("/locks/request", methods = ['PUT'])
+def request_lock():
+
+    process_id              = request.args.get("process-id")
+    task_id                 = request.args.get("task-id")
+    lock_duration_seconds   = request.args.get("lock-duration-seconds")
+
+    if not process_id:
+        return parameter_not_specified("process-id")
+
+    if not task_id:
+        return parameter_not_specified("task-id")
+
+    if not lock_duration_seconds:
+        return parameter_not_specified("lock-duration-seconds")
+
+    response_object = {
+        'process_id':       process_id,
+        'task_id':          task_id,
+        'lock-acquired':    favorites_store.request_lock(process_id, task_id, lock_duration_seconds)
+    }
+
+    resp = jsonify(response_object)
+    resp.status_code = status.HTTP_200_OK
+
+    return resp
+
 @application.route("/favicon.ico", methods = ['GET'])
 def get_favicon():
     # Browsers like to call this, and without defining this route we see 404 errors in our logs

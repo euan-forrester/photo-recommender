@@ -179,6 +179,7 @@ class FavoritesStoreDatabase:
             cnx.commit()
 
         except Exception as e:
+            cnx.rollback()
             raise FavoritesStoreException from e
 
         finally:
@@ -203,6 +204,7 @@ class FavoritesStoreDatabase:
             cnx.commit()
 
         except Exception as e:
+            cnx.rollback()
             raise FavoritesStoreException from e
 
         finally:
@@ -227,6 +229,7 @@ class FavoritesStoreDatabase:
             cnx.commit()
 
         except Exception as e:
+            cnx.rollback()
             raise FavoritesStoreException from e
 
         finally:
@@ -265,6 +268,93 @@ class FavoritesStoreDatabase:
         finally:
             cursor.close()
             cnx.close()
+
+    def request_lock(self, process_id, task_id, lock_duration_seconds):
+
+        cnx = self.cnxpool.get_connection()
+
+        cursor = cnx.cursor() 
+
+        lock_acquired = False
+
+        try:
+            # This is a two-step process so we need to be in a transaction
+
+            cnx.start_transaction(isolation_level="SERIALIZABLE")
+
+            # First, see which task has the lock for this process. Note that we put a lock on the row we return with FOR UPDATE 
+            # so that no one else can update it until this transaction finishes
+
+            cursor.execute("""
+                SELECT 
+                    TIMESTAMPDIFF(SECOND, NOW(), lock_expiry) as seconds_until_lock_expiry, 
+                    task_id
+                FROM
+                    task_locks
+                WHERE 
+                    process_id=%s
+                FOR UPDATE;
+            """, (process_id,))
+
+            row = self._get_first_row(cursor)
+
+            seconds_until_lock_expiry = row[0]
+            task_which_has_lock = row[1]
+
+            logging.info(f"Trying to acquire lock for process {process_id}, task {task_id}. Lock for this process is currently owned by task {task_which_has_lock}, and will expire in {seconds_until_lock_expiry} seconds")
+
+            task_matches = (task_which_has_lock is None) or (task_which_has_lock == task_id)
+
+            if task_matches or (seconds_until_lock_expiry < 0):
+                lock_acquired = True
+
+                # This is an upsert operation: process_id has a UNIQUE constaint, so if there's already 
+                # this process in the database then just update the existing row.  
+
+                cursor.execute("""
+                    INSERT INTO
+                        task_locks
+                    SET
+                        process_id=%s,
+                        task_id=%s,
+                        lock_expiry=TIMESTAMPADD(SECOND, %d, NOW())
+                    ON DUPLICATE KEY UPDATE
+                        task_id=%s,
+                        lock_expiry=TIMESTAMPADD(SECOND, %d, NOW());
+                """, (process_id, task_id, lock_duration_seconds, task_id, lock_duration_seconds))                
+
+                rows_updated = cursor.rowcount
+
+                # The number of rows affected by this operation is:
+                #   0: the row is exactly the same as it was
+                #   1: a new row was inserted
+                #   2: an existing row was updated
+
+                if (rows_updated < 0) or (rows_updated > 2):
+                    raise FavoritesStoreException(f"Updated {rows_updated} when trying to acquire a lock, rather than 0, 1, or 2")
+
+                logging.info(f"Task {task_id} was able to successfully acquire lock for process {process_id}")
+
+            else:  
+                logging.info(f"Task {task_id} was unable to acquire lock for process {process_id}. It is currently owned by task {task_which_has_lock} for the next {seconds_until_lock_expiry}")
+
+            cnx.commit()
+
+            return lock_acquired
+
+        except Exception as e:
+
+            # Be on the lookout here for deadlocks. I don't know exactly why they happen -- I don't see any circular dependencies.
+            # But the correct response is just to retry, so we should just return false in that case and let the caller try again later.
+            #
+            # FIXME: Need to catch one of these happening so we know the exact exception type and message to look for
+
+            cnx.rollback()
+            raise FavoritesStoreException from e
+
+        finally:
+            cursor.close()
+            cnx.close() 
 
     def _get_first_row(self, cursor):
         return cursor.fetchone()
