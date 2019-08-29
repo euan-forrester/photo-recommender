@@ -22,10 +22,6 @@ This project uses:
 - ALB for load balancing
 - CloudWatch for metrics & alarms
 - Random other parts of AWS like ElastiCache, Parameter Store. and Key Management Service
-
-I plan to use:
-
-- Maybe building a fancy Centralized Logging thing: https://aws.amazon.com/solutions/centralized-logging/
 - Vue.js: https://vuejs.org/
 
 # Instructions
@@ -123,6 +119,25 @@ docker tag <ID of image you just built> <URI of scheduler-dev repository in ECR:
 docker push <URI of scheduler-dev repository in ECR>
 ```
 
+## Frontend setup
+
+### Install packages
+
+```
+brew install yarn
+yarn global add @vue/cli
+```
+
+### Project dashboard
+
+```
+vue ui
+```
+
+Then go to: http://localhost:8000/dashboard
+
+
+
 TODO:
 
 - Upgrade to terraform v0.12
@@ -133,3 +148,8 @@ TODO:
 - Have the prod load balancer only listen on https
 - Encrypt SQS messages in prod
 - Use templating lib for outputting HTML from API server
+- Centralize logging and make it searchable. Maybe like this: https://aws.amazon.com/solutions/centralized-logging/
+- Make puller-flickr only get incremental updates since the last time it ran, rather than pulling all data every time
+- Make puller-flickr look for deletions of favorites
+- Add tracking for what percentage complete we are complete getting data for a user
+- Investigate transaction usage in the batch database writer: does committing after every batch help improve concurrency? is there a better transaction isolation level to use to help concurrency?
