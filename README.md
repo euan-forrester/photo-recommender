@@ -133,4 +133,3 @@ TODO:
 - Have the prod load balancer only listen on https
 - Encrypt SQS messages in prod
 - Use templating lib for outputting HTML from API server
-- Add locking mechanism to Scheduler
