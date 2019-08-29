@@ -91,3 +91,25 @@ class UsersStoreAPIServer:
 
         except HTTPError as http_err:
             raise UsersStoreException from http_err
+
+    def request_lock(self, process_id, task_id, lock_duration_seconds):
+
+        try:
+            response = requests.put(f"{self.url_prefix}/locks/request",
+                params={
+                    'process-id':               process_id,
+                    'task-id':                  task_id,
+                    'lock-duration-seconds':    lock_duration_seconds
+                }
+            )
+
+            response.raise_for_status()
+
+            response.encoding = "utf-8"
+
+            response_object = response.json()
+
+            return bool(response_object['lock-acquired'])
+
+        except HTTPError as http_err:
+            raise UsersStoreException from http_err

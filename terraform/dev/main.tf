@@ -102,6 +102,8 @@ module "scheduler" {
 
     max_iterations_before_exit = 1000
     sleep_ms_between_iterations = 500
+
+    duration_to_request_lock_seconds = 10
 }
 
 module "puller-response-reader" {

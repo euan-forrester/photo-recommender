@@ -75,3 +75,9 @@ resource "aws_ssm_parameter" "sleep_ms_between_iterations" {
     value       = "${var.sleep_ms_between_iterations}"
 }
 
+resource "aws_ssm_parameter" "duration_to_request_lock_seconds" {
+    name        = "/${var.environment}/scheduler/duration-to-request-lock-seconds"
+    description = "Number of seconds for which to request a lock on other scheduler instances beginning processing"
+    type        = "String"
+    value       = "${var.duration_to_request_lock_seconds}"
+}

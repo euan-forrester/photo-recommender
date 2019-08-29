@@ -6,7 +6,6 @@ sys.path.insert(0, '../common')
 import argparse
 import logging
 import atexit
-import traceback
 from flask import Flask
 from flask import request
 from flask import jsonify
@@ -178,6 +177,33 @@ def get_time_to_update_all_data(user_id=None):
 
     return resp
 
+@application.route("/locks/request", methods = ['PUT'])
+def request_lock():
+
+    process_id              = request.args.get("process-id")
+    task_id                 = request.args.get("task-id")
+    lock_duration_seconds   = request.args.get("lock-duration-seconds")
+
+    if not process_id:
+        return parameter_not_specified("process-id")
+
+    if not task_id:
+        return parameter_not_specified("task-id")
+
+    if not lock_duration_seconds:
+        return parameter_not_specified("lock-duration-seconds")
+
+    response_object = {
+        'process_id':       process_id,
+        'task_id':          task_id,
+        'lock-acquired':    favorites_store.request_lock(process_id, task_id, lock_duration_seconds)
+    }
+
+    resp = jsonify(response_object)
+    resp.status_code = status.HTTP_200_OK
+
+    return resp
+
 @application.route("/favicon.ico", methods = ['GET'])
 def get_favicon():
     # Browsers like to call this, and without defining this route we see 404 errors in our logs
@@ -194,19 +220,14 @@ def parameter_not_specified(param_name, error=None):
 @application.errorhandler(FavoritesStoreException)
 def encountered_favorites_store_exception(e):
     metrics_helper.increment_count("FavoritesStoreException")
-    logging.error("Encountered FavoritesStoreException: %s", e)
-    log_traceback(e)
+    logging.exception("Encountered FavoritesStoreException") # Logs a stack trace
     return "Internal server error", status.HTTP_500_INTERNAL_SERVER_ERROR
 
 @application.errorhandler(Exception)
 def encountered_exception(e):
     metrics_helper.increment_count("Exception")
-    logging.error("Encountered general Exception: %s", e)
-    log_traceback(e)
+    logging.exception("Excountered Exception") # Logs a stack trace
     return "Internal server error", status.HTTP_500_INTERNAL_SERVER_ERROR
-
-def log_traceback(exception):
-    logging.error("Traceback: \n%s", "".join(traceback.format_tb(exception.__traceback__)))
 
 if __name__ == '__main__':
     # Note that running Flask like this results in the output saying "lazy loading" and I'm not sure what that means.

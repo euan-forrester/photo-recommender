@@ -25,3 +25,15 @@ CREATE TABLE registered_users (
     KEY (data_last_successfully_processed_at),
     KEY (all_data_last_successfully_processed_at)
 ) ENGINE = InnoDB, CHARACTER SET = utf8mb4;
+
+CREATE TABLE task_locks (
+    id INT AUTO_INCREMENT,
+    process_id VARCHAR(64) NOT NULL,
+    task_id VARCHAR(64) NOT NULL,
+    lock_expiry TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY (process_id),
+    KEY (task_id)
+) ENGINE = InnoDB, CHARACTER SET = utf8mb4;
