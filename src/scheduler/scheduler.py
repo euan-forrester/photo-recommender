@@ -15,6 +15,7 @@ from pullerqueueitem import PullerQueueItem
 from pullerresponsequeueitem import PullerResponseQueueItem
 from usersstoreapiserver import UsersStoreAPIServer
 from usersstoreexception import UsersStoreException
+from executionenvironmenthelper import ExecutionEnvironmentHelper
 
 #
 # Read in commandline arguments
@@ -55,6 +56,8 @@ ingester_queue_url                  = config_helper.get("ingester-queue-url")
 max_iterations_before_exit          = config_helper.getInt("max-iterations-before-exit")
 sleep_ms_between_iterations         = config_helper.getInt("sleep-ms-between-iterations")
 
+duration_to_request_lock_seconds    = config_helper.getInt("duration-to-request-lock-seconds")
+
 #
 # Metrics and unhandled exceptions
 #
@@ -63,10 +66,36 @@ metrics_helper              = MetricsHelper(environment=config_helper.get_enviro
 unhandled_exception_helper  = UnhandledExceptionHelper.setup_unhandled_exception_handler(metrics_helper=metrics_helper)
 
 #
-# Initialize our users' store and queues
+# Initialize our users' store
 # 
 
-users_store             = UsersStoreAPIServer(host=api_server_host, port=api_server_port)
+users_store = UsersStoreAPIServer(host=api_server_host, port=api_server_port)
+
+#
+# Request permission to begin processing. We will frequently have several copies of this image running concurrently (for redundancy across
+# availability zones, and when deploying new versions) but only one can be active at a given time. That's because if there
+# were multiple copies all acting at once, several of them might see the same user(s) who haven't been updated in a while, and thus
+# request multiple copies of their data.
+#
+
+execution_environment_helper = ExecutionEnvironmentHelper.get()
+
+task_id = execution_environment_helper.get_task_id()
+
+logging.info(f"We are currently running as task {task_id}. Requesting lock.")
+
+lock_acquired = users_store.request_lock("scheduler", task_id, duration_to_request_lock_seconds)
+
+if not lock_acquired:
+    logging.info("Unable to acquire lock to begin processing. Exiting.")
+    sys.exit(0)
+
+logging.info("Successfully acquired lock")
+
+#
+# Now that we have permission to continue processing, initialize our queues
+# 
+
 
 puller_queue            = SQSQueueWriter(puller_queue_url, puller_queue_batch_size, metrics_helper)
 
@@ -80,7 +109,7 @@ ingester_queue          = SQSQueueReader(ingester_queue_url,        0, 0, metric
 
 num_iterations = 0
 
-while num_iterations < max_iterations_before_exit:
+while lock_acquired:
 
     logging.info("Beginning looking for users who haven't been updated in a while")
 
@@ -143,11 +172,28 @@ while num_iterations < max_iterations_before_exit:
 
     logging.info("Ended looking for users who are still updating")
 
+    #
+    # Make sure we can still keep processing. We re-acquire our lock after each iteration to keep extending the lock end time.
+    # We don't want to simply have a lock end time far in the future after the first attempt to acquire it, because if we
+    # die later than another process won't be able to take over until that lock expires.
+    #
+
+    num_iterations += 1
+
+    if num_iterations > max_iterations_before_exit:
+        logging.info(f"Max iterations of {max_iterations_before_exit} reached. Exiting.")
+        break
+
     logging.info(f"Finished iteration {num_iterations} of {max_iterations_before_exit}. Sleeping for {sleep_ms_between_iterations} ms")
 
     time.sleep(sleep_ms_between_iterations / 1000.0)
 
-    num_iterations += 1
+    lock_acquired = users_store.request_lock("scheduler", task_id, duration_to_request_lock_seconds)
+
+    if lock_acquired:
+        logging.info("Successfully able to acquire lock again")
+    else:
+        logging.info("Unable to re-acquire lock. Exiting")
 
 #
 # And we're finished

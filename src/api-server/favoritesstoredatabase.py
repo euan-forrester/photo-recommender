@@ -298,8 +298,12 @@ class FavoritesStoreDatabase:
 
             row = self._get_first_row(cursor)
 
-            seconds_until_lock_expiry = row[0]
-            task_which_has_lock = row[1]
+            seconds_until_lock_expiry = None
+            task_which_has_lock = None
+
+            if row is not None:            
+                seconds_until_lock_expiry = row[0]
+                task_which_has_lock = row[1]
 
             logging.info(f"Trying to acquire lock for process {process_id}, task {task_id}. Lock for this process is currently owned by task {task_which_has_lock}, and will expire in {seconds_until_lock_expiry} seconds")
 
@@ -317,10 +321,10 @@ class FavoritesStoreDatabase:
                     SET
                         process_id=%s,
                         task_id=%s,
-                        lock_expiry=TIMESTAMPADD(SECOND, %d, NOW())
+                        lock_expiry=TIMESTAMPADD(SECOND, %s, NOW())
                     ON DUPLICATE KEY UPDATE
                         task_id=%s,
-                        lock_expiry=TIMESTAMPADD(SECOND, %d, NOW());
+                        lock_expiry=TIMESTAMPADD(SECOND, %s, NOW());
                 """, (process_id, task_id, lock_duration_seconds, task_id, lock_duration_seconds))                
 
                 rows_updated = cursor.rowcount
@@ -336,7 +340,7 @@ class FavoritesStoreDatabase:
                 logging.info(f"Task {task_id} was able to successfully acquire lock for process {process_id}")
 
             else:  
-                logging.info(f"Task {task_id} was unable to acquire lock for process {process_id}. It is currently owned by task {task_which_has_lock} for the next {seconds_until_lock_expiry}")
+                logging.info(f"Task {task_id} was unable to acquire lock for process {process_id}. It is currently owned by task {task_which_has_lock} for the next {seconds_until_lock_expiry} seconds")
 
             cnx.commit()
 
