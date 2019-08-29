@@ -1,30 +1,72 @@
 <template>
   <div>
-    <b-form  @submit.stop.prevent>
-      <label for="feedback-user-url">Enter the URL of your Flickr photos</label>
-      <b-input v-model="userUrl" :state="validation" id="user-url" placeholder="e.g. https://www.flickr.com/photos/my_user/"></b-input>
-      <b-form-invalid-feedback :state="validation">
-        Your photos URL must look like https://www.flickr.com/photos/my_user/
-      </b-form-invalid-feedback>
-      <b-form-valid-feedback :state="validation">
-        Thank you!
-      </b-form-valid-feedback>
+    <b-form @submit.stop.prevent="onSubmit" @reset="onReset">
+      <b-form-group
+        id="user-url-group"
+        label="Enter the URL of your Flickr photos"
+        label-for="user-url"
+      >
+        <b-form-input
+          v-model="userUrl"
+          @input="$v.userUrl.$touch()"
+          :state="$v.userUrl.$dirty ? !$v.userUrl.$error : null"
+          id="user-url"
+          placeholder="e.g. https://www.flickr.com/photos/my_user/"
+        ></b-form-input>
+        <b-form-invalid-feedback
+          :state="$v.userUrl.$dirty ? !$v.userUrl.$error : null"
+        >
+          Your photos URL must look like https://www.flickr.com/photos/my_user/
+        </b-form-invalid-feedback>
+        <b-form-valid-feedback
+          :state="$v.userUrl.$dirty ? !$v.userUrl.$error : null"
+        >
+          Thank you!
+        </b-form-valid-feedback>
+      </b-form-group>
+      <b-button type="submit" variant="primary" :disabled="$v.$invalid">Submit</b-button>
+      <b-button type="reset" variant="danger">Reset</b-button>
      </b-form>
   </div>
 </template>
 
 <script>
-const validate = require('validate.js');
+import { validationMixin } from 'vuelidate';
+import { required, url } from 'vuelidate/lib/validators';
 
 export default {
+  mixins: [validationMixin],
   data() {
     return {
       userUrl: '',
     };
   },
-  computed: {
-    validation() {
-      return typeof validate({ website: this.userUrl }, { website: { url: true } }) === 'undefined';
+  validations: {
+    userUrl: {
+      required,
+      url,
+    },
+  },
+  methods: {
+    onSubmit(evt) {
+      this.$v.$touch();
+      if (this.$v.userUrl.$anyError) {
+        return;
+      }
+
+      evt.preventDefault();
+      console.log(this.userUrl);
+    },
+    onReset(evt) {
+      evt.preventDefault();
+      // Reset our form values
+      this.userUrl = '';
+      this.$v.$reset();
+      // Trick to reset/clear native browser form validation state
+      this.show = false;
+      this.$nextTick(() => {
+        this.show = true;
+      });
     },
   },
 };
