@@ -28,9 +28,9 @@ module "elastic_container_service" {
     extra_security_groups = ["${module.api_server.security_group_id}"]
 
     instance_type = "t2.micro"#"c5.large"#"t2.micro"
-    cluster_desired_size = 2#20
+    cluster_desired_size = 0#20
     cluster_min_size = 0
-    cluster_max_size = 2#20
+    cluster_max_size = 0#20
     instances_log_retention_days = 1
 }
 
