@@ -48,6 +48,7 @@ export default {
 
       evt.preventDefault();
       console.log(this.userUrl);
+      this.$store.dispatch('getUserIdFromUrl', this.userUrl);
     },
     onReset(evt) {
       evt.preventDefault();
