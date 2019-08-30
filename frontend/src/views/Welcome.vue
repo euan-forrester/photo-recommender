@@ -1,11 +1,7 @@
 <template>
   <div>
     <b-form @submit.stop.prevent="onSubmit" @reset="onReset">
-      <b-form-group
-        id="user-url-group"
-        label="Enter the URL of your Flickr photos"
-        label-for="user-url"
-      >
+      <b-form-group id="user-url-group" label="Enter the URL of your Flickr photos" label-for="user-url">
         <b-form-input
           v-model="userUrl"
           @input="$v.userUrl.$touch()"
@@ -13,14 +9,10 @@
           id="user-url"
           placeholder="e.g. https://www.flickr.com/photos/my_user/"
         ></b-form-input>
-        <b-form-invalid-feedback
-          :state="$v.userUrl.$dirty ? !$v.userUrl.$error : null"
-        >
+        <b-form-invalid-feedback :state="$v.userUrl.$dirty ? !$v.userUrl.$error : null">
           Your photos URL must look like https://www.flickr.com/photos/my_user/
         </b-form-invalid-feedback>
-        <b-form-valid-feedback
-          :state="$v.userUrl.$dirty ? !$v.userUrl.$error : null"
-        >
+        <b-form-valid-feedback :state="$v.userUrl.$dirty ? !$v.userUrl.$error : null">
           Thank you!
         </b-form-valid-feedback>
       </b-form-group>
