@@ -6,6 +6,7 @@ sys.path.insert(0, '../common')
 import argparse
 import logging
 import atexit
+import json
 from flask import Flask
 from flask import request
 from flask import jsonify
@@ -16,6 +17,7 @@ from favoritesstoreexception import FavoritesStoreException
 from output import Output
 from metricshelper import MetricsHelper
 from unhandledexceptionhelper import UnhandledExceptionHelper
+from flickrapiwrapper import FlickrApiWrapper
 
 #
 # Read in commandline arguments
@@ -51,12 +53,29 @@ server_host                 = config_helper.get("server-host")
 server_port                 = config_helper.getInt("server-port")
 default_num_photo_recommendations = config_helper.getInt('default-num-photo-recommendations')
 
+flickr_api_key              = config_helper.get("flickr-api-key")
+flickr_api_secret           = config_helper.get("flickr-api-secret", is_secret=True)
+flickr_api_retries          = config_helper.getInt("flickr-api-retries")
+flickr_api_memcached_location   = config_helper.get("flickr-api-memcached-location")
+flickr_api_memcached_ttl        = config_helper.getInt("flickr-api-memcached-ttl")
 #
 # Metrics and unhandled exceptions
 #
 
 metrics_helper              = MetricsHelper(environment=config_helper.get_environment(), process_name="api-server", metrics_namespace=metrics_namespace)
 unhandled_exception_helper  = UnhandledExceptionHelper.setup_unhandled_exception_handler(metrics_helper=metrics_helper)
+
+#
+# We're going to proxy requests to the Flickr API, because we have a secret that we need to maintain
+#
+
+flickrapi = FlickrApiWrapper(
+    flickr_api_key=flickr_api_key, 
+    flickr_api_secret=flickr_api_secret, 
+    max_retries=flickr_api_retries, 
+    memcached_location=flickr_api_memcached_location, 
+    memcached_ttl=flickr_api_memcached_ttl, 
+    metrics_helper=metrics_helper)
 
 #
 # Set up our data store
@@ -203,6 +222,17 @@ def request_lock():
     resp.status_code = status.HTTP_200_OK
 
     return resp
+
+
+@application.route("/flickr/urls/lookup-user", methods = ['GET'])
+def get_flickr_lookup_user():
+
+    url = request.args.get("url")
+
+    if not url:
+        return parameter_not_specified("url")
+
+    return json.dumps(flickrapi.lookup_user(user_url=url)), status.HTTP_200_OK
 
 @application.route("/favicon.ico", methods = ['GET'])
 def get_favicon():

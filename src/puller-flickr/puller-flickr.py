@@ -77,9 +77,6 @@ flickrapi = FlickrApiWrapper(
     memcached_location, 
     memcached_ttl, 
     flickr_api_retries, 
-    flickr_api_max_favorites_per_call, 
-    flickr_api_max_favorites_to_get,
-    flickr_api_max_calls_to_make,
     metrics_helper)
 
 puller_queue            = SQSQueueReader(queue_url=puller_queue_url,            batch_size=puller_queue_batch_size, max_messages_to_read=puller_queue_max_items_to_process,   metrics_helper=metrics_helper)
@@ -107,7 +104,7 @@ def process_user(puller_queue_item):
     logging.info(f"Getting favourites for requested user {flickr_user_id}")
 
     begin_query_flickr = time.perf_counter()
-    my_favorites = flickrapi.get_favorites(flickr_user_id)
+    my_favorites = flickrapi.get_favorites(flickr_user_id, flickr_api_max_favorites_per_call, flickr_api_max_favorites_to_get, flickr_api_max_calls_to_make)
     end_query_flickr = time.perf_counter()
 
     favorite_photos = []

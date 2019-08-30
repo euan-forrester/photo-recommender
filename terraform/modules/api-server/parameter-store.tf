@@ -83,6 +83,42 @@ resource "aws_ssm_parameter" "api_server_port" {
     value       = "${var.api_server_port}"
 }
 
+resource "aws_ssm_parameter" "flickr_api_key" {
+    name        = "/${var.environment}/api-server/flickr-api-key"
+    description = "Flickr API key"
+    type        = "String"
+    value       = "${var.flickr_api_key}"
+}
+
+resource "aws_ssm_parameter" "flickr_secret_key" {
+    name        = "/${var.environment}/api-server/flickr-api-secret"
+    description = "Flickr API secret key"
+    type        = "SecureString"
+    key_id      = "${aws_kms_key.parameter_secrets.id}"
+    value       = "${var.flickr_secret_key}"
+}
+
+resource "aws_ssm_parameter" "flickr_api_retries" {
+    name        = "/${var.environment}/api-server/flickr-api-retries"
+    description = "Max number of times to retry a Flickr API call"
+    type        = "String"
+    value       = "${var.flickr_api_retries}"
+}
+
+resource "aws_ssm_parameter" "flickr_api_memcached_ttl" {
+    name        = "/${var.environment}/api-server/flickr-api-memcached-ttl"
+    description = "TTL in seconds of Flickr API calls put into memcached"
+    type        = "String"
+    value       = "${var.flickr_api_memcached_ttl}"
+}
+
+resource "aws_ssm_parameter" "flickr_api_memcached_location" {
+    name        = "/${var.environment}/api-server/flickr-api-memcached-location"
+    description = "Endpoint of the memcached cluster that we cache Flickr API calls to"
+    type        = "String"
+    value       = "${var.flickr_api_memcached_location}"
+}
+
 resource "aws_ssm_parameter" "default_num_photo_recommendations" {
     name        = "/${var.environment}/api-server/default-num-photo-recommendations"
     description = "Number of photo recommendations we return if the caller doesn't specify"

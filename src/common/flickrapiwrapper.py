@@ -13,7 +13,7 @@ class FlickrApiWrapper:
     Wraps around the flickrapi package: adds in retries to calls that fail, and external cacheing via memcached
     """
 
-    def __init__(self, flickr_api_key, flickr_api_secret, memcached_location, memcached_ttl, max_retries, max_favorites_per_call, max_favorites_to_get, max_calls_to_make, metrics_helper):
+    def __init__(self, flickr_api_key, flickr_api_secret, memcached_location, memcached_ttl, max_retries, metrics_helper):
 
         settings.configure(CACHES = {
             'default': {
@@ -28,11 +28,18 @@ class FlickrApiWrapper:
         self.flickr.cache           = cache
 
         self.max_retries            = max_retries
-        self.max_favorites_per_call = max_favorites_per_call
-        self.max_favorites_to_get   = max_favorites_to_get
-        self.max_calls_to_make      = max_calls_to_make
 
         self.metrics_helper         = metrics_helper
+
+    def lookup_user(self, user_url):
+        
+        lambda_to_call = lambda: self.flickr.urls.lookupUser(url=user_url)
+
+        person_info = self._call_with_retries(lambda_to_call)
+
+        logging.info(f"Just called lookup_user for url {user_url}")
+
+        return person_info
 
     def get_person_info(self, user_id):
         
@@ -44,7 +51,7 @@ class FlickrApiWrapper:
 
         return person_info
 
-    def get_favorites(self, user_id):
+    def get_favorites(self, user_id, max_favorites_per_call, max_favorites_to_get, max_calls_to_make):
 
         # We may want to put a limit on the number of pages that we request, because the Flickr API acts a bit weird.
         # We frequently get back less than the number of favorites we ask for, and so getting 1000 favorites in batches of 500
@@ -54,8 +61,8 @@ class FlickrApiWrapper:
         current_page = 1
         favorites = []
 
-        while not got_all_favorites and (len(favorites) < self.max_favorites_to_get) and (current_page <= self.max_calls_to_make):
-            favorites_subset = self._get_favorites_page(user_id, current_page)
+        while not got_all_favorites and (len(favorites) < max_favorites_to_get) and (current_page <= max_calls_to_make):
+            favorites_subset = self._get_favorites_page(user_id, current_page, max_favorites_per_call)
 
             if len(favorites_subset['photos']['photo']) > 0: # We can't just check if the number we got back == the number we requested, because frequently we can get back < the number we requested but there's still more available. This is likely due to not having permission to be able to view all of the ones we requested
                 favorites.extend(favorites_subset['photos']['photo'])
@@ -64,19 +71,19 @@ class FlickrApiWrapper:
 
             current_page += 1
 
-        favorites_up_to_max = favorites[0:self.max_favorites_to_get]
+        favorites_up_to_max = favorites[0:max_favorites_to_get]
 
-        logging.info(f"Returning {len(favorites_up_to_max)} favorites which took {current_page - 1} calls. Max favorites to get: {self.max_favorites_to_get}. Max calls to make: {self.max_calls_to_make}")
+        logging.info(f"Returning {len(favorites_up_to_max)} favorites which took {current_page - 1} calls. Max favorites to get: {max_favorites_to_get}. Max calls to make: {max_calls_to_make}")
 
         return favorites_up_to_max 
 
-    def _get_favorites_page(self, user_id, page_number):
+    def _get_favorites_page(self, user_id, page_number, max_favorites_per_call):
 
-        lambda_to_call = lambda: self.flickr.favorites.getList(user_id=user_id, extras='url_l,url_m', per_page=self.max_favorites_per_call, page=page_number)
+        lambda_to_call = lambda: self.flickr.favorites.getList(user_id=user_id, extras='url_l,url_m', per_page=max_favorites_per_call, page=page_number)
 
         favorites = self._call_with_retries(lambda_to_call)
 
-        logging.info(f"Just called get_favorites_page for page {page_number} with max_favorites_per_call {self.max_favorites_per_call} and returning {len(favorites['photos']['photo'])} faves")
+        logging.info(f"Just called get_favorites_page for page {page_number} with max_favorites_per_call {max_favorites_per_call} and returning {len(favorites['photos']['photo'])} faves")
 
         return favorites
 

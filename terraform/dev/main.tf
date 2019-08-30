@@ -159,7 +159,6 @@ module "puller_flickr" {
 
     flickr_api_key = "${var.flickr_api_key}"
     flickr_secret_key = "${var.flickr_secret_key}"
-    flickr_user_id = "${var.flickr_user_id}"
     flickr_api_retries = 3
     flickr_api_favorites_max_per_call = 500
     flickr_api_favorites_max_to_get = 1000
@@ -223,6 +222,12 @@ module "api_server" {
 
     load_balancer_port      = 4444
     api_server_port         = 4445
+
+    flickr_api_key = "${var.flickr_api_key}"
+    flickr_secret_key = "${var.flickr_secret_key}"
+    flickr_api_retries = 3
+    flickr_api_memcached_location = "localhost:11211" # Disable cacheing Flickr API responses for now
+    flickr_api_memcached_ttl = 7200
 
     api_server_domain       = "dev.${var.dns_address}"
 

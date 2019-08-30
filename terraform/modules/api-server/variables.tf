@@ -28,3 +28,8 @@ variable "load_balancer_access_logs_prefix" {}
 variable "retain_load_balancer_access_logs_after_destroy" {}
 variable "default_num_photo_recommendations" {}
 variable "api_server_domain" {}
+variable "flickr_api_key" {}
+variable "flickr_secret_key" {}
+variable "flickr_api_retries" {}
+variable "flickr_api_memcached_location" {}
+variable "flickr_api_memcached_ttl" {}
