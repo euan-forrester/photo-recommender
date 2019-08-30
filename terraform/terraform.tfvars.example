@@ -13,3 +13,6 @@ database_password_dev = ""
 # Email address where you'll receive alarms about problems with the system. 
 # After running terraform for the first time, you'll receive an email that you need to acknowledge an to allow this
 alarms_email = ""
+
+# The domain under which instances (dev, prod) of the application will run as subdomains
+dns_address = "abc123.com"

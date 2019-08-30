@@ -28,9 +28,9 @@ module "elastic_container_service" {
     extra_security_groups = ["${module.api_server.security_group_id}"]
 
     instance_type = "t2.micro"#"c5.large"#"t2.micro"
-    cluster_desired_size = 0#20
+    cluster_desired_size = 2#20
     cluster_min_size = 0
-    cluster_max_size = 0#20
+    cluster_max_size = 2#20
     instances_log_retention_days = 1
 }
 
@@ -223,6 +223,8 @@ module "api_server" {
 
     load_balancer_port      = 4444
     api_server_port         = 4445
+
+    api_server_domain       = "dev.${var.dns_address}"
 
     retain_load_balancer_access_logs_after_destroy = "false" # For dev, we don't care about retaining these logs after doing a terraform destroy
     load_balancer_days_to_keep_access_logs = 1

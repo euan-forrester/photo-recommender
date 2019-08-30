@@ -27,3 +27,4 @@ variable "load_balancer_access_logs_bucket" {}
 variable "load_balancer_access_logs_prefix" {}
 variable "retain_load_balancer_access_logs_after_destroy" {}
 variable "default_num_photo_recommendations" {}
+variable "api_server_domain" {}
