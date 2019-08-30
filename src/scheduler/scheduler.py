@@ -78,19 +78,26 @@ users_store = UsersStoreAPIServer(host=api_server_host, port=api_server_port)
 # request multiple copies of their data.
 #
 
-execution_environment_helper = ExecutionEnvironmentHelper.get()
+try:
 
-task_id = execution_environment_helper.get_task_id()
+    execution_environment_helper = ExecutionEnvironmentHelper.get()
 
-logging.info(f"We are currently running as task {task_id}. Requesting lock.")
+    task_id = execution_environment_helper.get_task_id()
 
-lock_acquired = users_store.request_lock("scheduler", task_id, duration_to_request_lock_seconds)
+    logging.info(f"We are currently running as task {task_id}. Requesting lock.")
 
-if not lock_acquired:
-    logging.info("Unable to acquire lock to begin processing. Exiting.")
-    sys.exit(0)
+    lock_acquired = users_store.request_lock("scheduler", task_id, duration_to_request_lock_seconds)
 
-logging.info("Successfully acquired lock")
+    if not lock_acquired:
+        logging.info("Unable to acquire lock to begin processing. Exiting.")
+        sys.exit(0)
+
+    logging.info("Successfully acquired lock")
+
+except UsersStoreException as e:
+    logging.error("Unable to talk to our users store. Exiting.", e)
+    metrics_helper.increment_count("UsersStoreException")
+    sys.exit()
 
 #
 # Now that we have permission to continue processing, initialize our queues

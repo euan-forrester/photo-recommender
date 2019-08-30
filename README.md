@@ -153,3 +153,6 @@ TODO:
 - Make puller-flickr look for deletions of favorites
 - Add tracking for what percentage complete we are complete getting data for a user
 - Investigate transaction usage in the batch database writer: does committing after every batch help improve concurrency? is there a better transaction isolation level to use to help concurrency?
+- Add auth to API server - use AWS API gateway?
+- Audit for XSS attacks
+- Add CSRF token
