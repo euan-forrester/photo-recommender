@@ -7,6 +7,9 @@ from django.conf import settings
 class FlickrApiException(Exception):
     pass
 
+class FlickrApiNotFoundException(Exception):
+    pass
+
 class FlickrApiWrapper:
 
     """
@@ -111,12 +114,17 @@ class FlickrApiWrapper:
                 success = True
 
             except flickrapi.exceptions.FlickrError as e:
+
+                if e.code == 1:
+                    logging.info("The requested object was not found. Throwing FlickrApiNotFoundException")
+                    raise FlickrApiNotFoundException from e
+
                 # You get random 502s when making lots of calls to this API, which apparently indicate rate limiting: 
                 # https://www.flickr.com/groups/51035612836@N01/discuss/72157646430151464/ 
                 # Sleeping between calls didn't seem to always solve it, but retrying does
                 # There doesn't seem to be a way to determine that this happened from the exception object other than to test
                 # the string against "do_request: Status code 502 received"
-                logging.debug(f"Got FlickrError {e}")
+                logging.info(f"Got FlickrError {e}")
                 error = e
 
             except requests.exceptions.ConnectionError as e:
