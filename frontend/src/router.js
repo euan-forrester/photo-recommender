@@ -2,6 +2,7 @@ import Vue from 'vue';
 import Router from 'vue-router';
 import Home from './views/Home.vue';
 import Welcome from './views/Welcome.vue';
+import Recommendations from './views/Recommendations.vue';
 
 Vue.use(Router);
 
@@ -24,6 +25,11 @@ export default new Router({
       path: '/welcome',
       name: 'welcome',
       component: Welcome,
+    },
+    {
+      path: '/recommendations/:userId',
+      name: 'recommendations',
+      component: Recommendations,
     },
   ],
 });
