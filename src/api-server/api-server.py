@@ -18,6 +18,7 @@ from output import Output
 from metricshelper import MetricsHelper
 from unhandledexceptionhelper import UnhandledExceptionHelper
 from flickrapiwrapper import FlickrApiWrapper
+from flickrapiwrapper import FlickrApiNotFoundException
 
 #
 # Read in commandline arguments
@@ -58,6 +59,7 @@ flickr_api_secret           = config_helper.get("flickr-api-secret", is_secret=T
 flickr_api_retries          = config_helper.getInt("flickr-api-retries")
 flickr_api_memcached_location   = config_helper.get("flickr-api-memcached-location")
 flickr_api_memcached_ttl        = config_helper.getInt("flickr-api-memcached-ttl")
+
 #
 # Metrics and unhandled exceptions
 #
@@ -111,7 +113,7 @@ def health_check():
     return "OK", status.HTTP_200_OK
 
 # Gets our recommendations for a specific user
-@application.route("/users/<user_id>/recommendations", methods = ['GET'])
+@application.route("/api/users/<user_id>/recommendations", methods = ['GET'])
 def get_recommendations(user_id=None):
     if user_id is None:
         return user_not_specified()
@@ -125,7 +127,7 @@ def get_recommendations(user_id=None):
     return output, status.HTTP_200_OK
 
 # Gets a list of registered users who need to have their data refreshed
-@application.route("/users/need-update", methods = ['GET'])
+@application.route("/api/users/need-update", methods = ['GET'])
 def get_users_that_need_update():
 
     num_seconds_between_updates = request.args.get('num-seconds-between-updates')
@@ -141,7 +143,7 @@ def get_users_that_need_update():
     return resp
 
 # Gets a list of registered users who are currently in the process of having their data refreshed
-@application.route("/users/currently-updating", methods = ['GET'])
+@application.route("/api/users/currently-updating", methods = ['GET'])
 def get_users_that_are_currently_updating():
 
     users = favorites_store.get_users_that_are_currently_updating()
@@ -152,7 +154,7 @@ def get_users_that_are_currently_updating():
     return resp
 
 # Notifies that a particular user has had their data requested
-@application.route("/users/<user_id>/data-requested", methods = ['PUT'])
+@application.route("/api/users/<user_id>/data-requested", methods = ['PUT'])
 def put_user_data_requested(user_id=None):
     if user_id is None:
         return user_not_specified()
@@ -162,7 +164,7 @@ def put_user_data_requested(user_id=None):
     return "OK", status.HTTP_200_OK
 
 # Notifies that a particular user has had their data successfully updated (i.e. for just themsolves)
-@application.route("/users/<user_id>/data-updated", methods = ['PUT'])
+@application.route("/api/users/<user_id>/data-updated", methods = ['PUT'])
 def put_user_data_updated(user_id=None):
     if user_id is None:
         return user_not_specified()
@@ -172,7 +174,7 @@ def put_user_data_updated(user_id=None):
     return "OK", status.HTTP_200_OK
 
 # Notifies that a particular user has had all of their data successfully updated (i.e. for all their neighbors)
-@application.route("/users/<user_id>/all-data-updated", methods = ['PUT'])
+@application.route("/api/users/<user_id>/all-data-updated", methods = ['PUT'])
 def put_user_all_data_updated(user_id=None):
     if user_id is None:
         return user_not_specified()
@@ -182,7 +184,7 @@ def put_user_all_data_updated(user_id=None):
     return "OK", status.HTTP_200_OK
 
 # Notifies that a particular user has had all of their data successfully updated (i.e. for all their neighbors)
-@application.route("/users/<user_id>/get-time-to-update-all-data", methods = ['GET'])
+@application.route("/api/users/<user_id>/get-time-to-update-all-data", methods = ['GET'])
 def get_time_to_update_all_data(user_id=None):
     if user_id is None:
         return user_not_specified()
@@ -196,7 +198,7 @@ def get_time_to_update_all_data(user_id=None):
 
     return resp
 
-@application.route("/locks/request", methods = ['PUT'])
+@application.route("/api/locks/request", methods = ['PUT'])
 def request_lock():
 
     process_id              = request.args.get("process-id")
@@ -224,7 +226,7 @@ def request_lock():
     return resp
 
 
-@application.route("/flickr/urls/lookup-user", methods = ['GET'])
+@application.route("/api/flickr/urls/lookup-user", methods = ['GET'])
 def get_flickr_lookup_user():
 
     url = request.args.get("url")
@@ -252,6 +254,10 @@ def encountered_favorites_store_exception(e):
     metrics_helper.increment_count("FavoritesStoreException")
     logging.exception("Encountered FavoritesStoreException") # Logs a stack trace
     return "Internal server error", status.HTTP_500_INTERNAL_SERVER_ERROR
+
+@application.errorhandler(FlickrApiNotFoundException)
+def encountered_flickr_not_found_exception(e):
+    return "Requested object not found", status.HTTP_404_NOT_FOUND
 
 @application.errorhandler(Exception)
 def encountered_exception(e):

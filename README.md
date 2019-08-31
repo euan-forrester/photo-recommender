@@ -21,7 +21,7 @@ This project uses:
 - A bunch of Python libs, most notably Flask and gunicorn
 - ALB for load balancing
 - CloudWatch for metrics & alarms
-- Random other parts of AWS like ElastiCache, Parameter Store. and Key Management Service
+- Random other parts of AWS like ElastiCache, Parameter Store, and Key Management Service
 - Vue.js: https://vuejs.org/
 
 # Instructions
@@ -124,13 +124,16 @@ docker push <URI of scheduler-dev repository in ECR>
 ### Install packages
 
 ```
+cd ../../frontend
 brew install yarn
-yarn global add @vue/cli
+yarn install
+yarn run build
 ```
 
 ### Project dashboard
 
 ```
+yarn global add @vue/cli
 vue ui
 ```
 

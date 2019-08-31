@@ -1,0 +1,1 @@
+Based on the pattern from https://medium.com/canariasjs/vue-api-calls-in-a-smart-way-8d521812c322
