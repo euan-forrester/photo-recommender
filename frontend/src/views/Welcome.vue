@@ -12,9 +12,6 @@
         <b-form-invalid-feedback :state="$v.userUrl.$dirty ? !$v.userUrl.$error : null">
           Your photos URL must look like https://www.flickr.com/photos/my_user/
         </b-form-invalid-feedback>
-        <b-form-valid-feedback :state="($v.userUrl.$dirty && !this.flickrContacted) ? !$v.userUrl.$error : null">
-          Thank you!
-        </b-form-valid-feedback>
       </b-form-group>
       <b-alert variant="success" :show="(this.flickrContacted && !this.flickrError) ? this.userFound : null">
         Found user {{this.userName}}
@@ -25,6 +22,18 @@
       <b-alert variant="danger" :show="this.flickrContacted ? this.flickrError : null">
         Error contacting Flickr. Please try again later
       </b-alert>
+      <b-form-group id="num-photos-group" label="Enter the number of photo recommendations you would like" label-for="num-photos">
+        <b-form-input
+          v-model="numPhotos"
+          @input="$v.numPhotos.$touch()"
+          :state="$v.numPhotos.$dirty ? !$v.numPhotos.$error : null"
+          id="num-photos"
+          placeholder="e.g. 50"
+        ></b-form-input>
+        <b-form-invalid-feedback :state="$v.numPhotos.$dirty ? !$v.numPhotos.$error : null">
+          You must enter a number
+        </b-form-invalid-feedback>
+      </b-form-group>
       <b-button type="submit" variant="primary" :disabled="$v.$invalid">Submit</b-button>
       <b-button type="reset" variant="danger">Reset</b-button>
      </b-form>
@@ -33,7 +42,7 @@
 
 <script>
 import { validationMixin } from 'vuelidate';
-import { required, url } from 'vuelidate/lib/validators';
+import { required, url, numeric } from 'vuelidate/lib/validators';
 
 export default {
   mixins: [validationMixin],
@@ -41,6 +50,7 @@ export default {
     return {
       userUrl: '',
       userName: '',
+      numPhotos: 50,
       flickrContacted: false,
       flickrError: false,
       userFound: false,
@@ -51,11 +61,15 @@ export default {
       required,
       url,
     },
+    numPhotos: {
+      required,
+      numeric,
+    },
   },
   methods: {
     async onSubmit(evt) {
       this.$v.$touch();
-      if (this.$v.userUrl.$anyError) {
+      if (this.$v.userUrl.$anyError || this.$v.numPhotos.$anyError) {
         return;
       }
 
@@ -80,13 +94,14 @@ export default {
         this.flickrContacted = true;
       }
 
-      this.$router.push({ name: 'recommendations', params: { userId: this.$store.state.user.id } });
+      this.$router.push({ name: 'recommendations', params: { userId: this.$store.state.user.id }, query: { 'num-photos': this.numPhotos } });
     },
     onReset(evt) {
       evt.preventDefault();
       // Reset our form values
       this.userUrl = '';
       this.userName = '';
+      this.numPhotos = 50;
       this.flickrContacted = false;
       this.flickrError = false;
       this.userFound = false;

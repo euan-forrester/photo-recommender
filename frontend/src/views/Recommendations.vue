@@ -24,7 +24,9 @@ export default {
     };
   },
   async mounted() {
-    await this.$store.dispatch('getRecommendationsForUser', this.$route.params.userId);
+    const numPhotos = this.$route.query && this.$route.query['num-photos'] ? this.$route.query['num-photos'] : 10;
+
+    await this.$store.dispatch('getRecommendationsForUser', { userId: this.$route.params.userId, numPhotos });
 
     this.recommendations = this.$store.state.user.recommendations;
   },
