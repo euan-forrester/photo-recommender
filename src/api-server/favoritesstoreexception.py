@@ -5,3 +5,11 @@ class FavoritesStoreException(Exception):
     '''
 
     pass
+
+class FavoritesStoreUserNotFoundException(Exception):
+
+    '''
+    Raised when the requested user is not found in a favorites store
+    '''
+
+    pass

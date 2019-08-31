@@ -13,6 +13,7 @@ from flask_api import status
 from confighelper import ConfigHelper
 from favoritesstoredatabase import FavoritesStoreDatabase
 from favoritesstoreexception import FavoritesStoreException
+from favoritesstoreexception import FavoritesStoreUserNotFoundException
 from metricshelper import MetricsHelper
 from unhandledexceptionhelper import UnhandledExceptionHelper
 from flickrapiwrapper import FlickrApiWrapper
@@ -110,6 +111,19 @@ application = Flask(__name__)
 def health_check():
     return "OK", status.HTTP_200_OK
 
+# Gets some information about this user
+@application.route("/api/users/<user_id>", methods = ['GET'])
+def get_user_info(user_id=None):
+    if user_id is None:
+        return user_not_specified()
+
+    user_info = favorites_store.get_user_info(user_id)
+
+    resp = jsonify(user_info)
+    resp.status_code = status.HTTP_200_OK
+
+    return resp
+
 # Gets our recommendations for a specific user
 @application.route("/api/users/<user_id>/recommendations", methods = ['GET'])
 def get_recommendations(user_id=None):
@@ -120,7 +134,7 @@ def get_recommendations(user_id=None):
 
     recommendations = favorites_store.get_photo_recommendations(user_id, num_photos)
 
-    resp = jsonify([e.get_output() for e in recommendations])
+    resp = jsonify([e.get_output() for e in recommendations]) # Can't directly encode this class, but we can return an easy-to-encode dict for each element
     resp.status_code = status.HTTP_200_OK
 
     return resp
@@ -256,6 +270,10 @@ def encountered_favorites_store_exception(e):
     metrics_helper.increment_count("FavoritesStoreException")
     logging.exception("Encountered FavoritesStoreException") # Logs a stack trace
     return "Internal server error", status.HTTP_500_INTERNAL_SERVER_ERROR
+
+@application.errorhandler(FavoritesStoreUserNotFoundException)
+def encountered_user_not_found_exception(e):
+    return "Requested user not found", status.HTTP_404_NOT_FOUND
 
 @application.errorhandler(FlickrApiNotFoundException)
 def encountered_flickr_not_found_exception(e):

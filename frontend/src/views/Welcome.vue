@@ -66,7 +66,7 @@ export default {
   methods: {
     async onSubmit(evt) {
       this.$v.$touch();
-      if (this.$v.userUrl.$anyError || this.$v.numPhotos.$anyError) {
+      if (this.$v.$anyError) {
         return;
       }
 
