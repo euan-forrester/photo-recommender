@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="recommendation">
     <b-link :href="'https://www.flickr.com/photos/' + imageOwner + '/' + imageId">
       <b-img left fluid :src="imageUrl"></b-img>
     </b-link>
@@ -15,3 +15,9 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.recommendation {
+    clear: both;
+}
+</style>

@@ -1,7 +1,12 @@
 <template>
   <div>
-    {{ this.$route.params.userId }}
-    <Recommendation imageId="5987578841" imageOwner="88859707@N00" imageUrl="https://live.staticflickr.com/6018/5987578841_6863d519bb_b.jpg"/>
+    <Recommendation
+      v-for="photo in recommendations"
+      v-bind:key="photo.image_id"
+      v-bind:imageId="photo.image_id"
+      v-bind:imageOwner="photo.image_owner"
+      v-bind:imageUrl="photo.image_url">
+    </Recommendation>
   </div>
 </template>
 
@@ -12,6 +17,16 @@ import Recommendation from '../components/Recommendation.vue';
 export default {
   components: {
     Recommendation,
+  },
+  data() {
+    return {
+      recommendations: [],
+    };
+  },
+  async mounted() {
+    await this.$store.dispatch('getRecommendationsForUser', this.$route.params.userId);
+
+    this.recommendations = this.$store.state.user.recommendations;
   },
 };
 </script>

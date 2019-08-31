@@ -4,6 +4,7 @@ import Vuex from 'vuex';
 import RepositoryFactory from './repositories/repositoryFactory';
 
 const FlickrRepository = RepositoryFactory.get('flickr');
+const UsersRepository = RepositoryFactory.get('users');
 
 Vue.use(Vuex);
 
@@ -14,11 +15,15 @@ export default new Vuex.Store({
     user: {
       id: '',
       name: '',
+      recommendations: [],
     },
   },
   mutations: {
     setUser(state, user) {
       state.user = user;
+    },
+    setRecommendations(state, recommendations) {
+      state.user.recommendations = recommendations;
     },
   },
   actions: {
@@ -28,9 +33,15 @@ export default new Vuex.Store({
       const user = {
         id: response.data.user.id,
         name: response.data.user.username._content, // eslint-disable-line no-underscore-dangle
+        recommendations: [],
       };
 
       commit('setUser', user);
+    },
+    async getRecommendationsForUser({ commit }, userId) {
+      const recommendations = await UsersRepository.getRecommendations(userId);
+
+      commit('setRecommendations', recommendations.data);
     },
   },
 });
