@@ -6,7 +6,6 @@ sys.path.insert(0, '../common')
 import argparse
 import logging
 import atexit
-import json
 from flask import Flask
 from flask import request
 from flask import jsonify
@@ -14,7 +13,6 @@ from flask_api import status
 from confighelper import ConfigHelper
 from favoritesstoredatabase import FavoritesStoreDatabase
 from favoritesstoreexception import FavoritesStoreException
-from output import Output
 from metricshelper import MetricsHelper
 from unhandledexceptionhelper import UnhandledExceptionHelper
 from flickrapiwrapper import FlickrApiWrapper
@@ -122,9 +120,10 @@ def get_recommendations(user_id=None):
 
     recommendations = favorites_store.get_photo_recommendations(user_id, num_photos)
 
-    output = Output.get_output(recommendations)
+    resp = jsonify([e.get_output() for e in recommendations])
+    resp.status_code = status.HTTP_200_OK
 
-    return output, status.HTTP_200_OK
+    return resp
 
 # Gets a list of registered users who need to have their data refreshed
 @application.route("/api/users/need-update", methods = ['GET'])
@@ -234,7 +233,10 @@ def get_flickr_lookup_user():
     if not url:
         return parameter_not_specified("url")
 
-    return json.dumps(flickrapi.lookup_user(user_url=url)), status.HTTP_200_OK
+    resp = jsonify(flickrapi.lookup_user(user_url=url))
+    resp.status_code = status.HTTP_200_OK
+
+    return resp
 
 @application.route("/favicon.ico", methods = ['GET'])
 def get_favicon():

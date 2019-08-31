@@ -1,4 +1,4 @@
-class PhotoRecommendation:
+class PhotoRecommendation():
 
     '''
     A recommendation for a particular photo
@@ -22,3 +22,10 @@ class PhotoRecommendation:
     def get_score(self):
         return self.score
         
+    def get_output(self):
+        # Don't want to leak the scores to the front end
+        return {
+            'image_id': self.image_id,
+            'image_url': self.image_url,
+            'image_owner': self.image_owner
+        }
