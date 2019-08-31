@@ -13,9 +13,6 @@
           Your photos URL must look like https://www.flickr.com/photos/my_user/
         </b-form-invalid-feedback>
       </b-form-group>
-      <b-alert variant="success" :show="(this.flickrContacted && !this.flickrError) ? this.userFound : null">
-        Found user {{this.userName}}
-      </b-alert>
       <b-alert variant="info" :show="(this.flickrContacted && !this.flickrError) ? !this.userFound : null">
         User not found - maybe there's a typo?
       </b-alert>
@@ -84,6 +81,8 @@ export default {
 
         this.userName = this.$store.state.user.name;
         this.userFound = true;
+
+        this.$router.push({ name: 'recommendations', params: { userId: this.$store.state.user.id }, query: { 'num-photos': this.numPhotos } });
       } catch (error) {
         if (error.response && error.response.status === 404) {
           this.userFound = false;
@@ -93,8 +92,6 @@ export default {
       } finally {
         this.flickrContacted = true;
       }
-
-      this.$router.push({ name: 'recommendations', params: { userId: this.$store.state.user.id }, query: { 'num-photos': this.numPhotos } });
     },
     onReset(evt) {
       evt.preventDefault();
