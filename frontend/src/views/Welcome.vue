@@ -12,10 +12,19 @@
         <b-form-invalid-feedback :state="$v.userUrl.$dirty ? !$v.userUrl.$error : null">
           Your photos URL must look like https://www.flickr.com/photos/my_user/
         </b-form-invalid-feedback>
-        <b-form-valid-feedback :state="$v.userUrl.$dirty ? !$v.userUrl.$error : null">
+        <b-form-valid-feedback :state="($v.userUrl.$dirty && !this.flickrContacted) ? !$v.userUrl.$error : null">
           Thank you!
         </b-form-valid-feedback>
       </b-form-group>
+      <b-alert variant="success" :show="(this.flickrContacted && !this.flickrError) ? this.userFound : null">
+        Found user {{this.userName}}
+      </b-alert>
+      <b-alert variant="info" :show="(this.flickrContacted && !this.flickrError) ? !this.userFound : null">
+        User not found - maybe there's a typo?
+      </b-alert>
+      <b-alert variant="danger" :show="this.flickrContacted ? this.flickrError : null">
+        Error contacting Flickr. Please try again later
+      </b-alert>
       <b-button type="submit" variant="primary" :disabled="$v.$invalid">Submit</b-button>
       <b-button type="reset" variant="danger">Reset</b-button>
      </b-form>
@@ -31,6 +40,10 @@ export default {
   data() {
     return {
       userUrl: '',
+      userName: '',
+      flickrContacted: false,
+      flickrError: false,
+      userFound: false,
     };
   },
   validations: {
@@ -40,20 +53,42 @@ export default {
     },
   },
   methods: {
-    onSubmit(evt) {
+    async onSubmit(evt) {
       this.$v.$touch();
       if (this.$v.userUrl.$anyError) {
         return;
       }
 
       evt.preventDefault();
-      console.log(this.userUrl);
-      this.$store.dispatch('getUserIdFromUrl', this.userUrl);
+
+      try {
+        this.flickrContacted = false;
+        this.flickrError = false;
+        this.userFound = false;
+
+        await this.$store.dispatch('getUserIdFromUrl', this.userUrl);
+
+        this.userName = this.$store.state.user.name;
+        this.userFound = true;
+
+      } catch (error) {
+        if (error.response && error.response.status === 404) {
+          this.userFound = false;
+        } else {
+          this.flickrError = true;
+        }
+      } finally {
+        this.flickrContacted = true;
+      }
     },
     onReset(evt) {
       evt.preventDefault();
       // Reset our form values
       this.userUrl = '';
+      this.userName = '';
+      this.flickrContacted = false;
+      this.flickrError = false;
+      this.userFound = false;
       this.$v.$reset();
       // Trick to reset/clear native browser form validation state
       this.show = false;

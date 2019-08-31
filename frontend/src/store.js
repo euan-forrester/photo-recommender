@@ -7,26 +7,30 @@ const FlickrRepository = RepositoryFactory.get('flickr');
 
 Vue.use(Vuex);
 
+// See https://medium.com/js-dojo/vuex-tip-error-handling-on-actions-ee286ed28df4 for an explanation of how error handling here works
+
 export default new Vuex.Store({
   state: {
-    userId: '',
+    user: {
+      id: '',
+      name: '',
+    },
   },
   mutations: {
-    setUserId(state, userId) {
-      state.userId = userId;
+    setUser(state, user) {
+      state.user = user;
     },
   },
   actions: {
-    getUserIdFromUrl({ commit }, userUrl) {
-      FlickrRepository.getUserIdFromUrl(userUrl)
-        .then((response) => {
-          console.log('Called Flickr successfully! Got back response', response);
-          const userId = 'FixMe';
-          commit('setUserId', userId);
-        })
-        .catch((error) => {
-          console.log('Got back an error when calling Flickr', error);
-        });
+    async getUserIdFromUrl({ commit }, userUrl) {
+      const response = await FlickrRepository.getUserIdFromUrl(userUrl);
+
+      const user = {
+        id: response.data.user.id,
+        name: response.data.user.username._content, // eslint-disable-line no-underscore-dangle
+      };
+
+      commit('setUser', user);
     },
   },
 });
