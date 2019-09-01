@@ -13,3 +13,11 @@ class FavoritesStoreUserNotFoundException(Exception):
     '''
 
     pass
+
+class FavoritesStoreDuplicateUserException(Exception):
+
+    '''
+    Raised when trying to insert a user into the store that already exists
+    '''
+
+    pass

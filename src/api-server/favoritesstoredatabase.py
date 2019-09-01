@@ -3,6 +3,9 @@ import logging
 from photorecommendation import PhotoRecommendation
 from favoritesstoreexception import FavoritesStoreException
 from favoritesstoreexception import FavoritesStoreUserNotFoundException
+from favoritesstoreexception import FavoritesStoreDuplicateUserException
+from mysql.connector import errorcode
+from mysql.connector import errors
 
 class FavoritesStoreDatabase:
 
@@ -38,6 +41,70 @@ class FavoritesStoreDatabase:
                                                                               **dbconfig)
 
         self.fetch_batch_size   = fetch_batch_size
+
+    def create_user(self, user_id):
+
+        cnx = self.cnxpool.get_connection()
+
+        cursor = cnx.cursor() 
+
+        try:
+            cursor.execute("""
+                INSERT INTO
+                    registered_users 
+                SET user_id=%s;
+            """, (user_id,))
+
+            cnx.commit()
+
+        except errors.IntegrityError as e:
+
+            cnx.rollback()
+            
+            if e.errno == errorcode.ER_DUP_ENTRY:
+                # We have a UNIQUE constraint on the user_id column, so we can't insert a duplicate
+                raise FavoritesStoreDuplicateUserException from e
+            else:
+                raise FavoritesStoreException from e
+
+        except Exception as e:
+            cnx.rollback()
+            raise FavoritesStoreException from e
+
+        finally:
+            cursor.close()
+            cnx.close()
+
+    def delete_user(self, user_id):
+
+        cnx = self.cnxpool.get_connection()
+
+        cursor = cnx.cursor() 
+
+        rows_deleted = 0
+
+        try:
+            cursor.execute("""
+                DELETE FROM 
+                    registered_users 
+                WHERE 
+                    user_id=%s;
+            """, (user_id,))
+
+            rows_deleted = cursor.rowcount
+
+            cnx.commit()
+
+        except Exception as e:
+            cnx.rollback()
+            raise FavoritesStoreException from e
+
+        finally:
+            cursor.close()
+            cnx.close()
+
+        if rows_deleted == 0:
+            raise FavoritesStoreUserNotFoundException(f"User {user_id} was not found")
 
     def get_user_info(self, user_id):
 

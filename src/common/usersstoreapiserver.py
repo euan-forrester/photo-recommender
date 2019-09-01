@@ -9,7 +9,7 @@ class UsersStoreAPIServer:
     '''
 
     def __init__(self, host, port):
-        self.url_prefix = f"http://{host}:{port}"
+        self.url_prefix = f"http://{host}:{port}/api"
 
     def get_users_to_request_data_for(self, seconds_between_user_data_updates):
 

@@ -14,6 +14,7 @@ from confighelper import ConfigHelper
 from favoritesstoredatabase import FavoritesStoreDatabase
 from favoritesstoreexception import FavoritesStoreException
 from favoritesstoreexception import FavoritesStoreUserNotFoundException
+from favoritesstoreexception import FavoritesStoreDuplicateUserException
 from metricshelper import MetricsHelper
 from unhandledexceptionhelper import UnhandledExceptionHelper
 from flickrapiwrapper import FlickrApiWrapper
@@ -109,6 +110,31 @@ application = Flask(__name__)
 # Health check for our load balancer
 @application.route("/healthcheck", methods = ['GET'])
 def health_check():
+    return "OK", status.HTTP_200_OK
+
+# Create a new user
+@application.route("/api/users/<user_id>", methods = ['POST'])
+def create_user(user_id=None):
+    if user_id is None:
+        return user_not_specified()
+
+    favorites_store.create_user(user_id)
+
+    user_info = favorites_store.get_user_info(user_id)
+
+    resp = jsonify(user_info)
+    resp.status_code = status.HTTP_200_OK
+
+    return resp
+
+# Delete a user
+@application.route("/api/users/<user_id>", methods = ['DELETE'])
+def delete_user(user_id=None):
+    if user_id is None:
+        return user_not_specified()
+
+    favorites_store.delete_user(user_id)
+
     return "OK", status.HTTP_200_OK
 
 # Gets some information about this user
@@ -274,6 +300,10 @@ def encountered_favorites_store_exception(e):
 @application.errorhandler(FavoritesStoreUserNotFoundException)
 def encountered_user_not_found_exception(e):
     return "Requested user not found", status.HTTP_404_NOT_FOUND
+
+@application.errorhandler(FavoritesStoreDuplicateUserException)
+def encountered_duplicate_not_exception(e):
+    return "Requested user already exists", status.HTTP_409_CONFLICT
 
 @application.errorhandler(FlickrApiNotFoundException)
 def encountered_flickr_not_found_exception(e):
