@@ -16,6 +16,7 @@ from queuereader import SQSQueueReader
 from confighelper import ConfigHelper
 from metricshelper import MetricsHelper
 from unhandledexceptionhelper import UnhandledExceptionHelper
+from flickrapiwrapper import FlickrApiNotFoundException
 
 #
 # Read in commandline arguments
@@ -171,11 +172,16 @@ logging.info(f"About to query queue {puller_queue_url} for requests")
 try:
 
     for queue_message in puller_queue:
-        puller_queue_item = PullerQueueItem.from_json(queue_message.get_message_body())
+        try :
+            puller_queue_item = PullerQueueItem.from_json(queue_message.get_message_body())
 
-        process_user(puller_queue_item)
+            process_user(puller_queue_item)
 
-        puller_queue.finished_with_message(queue_message)
+        except FlickrApiNotFoundException as e:
+            logging.info("User not found in Flickr")
+
+        finally:
+            puller_queue.finished_with_message(queue_message)
 
 finally:
     puller_queue.shutdown()

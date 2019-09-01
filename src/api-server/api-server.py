@@ -13,6 +13,8 @@ from flask_api import status
 from confighelper import ConfigHelper
 from favoritesstoredatabase import FavoritesStoreDatabase
 from favoritesstoreexception import FavoritesStoreException
+from favoritesstoreexception import FavoritesStoreUserNotFoundException
+from favoritesstoreexception import FavoritesStoreDuplicateUserException
 from metricshelper import MetricsHelper
 from unhandledexceptionhelper import UnhandledExceptionHelper
 from flickrapiwrapper import FlickrApiWrapper
@@ -110,6 +112,48 @@ application = Flask(__name__)
 def health_check():
     return "OK", status.HTTP_200_OK
 
+# Create a new user
+@application.route("/api/users/<user_id>", methods = ['POST'])
+def create_user(user_id=None):
+    if user_id is None:
+        return user_not_specified()
+
+    # We could add a check here to see if it's a legitimate user in Flickr, but we'd have to do a lot more
+    # engineering. We can't just do a simple chere here because if it fails for transient reasons then
+    # we'll have lost this call. So we'd have to have a queue and retries, which I don't think is worth it for this
+
+    favorites_store.create_user(user_id)
+
+    user_info = favorites_store.get_user_info(user_id)
+
+    resp = jsonify(user_info)
+    resp.status_code = status.HTTP_200_OK
+
+    return resp
+
+# Delete a user
+@application.route("/api/users/<user_id>", methods = ['DELETE'])
+def delete_user(user_id=None):
+    if user_id is None:
+        return user_not_specified()
+
+    favorites_store.delete_user(user_id)
+
+    return "OK", status.HTTP_200_OK
+
+# Gets some information about this user
+@application.route("/api/users/<user_id>", methods = ['GET'])
+def get_user_info(user_id=None):
+    if user_id is None:
+        return user_not_specified()
+
+    user_info = favorites_store.get_user_info(user_id)
+
+    resp = jsonify(user_info)
+    resp.status_code = status.HTTP_200_OK
+
+    return resp
+
 # Gets our recommendations for a specific user
 @application.route("/api/users/<user_id>/recommendations", methods = ['GET'])
 def get_recommendations(user_id=None):
@@ -120,7 +164,7 @@ def get_recommendations(user_id=None):
 
     recommendations = favorites_store.get_photo_recommendations(user_id, num_photos)
 
-    resp = jsonify([e.get_output() for e in recommendations])
+    resp = jsonify([e.get_output() for e in recommendations]) # Can't directly encode this class, but we can return an easy-to-encode dict for each element
     resp.status_code = status.HTTP_200_OK
 
     return resp
@@ -256,6 +300,14 @@ def encountered_favorites_store_exception(e):
     metrics_helper.increment_count("FavoritesStoreException")
     logging.exception("Encountered FavoritesStoreException") # Logs a stack trace
     return "Internal server error", status.HTTP_500_INTERNAL_SERVER_ERROR
+
+@application.errorhandler(FavoritesStoreUserNotFoundException)
+def encountered_user_not_found_exception(e):
+    return "Requested user not found", status.HTTP_404_NOT_FOUND
+
+@application.errorhandler(FavoritesStoreDuplicateUserException)
+def encountered_duplicate_not_exception(e):
+    return "Requested user already exists", status.HTTP_409_CONFLICT
 
 @application.errorhandler(FlickrApiNotFoundException)
 def encountered_flickr_not_found_exception(e):

@@ -2,6 +2,10 @@ import mysql.connector.pooling
 import logging
 from photorecommendation import PhotoRecommendation
 from favoritesstoreexception import FavoritesStoreException
+from favoritesstoreexception import FavoritesStoreUserNotFoundException
+from favoritesstoreexception import FavoritesStoreDuplicateUserException
+from mysql.connector import errorcode
+from mysql.connector import errors
 
 class FavoritesStoreDatabase:
 
@@ -37,6 +41,114 @@ class FavoritesStoreDatabase:
                                                                               **dbconfig)
 
         self.fetch_batch_size   = fetch_batch_size
+
+    def create_user(self, user_id):
+
+        cnx = self.cnxpool.get_connection()
+
+        cursor = cnx.cursor() 
+
+        try:
+            cursor.execute("""
+                INSERT INTO
+                    registered_users 
+                SET user_id=%s;
+            """, (user_id,))
+
+            cnx.commit()
+
+        except errors.IntegrityError as e:
+
+            cnx.rollback()
+            
+            if e.errno == errorcode.ER_DUP_ENTRY:
+                # We have a UNIQUE constraint on the user_id column, so we can't insert a duplicate
+                raise FavoritesStoreDuplicateUserException from e
+            else:
+                raise FavoritesStoreException from e
+
+        except Exception as e:
+            cnx.rollback()
+            raise FavoritesStoreException from e
+
+        finally:
+            cursor.close()
+            cnx.close()
+
+    def delete_user(self, user_id):
+
+        cnx = self.cnxpool.get_connection()
+
+        cursor = cnx.cursor() 
+
+        rows_deleted = 0
+
+        try:
+            cursor.execute("""
+                DELETE FROM 
+                    registered_users 
+                WHERE 
+                    user_id=%s;
+            """, (user_id,))
+
+            rows_deleted = cursor.rowcount
+
+            cnx.commit()
+
+        except Exception as e:
+            cnx.rollback()
+            raise FavoritesStoreException from e
+
+        finally:
+            cursor.close()
+            cnx.close()
+
+        if rows_deleted == 0:
+            raise FavoritesStoreUserNotFoundException(f"User {user_id} was not found")
+
+    def get_user_info(self, user_id):
+
+        cnx = self.cnxpool.get_connection()
+
+        cursor = cnx.cursor() 
+
+        user_info = None
+
+        try:
+            cursor.execute("""
+                SELECT
+                    UNIX_TIMESTAMP(created_at),
+                    (all_data_last_successfully_processed_at IS NOT NULL) AS have_initially_processed_data,
+                    ((all_data_last_successfully_processed_at IS NOT NULL) AND 
+                        (data_last_requested_at IS NOT NULL) AND 
+                        (all_data_last_successfully_processed_at < data_last_requested_at)) AS currently_processing_data
+                FROM 
+                    registered_users
+                WHERE
+                    user_id=%s
+                ;
+            """, (user_id,))
+     
+            row = self._get_first_row(cursor)
+            
+            if row is not None:
+                user_info = {
+                    'created_at':                       row[0],
+                    'have_initially_processed_data':    bool(row[1]),
+                    'currently_processing_data':        bool(row[2])
+                }
+
+        except Exception as e:
+            raise FavoritesStoreException from e
+
+        finally:
+            cursor.close()
+            cnx.close()
+
+        if user_info is not None:
+            return user_info
+        else:
+            raise FavoritesStoreUserNotFoundException(f"User {user_id} was not found")
 
     def get_photo_recommendations(self, user_id, num_photos):
 
