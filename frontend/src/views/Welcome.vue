@@ -35,10 +35,10 @@
       <b-button type="reset" variant="danger">Reset</b-button>
      </b-form>
      <div v-if="this.currentState === 'waitingForInitiallyProcessedData'">
-       <b-alert variant="info">
-          Calculating initial recommendations for this user
+       <b-alert variant="info" :show="true">
+          Calculating initial recommendations for user {{this.userName}}
        </b-alert>
-       <b-spinner label="Waiting to receive initial recommendations for this user"></b-spinner>
+       <b-spinner label="Waiting to receive initial recommendations for user"></b-spinner>
      </div>
   </div>
 </template>
