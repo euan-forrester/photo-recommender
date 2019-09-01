@@ -13,11 +13,11 @@
           Your photos URL must look like https://www.flickr.com/photos/my_user/
         </b-form-invalid-feedback>
       </b-form-group>
-      <b-alert variant="info" :show="(this.flickrContacted && !this.flickrError) ? !this.userFound : null">
+      <b-alert variant="info" :show="this.currentState === 'userNotFound'">
         User not found - maybe there's a typo?
       </b-alert>
-      <b-alert variant="danger" :show="this.flickrContacted ? this.flickrError : null">
-        Error contacting Flickr. Please try again later
+      <b-alert variant="danger" :show="this.currentState === 'apiError'">
+        Could not get the requested information. Please try again later
       </b-alert>
       <b-form-group id="num-photos-group" label="Enter the number of photo recommendations you would like" label-for="num-photos">
         <b-form-input
@@ -34,6 +34,12 @@
       <b-button type="submit" variant="primary" :disabled="$v.$invalid">Submit</b-button>
       <b-button type="reset" variant="danger">Reset</b-button>
      </b-form>
+     <div v-if="this.currentState === 'waitingForInitiallyProcessedData'">
+       <b-alert variant="info">
+          Calculating initial recommendations for this user
+       </b-alert>
+       <b-spinner label="Waiting to receive initial recommendations for this user"></b-spinner>
+     </div>
   </div>
 </template>
 
@@ -46,11 +52,10 @@ export default {
   data() {
     return {
       userUrl: '',
+      userId: '',
       userName: '',
       numPhotos: 50,
-      flickrContacted: false,
-      flickrError: false,
-      userFound: false,
+      currentState: 'none',
     };
   },
   validations: {
@@ -72,36 +77,84 @@ export default {
 
       evt.preventDefault();
 
+      // First, turn the Flickr URL into a Flickr user ID
+
       try {
-        this.flickrContacted = false;
-        this.flickrError = false;
-        this.userFound = false;
+        this.currentState = 'none';
 
         await this.$store.dispatch('getUserIdFromUrl', this.userUrl);
 
         this.userName = this.$store.state.user.name;
-        this.userFound = true;
-
-        this.$router.push({ name: 'recommendations', params: { userId: this.$store.state.user.id }, query: { 'num-photos': this.numPhotos } });
+        this.userId = this.$store.state.user.id;
+        this.currentState = 'userFound';
       } catch (error) {
         if (error.response && error.response.status === 404) {
-          this.userFound = false;
+          this.currentState = 'userNotFound';
         } else {
-          this.flickrError = true;
+          this.currentState = 'apiError';
         }
-      } finally {
-        this.flickrContacted = true;
+
+        return;
       }
+
+      // Then check our system to see if we have that user. Add that user if necessary
+
+      let needToAddUser = false;
+
+      try {
+        await this.$store.dispatch('getUserInfo', this.userId);
+      } catch (error) {
+        if (error.response && error.response.status === 404) {
+          needToAddUser = true;
+        } else {
+          this.currentState = 'apiError';
+          return;
+        }
+      }
+
+      if (needToAddUser) {
+        try {
+          await this.$store.dispatch('addNewUser', this.userId);
+        } catch (error) {
+          this.currentState = 'apiError';
+          return;
+        }
+      }
+
+      // Now wait until their data is ready.
+      // TODO: Had to disble a lint error to get this to work, which seems to indicate that this is not the best approach.
+      // Need to do more googling.
+      // The lint error is intended to encourage better performance by having people await multiple things rather than one at a time.
+
+      async function delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+      }
+
+      while (!this.$store.state.user.haveInitiallyProcessedData) {
+        this.currentState = 'waitingForInitiallyProcessedData';
+
+        await delay(1000); // eslint-disable-line no-await-in-loop
+
+        try {
+          await this.$store.dispatch('getUserInfo', this.userId); // eslint-disable-line no-await-in-loop
+        } catch (error) {
+          this.currentState = 'apiError';
+          return;
+        }
+      }
+
+      // We have their data, so display their recommendations
+
+      this.$router.push({ name: 'recommendations', params: { userId: this.$store.state.user.id }, query: { 'num-photos': this.numPhotos } });
     },
     onReset(evt) {
       evt.preventDefault();
       // Reset our form values
       this.userUrl = '';
+      this.userId = '';
       this.userName = '';
       this.numPhotos = 50;
-      this.flickrContacted = false;
-      this.flickrError = false;
-      this.userFound = false;
+      this.currentState = 'none';
       this.$v.$reset();
       // Trick to reset/clear native browser form validation state
       this.show = false;

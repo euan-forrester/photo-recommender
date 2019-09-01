@@ -16,6 +16,8 @@ export default new Vuex.Store({
       id: '',
       name: '',
       recommendations: [],
+      currentlyProcessingData: false,
+      haveInitiallyProcessedData: false,
     },
   },
   mutations: {
@@ -24,6 +26,10 @@ export default new Vuex.Store({
     },
     setRecommendations(state, recommendations) {
       state.user.recommendations = recommendations;
+    },
+    setProcessingStatus(state, { currentlyProcessingData, haveInitiallyProcessedData }) {
+      state.user.currentlyProcessingData = currentlyProcessingData;
+      state.user.haveInitiallyProcessedData = haveInitiallyProcessedData;
     },
   },
   actions: {
@@ -34,6 +40,8 @@ export default new Vuex.Store({
         id: response.data.user.id,
         name: response.data.user.username._content, // eslint-disable-line no-underscore-dangle
         recommendations: [],
+        currentlyProcessingData: false,
+        haveInitiallyProcessedData: false,
       };
 
       commit('setUser', user);
@@ -42,6 +50,22 @@ export default new Vuex.Store({
       const recommendations = await UsersRepository.getRecommendations(userId, numPhotos);
 
       commit('setRecommendations', recommendations.data);
+    },
+    async addNewUser({ commit }, userId) {
+      const userInfo = await UsersRepository.addUser(userId);
+
+      commit('setProcessingStatus', {
+        currentlyProcessingData: userInfo.data.currently_processing_data,
+        haveInitiallyProcessedData: userInfo.data.have_initially_processed_data,
+      });
+    },
+    async getUserInfo({ commit }, userId) {
+      const userInfo = await UsersRepository.getUser(userId);
+
+      commit('setProcessingStatus', {
+        currentlyProcessingData: userInfo.data.currently_processing_data,
+        haveInitiallyProcessedData: userInfo.data.have_initially_processed_data,
+      });
     },
   },
 });
