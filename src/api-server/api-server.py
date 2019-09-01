@@ -118,6 +118,10 @@ def create_user(user_id=None):
     if user_id is None:
         return user_not_specified()
 
+    # We could add a check here to see if it's a legitimate user in Flickr, but we'd have to do a lot more
+    # engineering. We can't just do a simple chere here because if it fails for transient reasons then
+    # we'll have lost this call. So we'd have to have a queue and retries, which I don't think is worth it for this
+
     favorites_store.create_user(user_id)
 
     user_info = favorites_store.get_user_info(user_id)
