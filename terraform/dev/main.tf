@@ -90,7 +90,7 @@ module "scheduler" {
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
     ecs_days_to_keep_images = 1
 
-    api_server_host = "${module.api_server.load_balancer_host}"
+    api_server_host = "${module.api_server.load_balancer_dns_name}"
     api_server_port = "${module.api_server.load_balancer_port}"
 
     scheduler_seconds_between_user_data_updates = 7200
@@ -123,7 +123,7 @@ module "puller-response-reader" {
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
     ecs_days_to_keep_images = 1
 
-    api_server_host = "${module.api_server.load_balancer_host}"
+    api_server_host = "${module.api_server.load_balancer_dns_name}"
     api_server_port = "${module.api_server.load_balancer_port}"
 
     puller_queue_url = "${module.scheduler.puller_queue_url}"
@@ -229,12 +229,10 @@ module "api_server" {
     flickr_api_memcached_location = "localhost:11211" # Disable cacheing Flickr API responses for now
     flickr_api_memcached_ttl = 7200
 
-    api_server_domain       = "dev.${var.dns_address}"
-
     retain_load_balancer_access_logs_after_destroy = "false" # For dev, we don't care about retaining these logs after doing a terraform destroy
     load_balancer_days_to_keep_access_logs = 1
-    load_balancer_access_logs_bucket = "api-server-access-logs-dev"
-    load_balancer_access_logs_prefix = "api-server-lb-dev"
+    load_balancer_access_logs_bucket = "load-balancer-access-logs"
+    load_balancer_access_logs_prefix = "api-server-lb"
 
     local_machine_cidr      = "${var.local_machine_cidr}"
 
@@ -255,6 +253,26 @@ module "api_server" {
     ecs_days_to_keep_images = 1
 
     default_num_photo_recommendations = 10
+}
+
+module "frontend" {
+    source = "../modules/frontend"
+
+    environment             = "dev"
+    region                  = "${var.region}"
+
+    application_domain      = "dev.${var.dns_address}"
+    application_name        = "photo-recommender"
+
+    days_to_keep_old_versions = 1
+
+    load_balancer_arn       = "${module.api_server.load_balancer_arn}"
+    load_balancer_dns_name  = "${module.api_server.load_balancer_dns_name}"
+    load_balancer_zone_id   = "${module.api_server.load_balancer_zone_id}"
+
+    frontend_access_logs_bucket = "frontend-access-logs"
+    retain_frontend_access_logs_after_destroy = "false" # For dev, we don't care about retaining these logs after doing a terraform destroy
+    days_to_keep_frontend_access_logs = 1
 }
 
 module "dashboard" {
