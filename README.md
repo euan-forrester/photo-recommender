@@ -130,13 +130,6 @@ brew install yarn
 yarn install
 ```
 
-### Deploy the frontend
-
-```
-yarn build --mode development
-yarn deploy --mode development
-```
-
 ### Optional project dashboard
 
 ```
@@ -146,7 +139,19 @@ vue ui
 
 Then go to: http://localhost:8000/dashboard
 
+### Deploy the frontend
 
+Edit the bucket names in `frontend/vue.config.js` and `frontend/.env.production` to be the website s3 bucket(s) created by terraform if necessary. Similarly for the CloudFront IDs.
+
+```
+yarn build --mode development
+yarn deploy --mode development
+```
+
+If you have a domain name, then go into route53 and point it at the nameservers listed there.
+If you don't, then go into CloudFront to get the domain for our distribution. 
+
+Point your browser there and enjoy!
 
 TODO:
 
@@ -166,6 +171,8 @@ TODO:
 - Add auth to API server - use AWS API gateway?
 - Audit for XSS attacks
 - Add CSRF token
-- Make frontend vendor file smaller: https://github.com/vuejs-templates/webpack/issues/1297
+- Make frontend vendor file smaller (it's mostly bootstrap): https://bootstrap-vue.js.org/docs/#tree-shaking-with-module-bundlers
+ - See also https://medium.com/js-dojo/how-to-reduce-your-vue-js-bundle-size-with-webpack-3145bf5019b7
 - Add versioning to the front end, so that old versions of file (with different hashes) don't live in S3 forever: https://stackoverflow.com/questions/46166337/how-can-i-deploy-a-new-cloudfront-s3-version-without-a-small-period-of-unavailab?rq=1
 - Fix S3 bucket name conflicts if other people run this terraform
+- Fix website S3 bucket permissions to allow deployments but not allow public access

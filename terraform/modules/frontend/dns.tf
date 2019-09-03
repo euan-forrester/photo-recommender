@@ -4,7 +4,7 @@ resource "aws_route53_zone" "primary" {
     force_destroy = true
 }
 
-resource "aws_route53_record" "api_server" {
+resource "aws_route53_record" "cloudfront" {
     zone_id = "${aws_route53_zone.primary.zone_id}"
     name    = "${var.application_domain}"
     type    = "A"

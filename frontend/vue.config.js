@@ -1,3 +1,5 @@
+// const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+
 module.exports = {
   devServer: {
     proxy: {
@@ -22,9 +24,14 @@ module.exports = {
       deployPath: '/',
       acl: 'public-read',
       pwa: false,
-      enableCloudfront: false,
+      enableCloudfront: false, // Invalidates a CloudFront distribution
+      cloudfrontId: 'E156TT79QZCNSR',
       uploadConcurrency: 5,
-      pluginVersion: '3.0.0'
-    }
-  }
+      pluginVersion: '3.0.0',
+    },
+  },
+
+  // configureWebpack: {
+  //  plugins: [new BundleAnalyzerPlugin()]
+  // }
 };
