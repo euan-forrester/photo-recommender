@@ -105,30 +105,3 @@ resource "aws_cloudfront_distribution" "application" {
         cloudfront_default_certificate = true
     }
 }
-
-data "aws_iam_policy_document" "allow_cloudfront" {
-    statement {
-        actions   = ["s3:GetObject"]
-        resources = ["${aws_s3_bucket.frontend.arn}/*"]
-
-        principals {
-            type        = "AWS"
-            identifiers = ["${aws_cloudfront_origin_access_identity.origin_access_identity.iam_arn}"]
-        }
-    }
-
-    statement {
-        actions   = ["s3:ListBucket"]
-        resources = ["${aws_s3_bucket.frontend.arn}"]
-
-        principals {
-            type        = "AWS"
-            identifiers = ["${aws_cloudfront_origin_access_identity.origin_access_identity.iam_arn}"]
-        }
-    }
-}
-
-resource "aws_s3_bucket_policy" "frontend_cloudfront" {
-    bucket = "${aws_s3_bucket.frontend.id}"
-    policy = "${data.aws_iam_policy_document.allow_cloudfront.json}"
-}

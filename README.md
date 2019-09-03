@@ -141,7 +141,7 @@ Then go to: http://localhost:8000/dashboard
 
 ### Deploy the frontend
 
-Edit the bucket names in `frontend/vue.config.js` and `frontend/.env.production` to be the website s3 bucket(s) created by terraform if necessary.
+Edit the bucket names in `frontend/vue.config.js` and `frontend/.env.production` to be the website s3 bucket(s) created by terraform if necessary. Similarly for the CloudFront IDs.
 
 ```
 yarn build --mode development
@@ -175,3 +175,4 @@ TODO:
  - See also https://medium.com/js-dojo/how-to-reduce-your-vue-js-bundle-size-with-webpack-3145bf5019b7
 - Add versioning to the front end, so that old versions of file (with different hashes) don't live in S3 forever: https://stackoverflow.com/questions/46166337/how-can-i-deploy-a-new-cloudfront-s3-version-without-a-small-period-of-unavailab?rq=1
 - Fix S3 bucket name conflicts if other people run this terraform
+- Fix website S3 bucket permissions to allow deployments but not allow public access
