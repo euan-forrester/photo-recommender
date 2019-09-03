@@ -1,5 +1,4 @@
-const BundleAnalyzerPlugin = require('webpack-bundle-analyzer')
-    .BundleAnalyzerPlugin;
+// const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 
 module.exports = {
   devServer: {
@@ -27,11 +26,11 @@ module.exports = {
       pwa: false,
       enableCloudfront: false,
       uploadConcurrency: 5,
-      pluginVersion: '3.0.0'
-    }
+      pluginVersion: '3.0.0',
+    },
   },
 
-  //configureWebpack: {
+  // configureWebpack: {
   //  plugins: [new BundleAnalyzerPlugin()]
-  //}
+  // }
 };
