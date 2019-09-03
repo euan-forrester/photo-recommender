@@ -1,3 +1,6 @@
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer')
+    .BundleAnalyzerPlugin;
+
 module.exports = {
   devServer: {
     proxy: {
@@ -26,5 +29,9 @@ module.exports = {
       uploadConcurrency: 5,
       pluginVersion: '3.0.0'
     }
-  }
+  },
+
+  //configureWebpack: {
+  //  plugins: [new BundleAnalyzerPlugin()]
+  //}
 };
