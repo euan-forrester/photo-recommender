@@ -8,8 +8,8 @@ resource "aws_lb" "api_server" {
     ip_address_type    = "ipv4"
 
     access_logs {
-        bucket  = "${var.load_balancer_access_logs_bucket}"
-        prefix  = "${var.load_balancer_access_logs_prefix}"
+        bucket  = "${aws_s3_bucket.load_balancer_access_logs.id}"
+        prefix  = "${var.load_balancer_access_logs_prefix}-${var.environment}"
         enabled = true
     }
 
@@ -40,7 +40,7 @@ resource "aws_lb_target_group" "load_balancer" {
     depends_on              = ["aws_lb.api_server"] # https://github.com/cds-snc/aws-ecs-fargate/issues/1
 }
 
-resource "aws_lb_listener" "load_balancer" {  
+resource "aws_lb_listener" "api_server" {  
     load_balancer_arn = "${aws_lb.api_server.arn}"  
     port              = "${var.load_balancer_port}"  
     protocol          = "HTTP"
@@ -88,7 +88,7 @@ data "aws_caller_identity" "load_balancer" {}
 data "aws_elb_service_account" "main" {}
 
 resource "aws_s3_bucket" "load_balancer_access_logs" {
-    bucket = "${var.load_balancer_access_logs_bucket}"
+    bucket = "${var.load_balancer_access_logs_bucket}-${var.environment}"
     acl    = "bucket-owner-full-control"
     force_destroy = "${!var.retain_load_balancer_access_logs_after_destroy}"
     policy = <<EOF
@@ -102,7 +102,7 @@ resource "aws_s3_bucket" "load_balancer_access_logs" {
         "s3:PutObject"
       ],
       "Effect": "Allow",
-      "Resource": "arn:aws:s3:::${var.load_balancer_access_logs_bucket}/${var.load_balancer_access_logs_prefix}/AWSLogs/${data.aws_caller_identity.load_balancer.account_id}/*",
+      "Resource": "arn:aws:s3:::${var.load_balancer_access_logs_bucket}-${var.environment}/${var.load_balancer_access_logs_prefix}-${var.environment}/AWSLogs/${data.aws_caller_identity.load_balancer.account_id}/*",
       "Principal": {
         "AWS": [
           "${data.aws_elb_service_account.main.id}"

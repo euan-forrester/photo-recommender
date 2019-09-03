@@ -19,10 +19,11 @@ This project uses:
 - SQS for the initial stab at data injestion, but consider changing to Kafka https://aws.amazon.com/msk/ or Kinesis https://aws.amazon.com/kinesis/
 - RDS for the initial stab at data storage, but consider changing to Clickhouse: https://clickhouse.yandex/ or Redshift https://aws.amazon.com/redshift/
 - A bunch of Python libs, most notably Flask and gunicorn
-- ALB for load balancing
-- CloudWatch for metrics & alarms
+- ALB for load balancing: https://aws.amazon.com/elasticloadbalancing/
+- S3 for serving static assets, CloudFront for routing requests, and Route53 for DNS
+- CloudWatch for metrics & alarms, and a dashboard:  https://aws.amazon.com/cloudwatch/
 - Random other parts of AWS like ElastiCache, Parameter Store, and Key Management Service
-- Vue.js: https://vuejs.org/
+- Vue.js and friends for the frontend: https://vuejs.org/. The frontend project based on the Vue CLI: https://cli.vuejs.org/
 
 # Instructions
 
@@ -127,10 +128,16 @@ docker push <URI of scheduler-dev repository in ECR>
 cd ../../frontend
 brew install yarn
 yarn install
-yarn run build
 ```
 
-### Project dashboard
+### Deploy the frontend
+
+```
+yarn build --mode development
+yarn deploy --mode development
+```
+
+### Optional project dashboard
 
 ```
 yarn global add @vue/cli
@@ -159,3 +166,6 @@ TODO:
 - Add auth to API server - use AWS API gateway?
 - Audit for XSS attacks
 - Add CSRF token
+- Make frontend vendor file smaller: https://github.com/vuejs-templates/webpack/issues/1297
+- Add versioning to the front end, so that old versions of file (with different hashes) don't live in S3 forever: https://stackoverflow.com/questions/46166337/how-can-i-deploy-a-new-cloudfront-s3-version-without-a-small-period-of-unavailab?rq=1
+- Fix S3 bucket name conflicts if other people run this terraform
