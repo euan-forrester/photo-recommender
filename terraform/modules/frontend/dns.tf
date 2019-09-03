@@ -10,8 +10,8 @@ resource "aws_route53_record" "api_server" {
     type    = "A"
 
     alias {
-        name                   = "${var.load_balancer_dns_name}"
-        zone_id                = "${var.load_balancer_zone_id}"
+        name                   = "${aws_cloudfront_distribution.application.domain_name}"
+        zone_id                = "${aws_cloudfront_distribution.application.hosted_zone_id}"
         evaluate_target_health = true
     }
 }

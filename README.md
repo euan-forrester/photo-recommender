@@ -20,9 +20,10 @@ This project uses:
 - RDS for the initial stab at data storage, but consider changing to Clickhouse: https://clickhouse.yandex/ or Redshift https://aws.amazon.com/redshift/
 - A bunch of Python libs, most notably Flask and gunicorn
 - ALB for load balancing: https://aws.amazon.com/elasticloadbalancing/
+- S3 for serving static assets, CloudFront for routing requests, and Route53 for DNS
 - CloudWatch for metrics & alarms, and a dashboard:  https://aws.amazon.com/cloudwatch/
 - Random other parts of AWS like ElastiCache, Parameter Store, and Key Management Service
-- Vue.js and friends for the frontend: https://vuejs.org/
+- Vue.js and friends for the frontend: https://vuejs.org/. The frontend project based on the Vue CLI: https://cli.vuejs.org/
 
 # Instructions
 

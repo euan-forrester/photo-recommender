@@ -2,6 +2,7 @@ variable "environment" {}
 variable "region" {}
 variable "days_to_keep_old_versions" {}
 variable "load_balancer_dns_name" {}
+variable "load_balancer_port" {}
 variable "load_balancer_zone_id" {}
 variable "load_balancer_arn" {}
 variable "application_name" {}

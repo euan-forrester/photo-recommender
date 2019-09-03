@@ -1,6 +1,4 @@
 resource "aws_lb" "api_server" {
-    depends_on         = ["aws_s3_bucket.load_balancer_access_logs"]
-
     name               = "api-server-lb-${var.environment}"
     internal           = false
     load_balancer_type = "application"
@@ -10,7 +8,7 @@ resource "aws_lb" "api_server" {
     ip_address_type    = "ipv4"
 
     access_logs {
-        bucket  = "${var.load_balancer_access_logs_bucket}-${var.environment}"
+        bucket  = "${aws_s3_bucket.load_balancer_access_logs.id}"
         prefix  = "${var.load_balancer_access_logs_prefix}-${var.environment}"
         enabled = true
     }

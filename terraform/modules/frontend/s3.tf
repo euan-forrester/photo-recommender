@@ -1,6 +1,8 @@
+# We will add a policy in cloudfront.tf that allows the cloudfront user to read from this bucket
+
 resource "aws_s3_bucket" "frontend" {
     bucket = "${var.application_name}-${var.environment}"
-    acl    = "public-read"
+    acl    = "bucket-owner-full-control"
     force_destroy = true
 
     website {

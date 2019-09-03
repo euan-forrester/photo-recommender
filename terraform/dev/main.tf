@@ -268,6 +268,7 @@ module "frontend" {
 
     load_balancer_arn       = "${module.api_server.load_balancer_arn}"
     load_balancer_dns_name  = "${module.api_server.load_balancer_dns_name}"
+    load_balancer_port      = "${module.api_server.load_balancer_port}"
     load_balancer_zone_id   = "${module.api_server.load_balancer_zone_id}"
 
     frontend_access_logs_bucket = "frontend-access-logs"
