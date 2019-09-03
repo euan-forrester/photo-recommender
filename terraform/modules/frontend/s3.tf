@@ -28,7 +28,10 @@ resource "aws_s3_bucket" "frontend" {
 resource "aws_s3_bucket_public_access_block" "frontend" {
     bucket = "${aws_s3_bucket.frontend.id}"
 
-    block_public_acls         = false
+    block_public_acls         = false   # Needed to allow deployment into this bucket. I don't understand why. 
+                                        # Giving explicit permission to the IAM user doing the deployment doesn't help. 
+                                        # The console still says "bucket and objects not public" (as desired), 
+                                        # and trying to go to the website link for this bucket gives a 403 forbidden (as desired)
     block_public_policy       = true
     ignore_public_acls        = true
     restrict_public_buckets   = true
