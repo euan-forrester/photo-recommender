@@ -16,6 +16,7 @@ locals {
 resource "aws_cloudfront_distribution" "application" {
     
     enabled = true
+    default_root_object = "index.html"
 
     # Our S3 bucket
     origin {
