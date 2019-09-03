@@ -108,7 +108,7 @@ resource "aws_cloudfront_distribution" "application" {
 data "aws_iam_policy_document" "allow_cloudfront" {
     statement {
         actions   = ["s3:GetObject"]
-        resources = ["${aws_s3_bucket.frontend_access_logs.arn}/*"]
+        resources = ["${aws_s3_bucket.frontend.arn}/*"]
 
         principals {
             type        = "AWS"
@@ -118,7 +118,7 @@ data "aws_iam_policy_document" "allow_cloudfront" {
 
     statement {
         actions   = ["s3:ListBucket"]
-        resources = ["${aws_s3_bucket.frontend_access_logs.arn}"]
+        resources = ["${aws_s3_bucket.frontend.arn}"]
 
         principals {
             type        = "AWS"
@@ -127,7 +127,7 @@ data "aws_iam_policy_document" "allow_cloudfront" {
     }
 }
 
-resource "aws_s3_bucket_policy" "frontend_access_logs_cloudfront" {
-    bucket = "${aws_s3_bucket.frontend_access_logs.id}"
+resource "aws_s3_bucket_policy" "frontend_cloudfront" {
+    bucket = "${aws_s3_bucket.frontend.id}"
     policy = "${data.aws_iam_policy_document.allow_cloudfront.json}"
 }
