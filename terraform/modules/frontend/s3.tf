@@ -32,6 +32,7 @@ resource "aws_s3_bucket_public_access_block" "frontend" {
                                         # Giving explicit permission to the IAM user doing the deployment doesn't help. 
                                         # The console still says "bucket and objects not public" (as desired), 
                                         # and trying to go to the website link for this bucket gives a 403 forbidden (as desired)
+                                        # I wrote up an issue here: https://github.com/multiplegeorges/vue-cli-plugin-s3-deploy/issues/79
     block_public_policy       = true
     ignore_public_acls        = true
     restrict_public_buckets   = true
