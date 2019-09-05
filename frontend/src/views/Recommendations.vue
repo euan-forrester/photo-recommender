@@ -1,12 +1,23 @@
 <template>
   <div>
-    <PhotoRecommendation
-      v-for="photo in recommendations.photos"
-      v-bind:key="photo.image_id"
-      v-bind:imageId="photo.image_id"
-      v-bind:imageOwner="photo.image_owner"
-      v-bind:imageUrl="photo.image_url">
-    </PhotoRecommendation>
+    <div>
+      People you might want to follow:
+      <UserRecommendation
+        v-for="user in recommendations.users"
+        v-bind:key="user.user_id"
+        v-bind:userId="user.user_id">
+      </UserRecommendation>
+    </div>
+    <div>
+      Photos you might like:
+      <PhotoRecommendation
+        v-for="photo in recommendations.photos"
+        v-bind:key="photo.image_id"
+        v-bind:imageId="photo.image_id"
+        v-bind:imageOwner="photo.image_owner"
+        v-bind:imageUrl="photo.image_url">
+      </PhotoRecommendation>
+    </div>
     <b-alert variant="danger" :show="this.encounteredError">
       Could not get the information requested. Please try again later
     </b-alert>
@@ -16,10 +27,12 @@
 <script>
 
 import PhotoRecommendation from '../components/PhotoRecommendation.vue';
+import UserRecommendation from '../components/UserRecommendation.vue';
 
 export default {
   components: {
     PhotoRecommendation,
+    UserRecommendation,
   },
   data() {
     return {

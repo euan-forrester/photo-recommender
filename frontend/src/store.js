@@ -19,6 +19,7 @@ export default new Vuex.Store({
       currentlyProcessingData: false,
       haveInitiallyProcessedData: false,
     },
+    personInfo: {},
   },
   mutations: {
     setUser(state, user) {
@@ -30,6 +31,9 @@ export default new Vuex.Store({
     setProcessingStatus(state, { currentlyProcessingData, haveInitiallyProcessedData }) {
       state.user.currentlyProcessingData = currentlyProcessingData;
       state.user.haveInitiallyProcessedData = haveInitiallyProcessedData;
+    },
+    setPersonInfo(state, { userId, personInfo }) {
+      state.personInfo[userId] = personInfo;
     },
   },
   actions: {
@@ -45,6 +49,40 @@ export default new Vuex.Store({
       };
 
       commit('setUser', user);
+    },
+    async getPersonInfo({ commit }, userId) {
+      const response = await FlickrRepository.getPersonInfo(userId);
+
+      // 'realname' may not be defined, or it may be defined and contains an empty string.
+      // Either way, we want to default to their username instead
+
+      let realName = 'realname' in response.data.person ? response.data.person.realname._content : ''; // eslint-disable-line no-underscore-dangle
+
+      if (realName.length === 0) {
+        realName = response.data.person.username._content; // eslint-disable-line no-underscore-dangle
+      }
+
+      const iconFarm = response.data.person.iconfarm;
+      const iconServer = response.data.person.iconserver;
+      const nsId = response.data.person.nsid;
+
+      // Construct a link to their buddy icon according to these rules: https://www.flickr.com/services/api/misc.buddyicons.html
+      let iconUrl = 'https://www.flickr.com/images/buddyicon.gif';
+
+      if (iconServer > 0) {
+        iconUrl = `http://farm${iconFarm}.staticflickr.com/${iconServer}/buddyicons/${nsId}.jpg`;
+      }
+
+      const profileUrl = `https://www.flickr.com/photos/${nsId}/`;
+
+      const personInfo = {
+        userId,
+        realName,
+        iconUrl,
+        profileUrl,
+      };
+
+      commit('setPersonInfo', { userId, personInfo });
     },
     async getRecommendationsForUser({ commit }, { userId, numPhotos, numUsers }) {
       const recommendations = await UsersRepository.getRecommendations(userId, numPhotos, numUsers);

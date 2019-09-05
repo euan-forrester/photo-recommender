@@ -27,5 +27,5 @@ class UserRecommendation():
         # Might consider getting and storing more info about individual users at some point in the future,
         # at which time that could be returned here. For now, we'll just get that info from the frontend
         return {
-            'user': self.user_id
+            'user_id': self.user_id
         }
