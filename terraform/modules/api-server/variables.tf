@@ -27,6 +27,7 @@ variable "load_balancer_access_logs_bucket" {}
 variable "load_balancer_access_logs_prefix" {}
 variable "retain_load_balancer_access_logs_after_destroy" {}
 variable "default_num_photo_recommendations" {}
+variable "default_num_user_recommendations" {}
 variable "flickr_api_key" {}
 variable "flickr_secret_key" {}
 variable "flickr_api_retries" {}

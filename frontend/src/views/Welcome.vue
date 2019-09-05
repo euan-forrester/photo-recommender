@@ -31,6 +31,18 @@
           You must enter a number
         </b-form-invalid-feedback>
       </b-form-group>
+      <b-form-group id="num-users-group" label="Enter the number of recommendations for users to follow you would like" label-for="num-users">
+        <b-form-input
+          v-model="numUsers"
+          @input="$v.numUsers.$touch()"
+          :state="$v.numUsers.$dirty ? !$v.numUsers.$error : null"
+          id="num-users"
+          placeholder="e.g. 5"
+        ></b-form-input>
+        <b-form-invalid-feedback :state="$v.numUsers.$dirty ? !$v.numUsers.$error : null">
+          You must enter a number
+        </b-form-invalid-feedback>
+      </b-form-group>
       <b-button type="submit" variant="primary" :disabled="$v.$invalid">Submit</b-button>
       <b-button type="reset" variant="danger">Reset</b-button>
      </b-form>
@@ -55,6 +67,7 @@ export default {
       userId: '',
       userName: '',
       numPhotos: 50,
+      numUsers: 5,
       currentState: 'none',
     };
   },
@@ -64,6 +77,10 @@ export default {
       url,
     },
     numPhotos: {
+      required,
+      numeric,
+    },
+    numUsers: {
       required,
       numeric,
     },
@@ -145,7 +162,11 @@ export default {
 
       // We have their data, so display their recommendations
 
-      this.$router.push({ name: 'recommendations', params: { userId: this.$store.state.user.id }, query: { 'num-photos': this.numPhotos } });
+      this.$router.push({
+        name: 'recommendations',
+        params: { userId: this.$store.state.user.id },
+        query: { 'num-photos': this.numPhotos, 'num-users': this.numUsers },
+      });
     },
     onReset(evt) {
       evt.preventDefault();
@@ -154,6 +175,7 @@ export default {
       this.userId = '';
       this.userName = '';
       this.numPhotos = 50;
+      this.numUsers = 5;
       this.currentState = 'none';
       this.$v.$reset();
       // Trick to reset/clear native browser form validation state

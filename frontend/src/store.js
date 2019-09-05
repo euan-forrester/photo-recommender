@@ -46,8 +46,8 @@ export default new Vuex.Store({
 
       commit('setUser', user);
     },
-    async getRecommendationsForUser({ commit }, { userId, numPhotos }) {
-      const recommendations = await UsersRepository.getRecommendations(userId, numPhotos);
+    async getRecommendationsForUser({ commit }, { userId, numPhotos, numUsers }) {
+      const recommendations = await UsersRepository.getRecommendations(userId, numPhotos, numUsers);
 
       commit('setRecommendations', recommendations.data);
     },

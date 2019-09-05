@@ -3,8 +3,8 @@ import repository from './repository';
 const resource = '/users';
 
 export default {
-  getRecommendations(userId, numPhotos) {
-    return repository.get(`${resource}/${userId}/recommendations`, { params: { 'num-photos': numPhotos } });
+  getRecommendations(userId, numPhotos, numUsers) {
+    return repository.get(`${resource}/${userId}/recommendations`, { params: { 'num-photos': numPhotos, 'num-users': numUsers } });
   },
   addUser(userId) {
     return repository.post(`${resource}/${userId}`);

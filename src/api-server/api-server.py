@@ -53,6 +53,7 @@ database_connection_pool_size = config_helper.getInt("database-connection-pool-s
 server_host                 = config_helper.get("server-host")
 server_port                 = config_helper.getInt("server-port")
 default_num_photo_recommendations = config_helper.getInt('default-num-photo-recommendations')
+default_num_user_recommendations = config_helper.getInt('default-num-user-recommendations')
 
 flickr_api_key              = config_helper.get("flickr-api-key")
 flickr_api_secret           = config_helper.get("flickr-api-secret", is_secret=True)
@@ -160,11 +161,18 @@ def get_recommendations(user_id=None):
     if user_id is None:
         return user_not_specified()
 
-    num_photos = int(request.args.get('num-photos', default_num_photo_recommendations))
+    num_photos  = int(request.args.get('num-photos',    default_num_photo_recommendations))
+    num_users   = int(request.args.get('num-users',     default_num_user_recommendations))
 
-    recommendations = favorites_store.get_photo_recommendations(user_id, num_photos)
+    photo_recommendations   = favorites_store.get_photo_recommendations(user_id, num_photos)
+    user_recommendations    = favorites_store.get_user_recommendations(user_id, num_users)
 
-    resp = jsonify([e.get_output() for e in recommendations]) # Can't directly encode this class, but we can return an easy-to-encode dict for each element
+    output = {
+        'photos':   [e.get_output() for e in photo_recommendations], # Can't directly encode these classes, but we can return an easy-to-encode dict for each element
+        'users':    [e.get_output() for e in user_recommendations]
+    }
+
+    resp = jsonify(output) 
     resp.status_code = status.HTTP_200_OK
 
     return resp
