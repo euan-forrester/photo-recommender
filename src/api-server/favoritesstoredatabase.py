@@ -458,12 +458,31 @@ class FavoritesStoreDatabase:
 
             return lock_acquired
 
-        except Exception as e:
+        except errors.InternalError as e:
 
-            # Be on the lookout here for deadlocks. I don't know exactly why they happen -- I don't see any circular dependencies.
-            # But the correct response is just to retry, so we should just return false in that case and let the caller try again later.
-            #
-            # FIXME: Need to catch one of these happening so we know the exact exception type and message to look for
+            cnx.rollback()
+            
+            if e.errno == errorcode.ER_LOCK_DEADLOCK:
+                # I don't know why deadlocks occasionally happen with this code. It seems like it's just a thing
+                # that happens sometimes.
+                #
+                # "They are not dangerous unless they are so frequent that you cannot run certain transactions at all." 
+                # "You must write your applications so that they are always prepared to re-issue a transaction 
+                #  if it gets rolled back because of a deadlock."
+                #
+                # https://dev.mysql.com/doc/refman/8.0/en/server-error-reference.html
+                # https://dev.mysql.com/doc/refman/8.0/en/innodb-deadlocks.html
+                # https://dev.mysql.com/doc/refman/8.0/en/innodb-deadlocks-handling.html
+                #
+                # We can just return false here and let the caller retry and it'll work the next time.
+
+                logging.info("Encountered database deadlock when trying to acquire lock. Returning false so the caller can try again.")
+
+                return False
+            else:
+                raise FavoritesStoreException from e
+
+        except Exception as e:
 
             cnx.rollback()
             raise FavoritesStoreException from e

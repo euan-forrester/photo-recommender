@@ -1,6 +1,18 @@
 import mysql.connector
 import logging
 
+# Lots of good information about performance re bulk inserts here:
+#
+# - General inserts: https://dev.mysql.com/doc/refman/8.0/en/insert-optimization.html
+# - InnoDB inserts: https://dev.mysql.com/doc/refman/8.0/en/optimizing-innodb-bulk-data-loading.html
+# - Autoincrement specifics: https://dev.mysql.com/doc/refman/8.0/en/innodb-auto-increment-handling.html
+# - Transaction type specifics: https://dev.mysql.com/doc/refman/8.0/en/innodb-transaction-isolation-levels.html
+
+# Note that since we're using MySQL 8.0, it uses innodb_autoinc_lock_mode = 2 (“interleaved” lock mode) by default
+
+# The big missing piece I see from those links is the UNIQUE constraint on this table, 
+# but we can't currently disable that because we expect duplicates in our input
+
 class DatabaseBatchWriterException(Exception):
     pass
 
@@ -10,6 +22,23 @@ class DatabaseBatchWriter:
         self.cnx = mysql.connector.connect(user=username, password=password, host=host, port=port, database=database)
 
         self.cnx.autocommit = False
+
+        # The 4 types of transactions are 'READ UNCOMMITTED', 'READ COMMITTED', 'REPEATABLE READ', and 'SERIALIZABLE'
+        # https://dev.mysql.com/doc/connector-python/en/connector-python-api-mysqlconnection-start-transaction.html
+
+        # Curiously, our lowest time for an individual process to write to the database is slightly lower
+        # with READ COMMITTED, with an overall average of 2.31s with our test dataset.
+        # However, READ UNCOMMITTED comes in with an overall average of 2.63s with the same dataset.
+        #
+        # But, our overall system run time is significantly faster with READ UNCOMMITTED.
+        # With READ COMMITTED, the average overall system runtime was 13.7s.
+        # However, with READ UNCOMMITTED, the average overall system runtime was 6.7s.
+        # I assume that READ UNCOMMITTED allows for more concurrency.
+
+        # I've also tried experimenting with committing after every batch, rather than at the end, and large and small batch sizes.
+        # No conclusive results yet due to imprecise measurements I think.
+
+        self.cnx.start_transaction(isolation_level="READ UNCOMMITTED")
 
         self.cursor = self.cnx.cursor()
 

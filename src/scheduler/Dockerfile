@@ -16,4 +16,6 @@ ADD common/loop_command.sh /common/
 COPY scheduler/requirements.txt /
 RUN pip install -r /requirements.txt
 WORKDIR scheduler/
-CMD [ "../common/loop_command.sh", "./scheduler.py", "2" ]
+# Only loop every 10 seconds: it's how long our lock lasts, and there's no sense in
+# spamming the API server constantly looking for locks when there's > 1 instance of this process
+CMD [ "../common/loop_command.sh", "./scheduler.py", "10" ]
