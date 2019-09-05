@@ -49,4 +49,7 @@ export default {
       profileUrl,
     };
   },
+  getPhotoUrl(imageOwner, imageId) {
+    return `https://www.flickr.com/photos/${imageOwner}/${imageId}`;
+  }
 };
