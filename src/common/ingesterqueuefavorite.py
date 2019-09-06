@@ -1,7 +1,7 @@
-class IngesterQueueItem:
+class IngesterQueueFavorite:
 
     '''
-    An item placed onto or read from a batch message on the ingester queue. It represents a favorite (or equivalent) photo
+    Part of an IngesterQueueBatchItem: represents a favorite (or equivalent) photo
     '''
 
     def __init__(self, image_id, image_url, image_owner, favorited_by):

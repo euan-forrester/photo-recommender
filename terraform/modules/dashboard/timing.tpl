@@ -11,7 +11,15 @@
         ],
         [
             "Photo Recommender",
-            "duration_to_query_flickr",
+            "duration_to_get_favorites_from_flickr",
+            "Environment",
+            "${environment}",
+            "Process",
+            "puller-flickr"
+        ],
+        [
+            "Photo Recommender",
+            "duration_to_get_contacts_from_flickr",
             "Environment",
             "${environment}",
             "Process",

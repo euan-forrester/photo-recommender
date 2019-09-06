@@ -7,7 +7,7 @@ from flickrapiwrapper import FlickrApiWrapper
 import argparse
 import logging
 import time
-from ingesterqueueitem import IngesterQueueItem
+from ingesterqueuefavorite import IngesterQueueFavorite
 from ingesterqueuebatchitem import IngesterQueueBatchItem
 from pullerqueueitem import PullerQueueItem
 from pullerresponsequeueitem import PullerResponseQueueItem
@@ -89,7 +89,7 @@ output_queue            = SQSQueueWriter(queue_url=output_queue_url,            
 # Process items from our input queue
 #
 
-def process_user(puller_queue_item):
+def get_favorites_for_user(puller_queue_item):
 
     # We will need to build a set of "neighbors" to our user. A "neighbor" is someone who took a photo that the user favorited.
     # We will use each neighbor's photos to assign a score to that neighbor, which we will then use to assign a score to each of their favorites.
@@ -98,16 +98,17 @@ def process_user(puller_queue_item):
     # That's because it might be a while before the ingester_database process finishes ingesting the data we just pulled here, so the Scheduler
     # won't be able to find out the list of neighbors from the database until an unspecified time in the future
 
-    begin_process_user = time.perf_counter()
-
-    flickr_user_id      = puller_queue_item.get_user_id()
-    is_registered_user  = puller_queue_item.get_is_registered_user()
+    flickr_user_id = puller_queue_item.get_user_id()
 
     logging.info(f"Getting favourites for requested user {flickr_user_id}")
 
     begin_query_flickr = time.perf_counter()
     my_favorites = flickrapi.get_favorites(flickr_user_id, flickr_api_max_favorites_per_call, flickr_api_max_favorites_to_get, flickr_api_max_calls_to_make)
     end_query_flickr = time.perf_counter()
+
+    duration_to_query_flickr = end_query_flickr - begin_query_flickr
+
+    metrics_helper.send_time("duration_to_get_favorites_from_flickr", duration_to_query_flickr)
 
     favorite_photos = []
 
@@ -116,7 +117,7 @@ def process_user(puller_queue_item):
     for photo in my_favorites:
         logging.debug("Found photo I favorited: ", photo)
         
-        favorite_photos.append(IngesterQueueItem(favorited_by=flickr_user_id, image_id=photo['id'], image_url=photo.get('url_l', photo.get('url_m', '')), image_owner=photo['owner']))
+        favorite_photos.append(IngesterQueueFavorite(favorited_by=flickr_user_id, image_id=photo['id'], image_url=photo.get('url_l', photo.get('url_m', '')), image_owner=photo['owner']))
 
         my_neighbors.add(photo['owner'])
 
@@ -130,9 +131,9 @@ def process_user(puller_queue_item):
 
     if len(favorite_photos) > 0:
 
-        batch_item = IngesterQueueBatchItem(favorite_photos) # There's a max of 256kB per message in SQS, and with 1000 photos our message bodies come in around 218kB. Will need to split them up if we get > 1000 photos/user
+        batch_item = IngesterQueueBatchItem(favorites_list=favorite_photos, contacts_list=[])
 
-        if batch_item.get_max_items_exceeded():
+        if batch_item.get_max_favorites_exceeded():
             logging.warn(f"User {flickr_user_id} exceeded max number of batched favorite photos: has {len(favorite_photos)} favorites. Consider putting this list is S3 rather than in this SQS message")
             metrics_helper.increment_count("MaxBatchSizeExceeded")
 
@@ -141,31 +142,41 @@ def process_user(puller_queue_item):
     else:
         logging.info("Not sending a message because we didn't find any photos")
 
-    # And send a response to the scheduler saying that we've successfully processed this request
+    logging.info(f"Finished getting favorites for requested user {flickr_user_id}. Took {duration_to_query_flickr} seconds to query Flickr")
 
-    if not is_registered_user:
-        my_neighbors_list = [] # The Scheduler doesn't care about neighbors of neighbors, so if this isn't a registered user then don't bother to send them. They'll just be a bunch of data for no reason, and might exceed the max and cause unnecessary trouble
+    return my_neighbors_list
 
-    puller_response_queue_item = PullerResponseQueueItem(user_id=flickr_user_id, is_registered_user=is_registered_user, neighbor_list=my_neighbors_list) 
+def get_contacts_for_user(puller_queue_item):
 
-    if puller_response_queue_item.get_max_neighbors_exceeded():
-        logging.warn(f"User {flickr_user_id} exceeded max number of neighbors: has {len(my_neighbors_list)} neighbors. Consider putting this list is S3 rather than in this SQS message")
-        metrics_helper.increment_count("MaxNeighborsExceeded")
+    flickr_user_id = puller_queue_item.get_user_id()
 
-    puller_response_queue.send_messages(objects=[puller_response_queue_item], to_string=lambda x: x.to_json()) # Sends messages one at a time, regardless of what the batch size is set to. We don't want to batch them up then miss sending one if we have an error later
+    logging.info(f"Getting contacts for requested user {flickr_user_id}")
 
-    end_process_user = time.perf_counter()
+    begin_query_flickr = time.perf_counter()
+    my_contacts = flickrapi.get_contacts(flickr_user_id, flickr_api_max_contacts_per_call)
+    end_query_flickr = time.perf_counter()
 
-    duration_to_process_user = end_process_user - begin_process_user
     duration_to_query_flickr = end_query_flickr - begin_query_flickr
 
-    metrics_helper.send_time("duration_to_process_user", duration_to_process_user)
-    metrics_helper.send_time("duration_to_query_flickr", duration_to_query_flickr)
+    metrics_helper.send_time("duration_to_get_contacts_from_flickr", duration_to_query_flickr)
 
-    logging.info(f"Finished processing for requested user {flickr_user_id}. Took {duration_to_process_user} seconds, of which {duration_to_query_flickr} seconds was spent querying Flickr")
+    if len(my_contacts) > 0:
+
+        batch_item = IngesterQueueBatchItem(favorites_list=[], contacts_list=my_contacts)
+
+        if batch_item.get_max_contacts_exceeded():
+            logging.warn(f"User {flickr_user_id} exceeded max number of batched contacts: has {len(my_contacts)} contacts. Consider putting this list is S3 rather than in this SQS message")
+            metrics_helper.increment_count("MaxBatchSizeExceeded")
+
+        output_queue.send_messages(objects=[batch_item], to_string=lambda x : x.to_json())
+
+    else:
+        logging.info("Not sending a message because we didn't find any contacts")
+
+    logging.info(f"Finished getting contacts for requested user {flickr_user_id}. Took {duration_to_query_flickr} seconds to query Flickr")
 
 #
-# Call Flickr to get my favorites, and the favorites of the users who created them
+# Call Flickr to get the favorites and/or contacts of this user
 #
 
 logging.info(f"About to query queue {puller_queue_url} for requests")
@@ -174,16 +185,57 @@ try:
 
     for queue_message in puller_queue:
         try :
+            begin_process_user = time.perf_counter()
+
+            # Parse the request, and pull the data it wants
+            # Each one of these functions will output a separate IngesterQueueBatchItem, rather than having us
+            # just output a single one at the end containing all the data we pulled. 
+            # That's for a couple of reasons:
+            #  - Putting all the data together would potentially be too big for a single message
+            #  - By immediately emitting a message as soon as we can, an ingester process can start working right away
+            #    rather than being blocked on us finishing pulling everything first
+
             puller_queue_item = PullerQueueItem.from_json(queue_message.get_message_body())
 
-            process_user(puller_queue_item)
+            my_neighbors_list = []
+
+            if puller_queue_item.get_request_favorites():
+                my_neighbors_list = get_favorites_for_user(puller_queue_item)
+
+            if puller_queue_item.get_request_contacts():
+                get_contacts_for_user(puller_queue_item)
+
+            end_process_user = time.perf_counter()
+
+            # Send a response to the scheduler saying that we've successfully processed this request
+
+            if not puller_queue_item.get_request_neighbor_list():
+                my_neighbors_list = [] # The Scheduler doesn't care about neighbors this time
+
+            puller_response_queue_item = PullerResponseQueueItem(   user_id=flickr_user_id, 
+                                                                    favorites_requested=puller_queue_item.get_request_favorites(), 
+                                                                    contacts_requested=puller_queue_item.get_request_contacts(), 
+                                                                    neighbor_list_requested=puller_queue_item.get_request_neighbor_list(), 
+                                                                    neighbor_list=my_neighbors_list) 
+
+            if puller_response_queue_item.get_max_neighbors_exceeded():
+                logging.warn(f"User {flickr_user_id} exceeded max number of neighbors: has {len(my_neighbors_list)} neighbors. Consider putting this list is S3 rather than in this SQS message")
+                metrics_helper.increment_count("MaxNeighborsExceeded")
+
+            puller_response_queue.send_messages(objects=[puller_response_queue_item], to_string=lambda x: x.to_json()) # Sends messages one at a time, regardless of what the batch size is set to. We don't want to batch them up then miss sending one if we have an error later
+
+            # Finish timing
+
+            duration_to_process_user = end_process_user - begin_process_user
+
+            metrics_helper.send_time("duration_to_process_user", duration_to_process_user)
+
+            puller_queue.finished_with_message(queue_message) # Any other exception than the one below and we want to redrive this message instead to see if it can succeed later, so this does not belong in a finally block
 
         except FlickrApiNotFoundException as e:
             logging.info("User not found in Flickr")
-
-        finally:
-            puller_queue.finished_with_message(queue_message)
-
+            puller_queue.finished_with_message(queue_message) 
+       
 finally:
     puller_queue.shutdown()
 

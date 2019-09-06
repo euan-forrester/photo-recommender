@@ -123,15 +123,25 @@ while lock_acquired:
     try:
         users_ids_to_request_data_for = users_store.get_users_to_request_data_for(scheduler_seconds_between_user_data_updates)
 
-        users_to_request_data_for = [PullerQueueItem(user_id=user_id, is_registered_user=True) for user_id in users_ids_to_request_data_for]
+        puller_requests = []
 
-        logging.info(f"Found {len(users_to_request_data_for)} registered users who need their data updated. Sending messages to queue {puller_queue_url} in batches of {puller_queue_batch_size}")
+        # We can't necessarily fit a user's favorites + their contacts in a single message to the ingester queue, so split them up. 
+        # A user's favorites barely fit as is, and also that'll let us request the two datasets concurrently in 2 processes, 
+        # rather than one then the other in a single process
 
-        puller_queue.send_messages(objects=users_to_request_data_for, to_string=lambda user : user.to_json())
+        favorites_requests  = [PullerQueueItem(user_id=user_id, request_favorites=True, request_contacts=False, request_neighbor_list=True) for user_id in users_ids_to_request_data_for]
+        contacts_requests   = [PullerQueueItem(user_id=user_id, request_favorites=False, request_contacts=True, request_neighbor_list=False) for user_id in users_ids_to_request_data_for]
 
-        for user in users_to_request_data_for:
-            logging.info(f"Requested data for user {user.get_user_id()}")
-            users_store.data_requested(user.get_user_id())
+        puller_requests.extend(favorites_requests)
+        puller_requests.extend(contacts_requests)
+
+        logging.info(f"Found {len(users_ids_to_request_data_for)} registered users who need their data updated. Sending messages to queue {puller_queue_url} in batches of {puller_queue_batch_size}")
+
+        puller_queue.send_messages(objects=puller_requests, to_string=lambda user : user.to_json())
+
+        for user_id in users_ids_to_request_data_for:
+            logging.info(f"Requested data for user {user_id}")
+            users_store.data_requested(user_id)
 
     except UsersStoreException as e:
         logging.error("Unable to talk to our users store. Exiting.", e)
