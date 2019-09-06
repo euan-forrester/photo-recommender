@@ -36,3 +36,13 @@ CREATE TABLE task_locks (
     UNIQUE KEY (process_id),
     KEY (task_id)
 ) ENGINE = InnoDB, CHARACTER SET = utf8mb4;
+
+CREATE TABLE followers (
+    id INT AUTO_INCREMENT,
+    follower_id VARCHAR(16) NOT NULL,
+    followee_id VARCHAR(16) NOT NULL,
+    PRIMARY KEY (id),
+    KEY (follower_id),
+    KEY (followee_id),
+    UNIQUE KEY (followee_id, follower_id)
+) ENGINE = InnoDB, CHARACTER SET = utf8mb4;

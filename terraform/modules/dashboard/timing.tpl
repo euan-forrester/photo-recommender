@@ -43,7 +43,7 @@
         ],
         [
             "Photo Recommender",
-            "process_batch_message_duration",
+            "database_favorites_write_duration",
             "Environment",
             "${environment}",
             "Process",
@@ -51,7 +51,7 @@
         ],
         [
             "Photo Recommender",
-            "database_write_duration",
+            "database_contacts_write_duration",
             "Environment",
             "${environment}",
             "Process",

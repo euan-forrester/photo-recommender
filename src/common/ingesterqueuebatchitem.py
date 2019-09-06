@@ -13,12 +13,17 @@ class IngesterQueueBatchItem:
 
     MAX_CONTACTS = 15000 # A contact is just an ID string, about 17 bytes long
 
-    def __init__(self, favorites_list, contacts_list):
+    def __init__(self, user_id, favorites_list, contacts_list):
+        self.user_id                = user_id
+
         self.max_favorites_exceeded = len(favorites_list) > IngesterQueueBatchItem.MAX_FAVORITES
         self.favorites_list         = favorites_list[:IngesterQueueBatchItem.MAX_FAVORITES]
     
         self.max_contacts_exceeded  = len(contacts_list) > IngesterQueueBatchItem.MAX_CONTACTS
         self.contacts_list          = contacts_list[:IngesterQueueBatchItem.MAX_CONTACTS]
+
+    def get_user_id(self):
+        return self.user_id
 
     def get_favorites_list(self):
         return self.favorites_list

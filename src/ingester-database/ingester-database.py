@@ -8,6 +8,7 @@ import logging
 import time
 from ingesterqueueitem import IngesterQueueItem
 from ingesterqueuebatchitem import IngesterQueueBatchItem
+from contactitem import ContactItem
 from queuereader import SQSQueueReader
 from confighelper import ConfigHelper
 from databasebatchwriter import DatabaseBatchWriter
@@ -79,12 +80,13 @@ database = DatabaseBatchWriter(
     max_retries=output_database_max_retries,
     metrics_helper=metrics_helper)
 
-photo_batch = []
-unwritten_message_batch = []
+favorites_batch = []
+contacts_batch = []
+read_message_batch = []
 
-def write_batch(photo_batch, unwritten_message_batch):
+def write_favorites_batch(favorites_batch):
 
-    if len(photo_batch) > 0:
+    if len(favorites_batch) > 0:
 
         begin_database_write = time.perf_counter()
 
@@ -92,56 +94,86 @@ def write_batch(photo_batch, unwritten_message_batch):
         database.batch_write(
             "INSERT IGNORE INTO favorites (image_id, image_owner, image_url, favorited_by) VALUES (%s, %s, %s, %s)", 
             lambda photo: ( photo.get_image_id(), photo.get_image_owner(), photo.get_image_url(), photo.get_favorited_by() ),
-            photo_batch
+            favorites_batch
         )
 
         end_database_write = time.perf_counter()
 
         database_write_duration = end_database_write - begin_database_write
 
-        metrics_helper.send_time("database_write_duration", database_write_duration)
+        metrics_helper.send_time("database_favorites_write_duration", database_write_duration)
 
-        logging.info(f"Wrote out batch of {len(photo_batch)} messages to database. Took {database_write_duration} seconds.")
+        logging.info(f"Wrote out batch of {len(favorites_batch)} favorites to database. Took {database_write_duration} seconds.")
 
-        # Only delete our messages after we've successfully inserted them into the database.
-        # Otherwise, if there's an error inserting, we want all of these messages to get re-driven so we can try again.
-        # There shouldn't be any duplicates, because an error here will mean that the process has to quit and thus the 
-        # database transaction won't be committed. But if there were any resultant duplicates they would just be ignored.
-        for successful_message in unwritten_message_batch:
-            queue.finished_with_message(successful_message)
+def write_contacts_batch(contacts_batch):
+
+    if len(contacts_batch) > 0:
+
+        begin_database_write = time.perf_counter()
+
+        # INSERT IGNORE means to ignore any errors that occur while inserting, particularly key errors indicating duplicate entries.
+        database.batch_write(
+            "INSERT IGNORE INTO followers (follower, followee) VALUES (%s, %s)", 
+            lambda contact: ( contact.get_follower_id(), contact.get_followee_id() ),
+            contacts_batch
+        )
+
+        end_database_write = time.perf_counter()
+
+        database_write_duration = end_database_write - begin_database_write
+
+        metrics_helper.send_time("database_contacts_write_duration", database_write_duration)
+
+        logging.info(f"Wrote out batch of {len(contacts_batch)} contacts to database. Took {database_write_duration} seconds.")
 
 for queue_message in queue:
 
     begin_process_batch_message = time.perf_counter()
 
-    photo_batch_queue_item = IngesterQueueBatchItem.from_json(queue_message.get_message_body())
+    batch_queue_item = IngesterQueueBatchItem.from_json(queue_message.get_message_body())
 
-    logging.info(f"Received batch item containing {len(photo_batch_queue_item.get_item_list())} individual items")
+    logging.info(f"Received batch item for user {batch_queue_item.get_user_id()} containing {len(batch_queue_item.get_favorites_list())} favorites and {len(batch_queue_item.get_contacts_list())} contacts")
 
     if logging.getLogger().getEffectiveLevel() <= logging.DEBUG:
-        for photo in photo_batch_queue_item.get_item_list():
-            logging.debug(f"Received item: image owner: {photo.get_image_owner()}, image ID: {photo.get_image_id()}, image URL: {photo.get_image_url()}, image favorited by: {photo.get_favorited_by()}")
+        for favorite in batch_queue_item.get_favorites_list():
+            logging.debug(f"Received favorite: image owner: {favorite.get_image_owner()}, image ID: {favorite.get_image_id()}, image URL: {favorite.get_image_url()}, image favorited by: {favorite.get_favorited_by()}")
 
-    photo_batch.extend(photo_batch_queue_item.get_item_list())
-    unwritten_message_batch.append(queue_message)
+        for contact_user_id in batch_queue_item.get_contacts_list():
+            logging.debug(f"Received contact for user {batch_queue_item.get_user_id()}: {contact_user_id}")
 
-    if len(photo_batch) >= output_database_min_batch_size:
+    favorites_batch.extend(batch_queue_item.get_favorites_list())
+    contacts_batch.extend([ContactItem(batch_queue_item.get_user_id(), followee_id) for followee_id in batch_queue_item.get_contacts_list()]) # Don't include these ContactItems in the actual message, because they're bloated with the follower_id over and over. But we need them here because we're inserting items as a batch, and different items may have different follower_ids
+    read_message_batch.append(queue_message)
 
-        write_batch(photo_batch, unwritten_message_batch)
+    if len(favorites_batch) >= output_database_min_batch_size:
+        write_favorites_batch(favorites_batch)
+        favorites_batch = []
 
-        photo_batch = []
-        unwritten_message_batch = []
+    if len(contacts_batch) >= output_database_min_batch_size:
+        write_contacts_batch(contacts_batch)
+        contacts_batch = []
 
     end_process_batch_message = time.perf_counter()
 
     process_batch_message_duration = end_process_batch_message - begin_process_batch_message
-    metrics_helper.send_time("process_batch_message_duration", process_batch_message_duration)
     logging.info(f"Took {process_batch_message_duration} seconds to process batch message")
 
 # Write out any remaining items that didn't make a full batch
-write_batch(photo_batch, unwritten_message_batch)
+write_favorites_batch(favorites_batch)
+write_contacts_batch(contacts_batch)
 
 database.shutdown()
+
+# Only delete our messages after we've successfully inserted them into the database.
+# There is no database commit until it's shut down above.
+# Otherwise, if there's an error inserting, we want all of these messages to get re-driven so we can try again.
+# There shouldn't be any duplicates, because an error here will mean that the process has to quit and thus the 
+# database transaction won't be committed. But if there were any resultant duplicates they would just be ignored.
+for successful_message in read_message_batch:
+    queue.finished_with_message(successful_message)
+
+read_message_batch = []
+
 queue.shutdown()
 
 logging.info("Successfully finished processing")
