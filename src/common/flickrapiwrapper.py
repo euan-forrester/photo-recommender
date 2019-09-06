@@ -1,6 +1,7 @@
 import flickrapi
 import logging
 import requests
+import json
 from django.core.cache import cache
 from django.conf import settings
 
@@ -89,9 +90,53 @@ class FlickrApiWrapper:
 
         favorites = self._call_with_retries(lambda_to_call)
 
-        logging.info(f"Just called get_favorites_page for page {page_number} with max_favorites_per_call {max_favorites_per_call} and returning {len(favorites['photos']['photo'])} faves")
+        logging.info(f"Just called get_favorites_page() for page {page_number} with max_favorites_per_call {max_favorites_per_call} and returning {len(favorites['photos']['photo'])} faves")
 
         return favorites
+
+    def get_contacts(self, user_id, max_contacts_per_call):
+
+        # Unlike get_favorites() above, we don't want to put any limits on this data because we need to look through all of our contacts
+        # to see whether a user we're recommending is someone that is already being followed by the user in question
+
+        got_all_contacts = False
+        current_page = 1
+        contacts = []
+
+        while not got_all_contacts:
+            contacts_subset = self._get_contacts_page(user_id, current_page, max_contacts_per_call)
+
+            if len(contacts_subset) > 0: # We can't just check if the number we got back == the number we requested, because frequently we can get back < the number we requested but there's still more available. This is likely due to not having permission to be able to view all of the ones we requested
+                contacts.extend(contacts_subset)
+            else:
+                got_all_contacts = True
+
+            current_page += 1
+
+        logging.info(f"Returning {len(contacts)} contacts which took {current_page - 1} calls.")
+
+        # There's some extraneous information included from the Flickr API, like their username and whether we're ignoring them, but we don't need that
+
+        return [e["nsid"] for e in contacts] 
+
+    def _get_contacts_page(self, user_id, page_number, max_contacts_per_call):
+
+        # There's also flickr.contacts.getList(), but it requires authentication. 
+        # It would be nice to be more accurate by getting all of our contacts, but that would require doing this on the frontend side rather than
+        # in the database, which seems like a world of hurt. We'd have to get all of the user's contacts, then keep getting more an more recommendations
+        # of users until we'd filled the required number. Seems complicated and slow vs just doing it all in a single SQL statement.
+        lambda_to_call = lambda: self.flickr.contacts.getPublicList(user_id=user_id, per_page=max_contacts_per_call, page=page_number)
+
+        response = self._call_with_retries(lambda_to_call)
+
+        contacts = []
+
+        if 'contact' in response['contacts']:
+            contacts = response['contacts']['contact']
+
+        logging.info(f"Just called get_contacts_page() for page {page_number} with max_contacts_per_call {max_contacts_per_call} and returning {len(contacts)} contacts")
+
+        return contacts
 
     @staticmethod
     def _make_memcached_key(key, key_prefix, version):

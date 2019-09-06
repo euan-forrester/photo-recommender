@@ -48,6 +48,7 @@ flickr_api_retries                  = config_helper.getInt("flickr-api-retries")
 flickr_api_max_favorites_per_call   = config_helper.getInt("flickr-api-favorites-maxpercall")
 flickr_api_max_favorites_to_get     = config_helper.getInt("flickr-api-favorites-maxtoget")
 flickr_api_max_calls_to_make        = config_helper.getInt("flickr-api-favorites-maxcallstomake")
+flickr_api_max_contacts_per_call    = config_helper.getInt("flickr-api-contacts-maxpercall")
 
 memcached_location                  = config_helper.get("memcached-location")
 memcached_ttl                       = config_helper.getInt("memcached-ttl")

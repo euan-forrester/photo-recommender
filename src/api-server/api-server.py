@@ -303,6 +303,19 @@ def get_flickr_get_person_info():
 
     return resp
 
+@application.route("/api/flickr/contacts/get-list", methods = ['GET'])
+def get_flickr_get_contacts():
+
+    user_id = request.args.get("user-id")
+
+    if not user_id:
+        return parameter_not_specified("user-id")
+
+    resp = jsonify(flickrapi.get_contacts(user_id=user_id, max_contacts_per_call=1000))
+    resp.status_code = status.HTTP_200_OK
+
+    return resp
+
 @application.route("/favicon.ico", methods = ['GET'])
 def get_favicon():
     # Browsers like to call this, and without defining this route we see 404 errors in our logs
