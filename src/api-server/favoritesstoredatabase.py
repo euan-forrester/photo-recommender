@@ -1,6 +1,7 @@
 import mysql.connector.pooling
 import logging
 from photorecommendation import PhotoRecommendation
+from userrecommendation import UserRecommendation
 from favoritesstoreexception import FavoritesStoreException
 from favoritesstoreexception import FavoritesStoreUserNotFoundException
 from favoritesstoreexception import FavoritesStoreDuplicateUserException
@@ -202,6 +203,56 @@ class FavoritesStoreDatabase:
 
             for row in self._iter_row(cursor):
                 recommendations.append(PhotoRecommendation(image_id=row[0], image_owner=row[1], image_url=row[2], score=row[3]))
+
+            return recommendations
+
+        except Exception as e:
+            raise FavoritesStoreException from e
+
+        finally:
+            cursor.close()
+            cnx.close()
+
+    def get_user_recommendations(self, user_id, num_users):
+
+        cnx = self.cnxpool.get_connection()
+
+        cursor = cnx.cursor() 
+
+        try:
+            # See SQL queries.md for an explanation of the various portions of this query
+            #
+            # See note above re the complexity and brittleness of this query
+
+            # OPTIMIZATION: Is it possible to pre-compile this statement? 
+
+            cursor.execute("""
+                SELECT 
+                    total_favorites.neighbor_user_id as 'neighbor_user_id', 
+                    total_favorites.num_favorites as 'num_favorites', 
+                    ifnull(common_favorites.num_favorites_in_common, 0) as 'num_favorites_in_common', 
+                    150 * sqrt(ifnull(common_favorites.num_favorites_in_common, 0) / (total_favorites.num_favorites + 250)) as 'score' 
+                from
+                    (select favorited_by as 'neighbor_user_id', count(image_id) as 'num_favorites' from favorites where favorited_by in 
+                        (select distinct image_owner from favorites where favorited_by=%s) 
+                        group by favorited_by) as total_favorites
+                left join 
+                    (select neighbor_favorites.favorited_by as 'neighbor_user_id', count(neighbor_favorites.image_id) as 'num_favorites_in_common' from
+                        favorites as my_favorites join favorites as neighbor_favorites
+                        on my_favorites.image_id = neighbor_favorites.image_id
+                        where my_favorites.favorited_by=%s and neighbor_favorites.favorited_by in (select distinct image_owner from favorites where favorited_by=%s) 
+                        group by neighbor_favorites.favorited_by) as common_favorites
+                on 
+                    total_favorites.neighbor_user_id = common_favorites.neighbor_user_id
+                order by
+                    score desc
+                limit 0,%s;
+            """, (user_id, user_id, user_id, num_users))
+     
+            recommendations = []
+
+            for row in self._iter_row(cursor):
+                recommendations.append(UserRecommendation(user_id=row[0], num_favorites_in_total=row[1], num_favorites_in_common=row[2], score=row[3]))
 
             return recommendations
 

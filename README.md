@@ -177,3 +177,5 @@ TODO:
 - Fix S3 bucket name conflicts if other people run this terraform
 - Fix website S3 bucket permissions to allow deployments but not allow public access
 - Get domain name + add hooks for google analytics
+- Add button to dismiss a photo or user recommendation, and add that photo/user to a table so that they aren't recommended again
+- Don't recommend users who we already follow

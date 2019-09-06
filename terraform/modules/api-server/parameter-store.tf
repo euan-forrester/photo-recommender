@@ -125,3 +125,10 @@ resource "aws_ssm_parameter" "default_num_photo_recommendations" {
     type        = "String"
     value       = "${var.default_num_photo_recommendations}"
 }
+
+resource "aws_ssm_parameter" "default_num_user_recommendations" {
+    name        = "/${var.environment}/api-server/default-num-user-recommendations"
+    description = "Number of user recommendations we return if the caller doesn't specify"
+    type        = "String"
+    value       = "${var.default_num_user_recommendations}"
+}

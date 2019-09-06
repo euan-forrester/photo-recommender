@@ -253,6 +253,7 @@ module "api_server" {
     ecs_days_to_keep_images = 1
 
     default_num_photo_recommendations = 10
+    default_num_user_recommendations = 5
 }
 
 module "frontend" {

@@ -19,6 +19,7 @@ export default new Vuex.Store({
       currentlyProcessingData: false,
       haveInitiallyProcessedData: false,
     },
+    personInfo: {},
   },
   mutations: {
     setUser(state, user) {
@@ -31,14 +32,17 @@ export default new Vuex.Store({
       state.user.currentlyProcessingData = currentlyProcessingData;
       state.user.haveInitiallyProcessedData = haveInitiallyProcessedData;
     },
+    setPersonInfo(state, { userId, personInfo }) {
+      state.personInfo[userId] = personInfo;
+    },
   },
   actions: {
     async getUserIdFromUrl({ commit }, userUrl) {
-      const response = await FlickrRepository.getUserIdFromUrl(userUrl);
+      const userResponse = await FlickrRepository.getUserIdFromUrl(userUrl);
 
       const user = {
-        id: response.data.user.id,
-        name: response.data.user.username._content, // eslint-disable-line no-underscore-dangle
+        id: userReponse.id,
+        name: userResponse.name,
         recommendations: [],
         currentlyProcessingData: false,
         haveInitiallyProcessedData: false,
@@ -46,8 +50,13 @@ export default new Vuex.Store({
 
       commit('setUser', user);
     },
-    async getRecommendationsForUser({ commit }, { userId, numPhotos }) {
-      const recommendations = await UsersRepository.getRecommendations(userId, numPhotos);
+    async getPersonInfo({ commit }, userId) {
+      const personInfo = await FlickrRepository.getPersonInfo(userId);
+
+      commit('setPersonInfo', { userId, personInfo });
+    },
+    async getRecommendationsForUser({ commit }, { userId, numPhotos, numUsers }) {
+      const recommendations = await UsersRepository.getRecommendations(userId, numPhotos, numUsers);
 
       commit('setRecommendations', recommendations.data);
     },
