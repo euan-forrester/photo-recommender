@@ -15,7 +15,6 @@ CREATE TABLE registered_users (
     id INT AUTO_INCREMENT,
     user_id VARCHAR(64) NOT NULL,
     data_last_requested_at TIMESTAMP,
-    data_last_successfully_processed_at TIMESTAMP,
     all_data_last_successfully_processed_at TIMESTAMP,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

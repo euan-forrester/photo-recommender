@@ -75,20 +75,20 @@ try:
     for queue_message in puller_response_queue:
         response = PullerResponseQueueItem.from_json(queue_message.get_message_body())
 
-        logging.info(f"Received response message: User ID: {response.get_user_id()}, is registered user: {str(response.get_is_registered_user())}")
+        logging.info(f"Received response message: User ID: {response.get_user_id()}, neighbor list requested: {str(response.get_neighbor_list_requested())}")
 
-        neighbors_to_request_data_for = [PullerQueueItem(user_id=user_id, is_registered_user=False) for user_id in response.get_neighbor_list()]
+        if response.get_neighbor_list_requested():
 
-        logging.info(f"Found {len(neighbors_to_request_data_for)} neighbors who need their data updated. Sending messages to queue {puller_queue_url} in batches of {puller_queue_batch_size}")
+            neighbors_to_request_data_for = [PullerQueueItem(user_id=user_id, request_favorites=True, request_contacts=False, request_neighbor_list=False) for user_id in response.get_neighbor_list()]
 
-        if len(neighbors_to_request_data_for) > 0:
-            puller_queue.send_messages(objects=neighbors_to_request_data_for, to_string=lambda user : user.to_json())
+            logging.info(f"Found {len(neighbors_to_request_data_for)} neighbors who need their data updated. Sending messages to queue {puller_queue_url} in batches of {puller_queue_batch_size}")
 
-            if logging.getLogger().getEffectiveLevel() <= logging.INFO:
-                for neighbor in neighbors_to_request_data_for:
-                    logging.info(f"Requested data for user {neighbor.get_user_id()}")
+            if len(neighbors_to_request_data_for) > 0:
+                puller_queue.send_messages(objects=neighbors_to_request_data_for, to_string=lambda user : user.to_json())
 
-        users_store.data_updated(response.get_user_id())
+                if logging.getLogger().getEffectiveLevel() <= logging.INFO:
+                    for neighbor in neighbors_to_request_data_for:
+                        logging.info(f"Requested data for neighbor {neighbor.get_user_id()}")
 
         puller_response_queue.finished_with_message(queue_message)
 
