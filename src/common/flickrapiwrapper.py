@@ -82,7 +82,10 @@ class FlickrApiWrapper:
 
     def _get_favorites_page(self, user_id, page_number, max_favorites_per_call):
 
-        lambda_to_call = lambda: self.flickr.favorites.getList(user_id=user_id, extras='url_l,url_m', per_page=max_favorites_per_call, page=page_number)
+        # There's also flickr.favorites.getList(), which gets all the faves that our current API key can see. While it would be nice to get
+        # more photos, some users might not be able to see the same things as this API key, so ultimately it'll result in broken links. 
+        # Also some users might be upset at having their semi-private photos surfaced.
+        lambda_to_call = lambda: self.flickr.favorites.getPublicList(user_id=user_id, extras='url_l,url_m', per_page=max_favorites_per_call, page=page_number)
 
         favorites = self._call_with_retries(lambda_to_call)
 
