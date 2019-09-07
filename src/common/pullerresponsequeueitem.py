@@ -11,8 +11,9 @@ class PullerResponseQueueItem:
     An item placed onto or read from the puller response queue. It represents a user
     '''
 
-    def __init__(self, user_id, favorites_requested, contacts_requested, neighbor_list_requested, neighbor_list):
+    def __init__(self, user_id, initial_requesting_user_id, favorites_requested, contacts_requested, neighbor_list_requested, neighbor_list):
         self.user_id                    = user_id
+        self.initial_requesting_user_id = initial_requesting_user_id
         self.favorites_requested        = favorites_requested
         self.contacts_requested         = contacts_requested
         self.neighbor_list_requested    = neighbor_list_requested
@@ -21,6 +22,9 @@ class PullerResponseQueueItem:
    
     def get_user_id(self):
         return self.user_id
+
+    def get_initial_requesting_user_id(self):
+        return self.initial_requesting_user_id
 
     def get_favorites_requested(self):
         return self.favorites_requested

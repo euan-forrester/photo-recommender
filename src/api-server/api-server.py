@@ -210,7 +210,42 @@ def put_user_data_requested(user_id=None):
     if user_id is None:
         return user_not_specified()
 
-    favorites_store.user_data_requested(user_id)
+    num_puller_requests = request.args.get('num-puller-requests')
+
+    if not num_puller_requests:
+        return parameter_not_specified("num-puller-requests")
+
+    favorites_store.user_data_requested(user_id, num_puller_requests)
+
+    return "OK", status.HTTP_200_OK
+
+# Notifies that there have been more puller requests made for a particular user
+@application.route("/api/users/<user_id>/more-puller-requests", methods = ['PUT'])
+def put_user_more_puller_requests(user_id=None):
+    if user_id is None:
+        return user_not_specified()
+
+    num_puller_requests = request.args.get('num-puller-requests')
+
+    if not num_puller_requests:
+        return parameter_not_specified("num-puller-requests")
+
+    favorites_store.more_puller_requests(user_id, num_puller_requests)
+
+    return "OK", status.HTTP_200_OK
+
+# Notifies that there have been some puller responses for a particular user
+@application.route("/api/users/<user_id>/received-puller-responses", methods = ['PUT'])
+def put_user_received_puller_responses(user_id=None):
+    if user_id is None:
+        return user_not_specified()
+
+    num_puller_responses = request.args.get('num-puller-responses')
+
+    if not num_puller_responses:
+        return parameter_not_specified("num-puller-responses")
+
+    favorites_store.received_puller_responses(user_id, num_puller_responses)
 
     return "OK", status.HTTP_200_OK
 

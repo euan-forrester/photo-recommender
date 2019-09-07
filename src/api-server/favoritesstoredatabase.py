@@ -330,7 +330,7 @@ class FavoritesStoreDatabase:
             cursor.close()
             cnx.close() 
 
-    def user_data_requested(self, user_id):
+    def user_data_requested(self, user_id, num_puller_requests):
         cnx = self.cnxpool.get_connection()
 
         cursor = cnx.cursor() 
@@ -340,11 +340,13 @@ class FavoritesStoreDatabase:
                 UPDATE 
                     registered_users 
                 SET 
-                    data_last_requested_at = NOW() 
+                    data_last_requested_at = NOW(), 
+                    num_puller_requests_made = %s,
+                    num_puller_requests_finished = 0
                 WHERE 
                     user_id=%s
                 ;
-            """, (user_id,))
+            """, (num_puller_requests, user_id))
 
             cnx.commit()
 
@@ -355,6 +357,58 @@ class FavoritesStoreDatabase:
         finally:
             cursor.close()
             cnx.close()         
+
+    def more_puller_requests(self, user_id, num_puller_requests):
+        cnx = self.cnxpool.get_connection()
+
+        cursor = cnx.cursor() 
+
+        try:
+            cursor.execute("""
+                UPDATE 
+                    registered_users 
+                SET 
+                    num_puller_requests_made = num_puller_requests_made + %s
+                WHERE 
+                    user_id=%s
+                ;
+            """, (num_puller_requests, user_id))
+
+            cnx.commit()
+
+        except Exception as e:
+            cnx.rollback()
+            raise FavoritesStoreException from e
+
+        finally:
+            cursor.close()
+            cnx.close()  
+
+    def received_puller_responses(self, user_id, num_puller_responses):
+        cnx = self.cnxpool.get_connection()
+
+        cursor = cnx.cursor() 
+
+        try:
+            cursor.execute("""
+                UPDATE 
+                    registered_users 
+                SET 
+                    num_puller_requests_finished = num_puller_requests_finished + %s
+                WHERE 
+                    user_id=%s
+                ;
+            """, (num_puller_responses, user_id))
+
+            cnx.commit()
+
+        except Exception as e:
+            cnx.rollback()
+            raise FavoritesStoreException from e
+
+        finally:
+            cursor.close()
+            cnx.close()  
 
     def all_user_data_updated(self, user_id):
         cnx = self.cnxpool.get_connection()
