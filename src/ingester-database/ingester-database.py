@@ -6,7 +6,7 @@ sys.path.insert(0, '../common')
 import argparse
 import logging
 import time
-from ingesterqueueitem import IngesterQueueItem
+from ingesterqueuefavorite import IngesterQueueFavorite
 from ingesterqueuebatchitem import IngesterQueueBatchItem
 from contactitem import ContactItem
 from queuereader import SQSQueueReader
@@ -113,7 +113,7 @@ def write_contacts_batch(contacts_batch):
 
         # INSERT IGNORE means to ignore any errors that occur while inserting, particularly key errors indicating duplicate entries.
         database.batch_write(
-            "INSERT IGNORE INTO followers (follower, followee) VALUES (%s, %s)", 
+            "INSERT IGNORE INTO followers (follower_id, followee_id) VALUES (%s, %s)", 
             lambda contact: ( contact.get_follower_id(), contact.get_followee_id() ),
             contacts_batch
         )
@@ -125,6 +125,19 @@ def write_contacts_batch(contacts_batch):
         metrics_helper.send_time("database_contacts_write_duration", database_write_duration)
 
         logging.info(f"Wrote out batch of {len(contacts_batch)} contacts to database. Took {database_write_duration} seconds.")
+
+def commit_batches(favorites_batch, contacts_batch, database, read_message_batch):
+    write_favorites_batch(favorites_batch)
+    write_contacts_batch(contacts_batch)
+    
+    database.commit_current_batches()
+
+    # Only delete our messages after we've successfully committed them into the database.
+    # Otherwise, if there's an error inserting, we want all of these messages to get re-driven so we can try again.
+    # There shouldn't be any duplicates, because an error here will mean that the process has to quit and thus the 
+    # database transaction won't be committed. But if there were any resultant duplicates they would just be ignored.
+    for successful_message in read_message_batch:
+        queue.finished_with_message(successful_message)
 
 for queue_message in queue:
 
@@ -145,13 +158,11 @@ for queue_message in queue:
     contacts_batch.extend([ContactItem(batch_queue_item.get_user_id(), followee_id) for followee_id in batch_queue_item.get_contacts_list()]) # Don't include these ContactItems in the actual message, because they're bloated with the follower_id over and over. But we need them here because we're inserting items as a batch, and different items may have different follower_ids
     read_message_batch.append(queue_message)
 
-    if len(favorites_batch) >= output_database_min_batch_size:
-        write_favorites_batch(favorites_batch)
+    if (len(favorites_batch) >= output_database_min_batch_size) or (len(contacts_batch) >= output_database_min_batch_size):
+        commit_batches(favorites_batch, contacts_batch, database, read_message_batch);
         favorites_batch = []
-
-    if len(contacts_batch) >= output_database_min_batch_size:
-        write_contacts_batch(contacts_batch)
         contacts_batch = []
+        read_message_batch = []
 
     end_process_batch_message = time.perf_counter()
 
@@ -159,21 +170,9 @@ for queue_message in queue:
     logging.info(f"Took {process_batch_message_duration} seconds to process batch message")
 
 # Write out any remaining items that didn't make a full batch
-write_favorites_batch(favorites_batch)
-write_contacts_batch(contacts_batch)
+commit_batches(favorites_batch, contacts_batch, database, read_message_batch)
 
 database.shutdown()
-
-# Only delete our messages after we've successfully inserted them into the database.
-# There is no database commit until it's shut down above.
-# Otherwise, if there's an error inserting, we want all of these messages to get re-driven so we can try again.
-# There shouldn't be any duplicates, because an error here will mean that the process has to quit and thus the 
-# database transaction won't be committed. But if there were any resultant duplicates they would just be ignored.
-for successful_message in read_message_batch:
-    queue.finished_with_message(successful_message)
-
-read_message_batch = []
-
 queue.shutdown()
 
 logging.info("Successfully finished processing")

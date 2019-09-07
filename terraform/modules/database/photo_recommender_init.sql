@@ -21,7 +21,6 @@ CREATE TABLE registered_users (
     PRIMARY KEY (id),
     UNIQUE KEY (user_id),
     KEY (data_last_requested_at),
-    KEY (data_last_successfully_processed_at),
     KEY (all_data_last_successfully_processed_at)
 ) ENGINE = InnoDB, CHARACTER SET = utf8mb4;
 

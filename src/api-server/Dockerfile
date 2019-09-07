@@ -3,6 +3,7 @@ ADD api-server/api-server.py /api-server/
 ADD api-server/photorecommendation.py /api-server/
 ADD api-server/favoritesstoredatabase.py /api-server/
 ADD api-server/favoritesstoreexception.py /api-server/
+ADD api-server/userrecommendation.py /api-server/
 ADD common/flickrapiwrapper.py /common/
 ADD common/confighelper.py /common/
 ADD common/metricshelper.py /common/

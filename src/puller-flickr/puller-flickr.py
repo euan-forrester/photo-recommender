@@ -212,7 +212,7 @@ try:
             if not puller_queue_item.get_request_neighbor_list():
                 my_neighbors_list = [] # The Scheduler doesn't care about neighbors this time
 
-            puller_response_queue_item = PullerResponseQueueItem(   user_id=flickr_user_id, 
+            puller_response_queue_item = PullerResponseQueueItem(   user_id=puller_queue_item.get_user_id(), 
                                                                     favorites_requested=puller_queue_item.get_request_favorites(), 
                                                                     contacts_requested=puller_queue_item.get_request_contacts(), 
                                                                     neighbor_list_requested=puller_queue_item.get_request_neighbor_list(), 
