@@ -11,7 +11,15 @@
         ],
         [
             "Photo Recommender",
-            "duration_to_query_flickr",
+            "duration_to_get_favorites_from_flickr",
+            "Environment",
+            "${environment}",
+            "Process",
+            "puller-flickr"
+        ],
+        [
+            "Photo Recommender",
+            "duration_to_get_contacts_from_flickr",
             "Environment",
             "${environment}",
             "Process",
@@ -35,7 +43,7 @@
         ],
         [
             "Photo Recommender",
-            "process_batch_message_duration",
+            "database_favorites_write_duration",
             "Environment",
             "${environment}",
             "Process",
@@ -43,7 +51,7 @@
         ],
         [
             "Photo Recommender",
-            "database_write_duration",
+            "database_contacts_write_duration",
             "Environment",
             "${environment}",
             "Process",

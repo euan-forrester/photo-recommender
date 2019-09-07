@@ -1,4 +1,6 @@
 import mysql.connector
+from mysql.connector import errorcode
+from mysql.connector import errors
 import logging
 
 # Lots of good information about performance re bulk inserts here:
@@ -56,6 +58,9 @@ class DatabaseBatchWriter:
 
         self._execute_with_retries(sql_insert, value_tuples)
 
+    def commit_current_batches(self):
+        self.cnx.commit()
+
     def _execute_with_retries(self, sql_insert, value_tuples):
        
         num_retries = 0
@@ -72,15 +77,17 @@ class DatabaseBatchWriter:
                 result = self.cursor.executemany(sql_insert, value_tuples)
                 success = True
 
-            except mysql.connector.errors.InternalError as e:
-                # We seem to get occasional deadlock errors when having many processes writing lots to the database.
-                # There doesn't seem to be a way to determine that this happened from the exception object other than to test
-                # the string against "Deadlock found when trying to get lock".
-                #
-                # https://github.com/euan-forrester/photo-recommender/issues/34
-                
-                logging.info(f"Got MySQL InternalError {e} on retry {num_retries} of {self.max_retries}")
+            except errors.InternalError as e:
+
                 error = e
+              
+                if e.errno == errorcode.ER_LOCK_DEADLOCK:
+                    # We seem to get occasional deadlock errors when having many processes writing lots to the database.
+                    # Just retry and see if it clears
+                    
+                    logging.info(f"Encountered deadlock on retry {num_retries} of {self.max_retries}")
+                else:
+                    logging.info(f"Got MySQL InternalError {e} on retry {num_retries} of {self.max_retries}")
 
             num_retries += 1
 
@@ -91,6 +98,6 @@ class DatabaseBatchWriter:
         return result 
 
     def shutdown(self):
-        self.cnx.commit()
+        self.commit_current_batches()
         self.cursor.close()
         self.cnx.close()

@@ -1,7 +1,8 @@
 FROM python:3.7.4-alpine
 ADD ingester-database/ingester-database.py /ingester-database/
 ADD ingester-database/databasebatchwriter.py /ingester-database/
-ADD common/ingesterqueueitem.py /common/
+ADD ingester-database/contactitem.py /ingester-database/
+ADD common/ingesterqueuefavorite.py /common/
 ADD common/ingesterqueuebatchitem.py /common/
 ADD common/queuereader.py /common/
 ADD common/confighelper.py /common/

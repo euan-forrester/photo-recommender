@@ -11,17 +11,25 @@ class PullerResponseQueueItem:
     An item placed onto or read from the puller response queue. It represents a user
     '''
 
-    def __init__(self, user_id, is_registered_user, neighbor_list):
-        self.user_id                = user_id
-        self.is_registered_user     = is_registered_user
-        self.max_neighbors_exceeded = len(neighbor_list) > PullerResponseQueueItem.MAX_NUM_NEIGHBORS
-        self.neighbor_list          = neighbor_list[:PullerResponseQueueItem.MAX_NUM_NEIGHBORS]
+    def __init__(self, user_id, favorites_requested, contacts_requested, neighbor_list_requested, neighbor_list):
+        self.user_id                    = user_id
+        self.favorites_requested        = favorites_requested
+        self.contacts_requested         = contacts_requested
+        self.neighbor_list_requested    = neighbor_list_requested
+        self.max_neighbors_exceeded     = len(neighbor_list) > PullerResponseQueueItem.MAX_NUM_NEIGHBORS
+        self.neighbor_list              = neighbor_list[:PullerResponseQueueItem.MAX_NUM_NEIGHBORS]
    
     def get_user_id(self):
         return self.user_id
 
-    def get_is_registered_user(self):
-        return self.is_registered_user
+    def get_favorites_requested(self):
+        return self.favorites_requested
+
+    def get_contacts_requested(self):
+        return self.contacts_requested
+
+    def get_neighbor_list_requested(self):
+        return self.neighbor_list_requested
 
     def get_neighbor_list(self):
         return self.neighbor_list

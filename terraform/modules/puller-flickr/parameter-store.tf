@@ -41,6 +41,13 @@ resource "aws_ssm_parameter" "flickr_api_retries" {
     value       = "${var.flickr_api_retries}"
 }
 
+resource "aws_ssm_parameter" "flickr_api_contacts_max_per_call" {
+    name        = "/${var.environment}/puller-flickr/flickr-api-contacts-maxpercall"
+    description = "Max number of contacts to get per API call"
+    type        = "String"
+    value       = "${var.flickr_api_contacts_max_per_call}"
+}
+
 resource "aws_ssm_parameter" "flickr_api_favorites_max_per_call" {
     name        = "/${var.environment}/puller-flickr/flickr-api-favorites-maxpercall"
     description = "Max number of favorites to get per API call"

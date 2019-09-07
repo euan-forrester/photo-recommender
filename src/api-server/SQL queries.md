@@ -67,6 +67,34 @@ select
         total_favorites.neighbor_user_id = common_favorites.neighbor_user_id;
 ```
 
+## My neighbor recommendations: how many favorites they have, how many favorites they have in common with me, and their score, excluding ones already in my contacts, sorted by score
+
+```
+select 
+    total_favorites.neighbor_user_id as 'neighbor_user_id', 
+    total_favorites.num_favorites as 'num_favorites', 
+    ifnull(common_favorites.num_favorites_in_common, 0) as 'num_favorites_in_common', 
+    150 * sqrt(ifnull(common_favorites.num_favorites_in_common, 0) / (total_favorites.num_favorites + 250)) as 'score' 
+from
+    (select favorited_by as 'neighbor_user_id', count(image_id) as 'num_favorites' from favorites where favorited_by in 
+        (select distinct image_owner from favorites where favorited_by="86466248@N00") 
+        group by favorited_by) as total_favorites
+left join 
+    (select neighbor_favorites.favorited_by as 'neighbor_user_id', count(neighbor_favorites.image_id) as 'num_favorites_in_common' from
+        favorites as my_favorites join favorites as neighbor_favorites
+        on my_favorites.image_id = neighbor_favorites.image_id
+        where my_favorites.favorited_by="86466248@N00" and neighbor_favorites.favorited_by in (select distinct image_owner from favorites where favorited_by="86466248@N00") 
+        group by neighbor_favorites.favorited_by) as common_favorites
+on 
+    total_favorites.neighbor_user_id = common_favorites.neighbor_user_id
+where 
+    total_favorites.neighbor_user_id not in 
+        (select followee_id from followers where follower_id="86466248@N00")
+order by
+    score desc
+limit 0,10;
+```
+
 ## For all photos favorited by my neighbors and not me, which neighbors favorited them
 ```
 select image_id, image_owner, image_url, favorited_by from favorites 

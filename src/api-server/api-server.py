@@ -214,16 +214,6 @@ def put_user_data_requested(user_id=None):
 
     return "OK", status.HTTP_200_OK
 
-# Notifies that a particular user has had their data successfully updated (i.e. for just themsolves)
-@application.route("/api/users/<user_id>/data-updated", methods = ['PUT'])
-def put_user_data_updated(user_id=None):
-    if user_id is None:
-        return user_not_specified()
-
-    favorites_store.user_data_updated(user_id)
-
-    return "OK", status.HTTP_200_OK
-
 # Notifies that a particular user has had all of their data successfully updated (i.e. for all their neighbors)
 @application.route("/api/users/<user_id>/all-data-updated", methods = ['PUT'])
 def put_user_all_data_updated(user_id=None):
@@ -299,6 +289,19 @@ def get_flickr_get_person_info():
         return parameter_not_specified("user-id")
 
     resp = jsonify(flickrapi.get_person_info(user_id=user_id))
+    resp.status_code = status.HTTP_200_OK
+
+    return resp
+
+@application.route("/api/flickr/contacts/get-list", methods = ['GET'])
+def get_flickr_get_contacts():
+
+    user_id = request.args.get("user-id")
+
+    if not user_id:
+        return parameter_not_specified("user-id")
+
+    resp = jsonify(flickrapi.get_contacts(user_id=user_id, max_contacts_per_call=1000))
     resp.status_code = status.HTTP_200_OK
 
     return resp

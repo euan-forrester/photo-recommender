@@ -68,18 +68,6 @@ class UsersStoreAPIServer:
         except HTTPError as http_err:
             raise UsersStoreException from http_err
 
-    def data_updated(self, user_id):
-
-        try:
-            response = requests.put(f"{self.url_prefix}/users/{user_id}/data-updated")
-
-            response.raise_for_status()
-
-            return
-
-        except HTTPError as http_err:
-            raise UsersStoreException from http_err
-
     def all_data_updated(self, user_id):
 
         try:

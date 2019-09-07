@@ -7,7 +7,9 @@
 </template>
 
 <script>
-import { getPhotoUrl } from '../repositories/flickrRepository'
+import RepositoryFactory from '../repositories/repositoryFactory';
+
+const FlickrRepository = RepositoryFactory.get('flickr');
 
 export default {
   props: {
@@ -17,11 +19,11 @@ export default {
   },
   data() {
     return {
-      photoUrl,
+      photoUrl: '',
     };
   },
   async mounted() {
-    this.photoUrl = getPhotoUrl(this.imageOwner, this.imageId);
+    this.photoUrl = FlickrRepository.getPhotoUrl(this.imageOwner, this.imageId);
   },
 };
 </script>

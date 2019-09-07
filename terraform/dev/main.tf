@@ -28,9 +28,9 @@ module "elastic_container_service" {
     extra_security_groups = ["${module.api_server.security_group_id}"]
 
     instance_type = "t2.micro"#"c5.large"#"t2.micro"
-    cluster_desired_size = 0#2#20
+    cluster_desired_size = 2#0#2#20
     cluster_min_size = 0
-    cluster_max_size = 0#2#20
+    cluster_max_size = 2#0#2#20
     instances_log_retention_days = 1
 }
 
@@ -163,6 +163,7 @@ module "puller_flickr" {
     flickr_api_favorites_max_per_call = 500
     flickr_api_favorites_max_to_get = 1000
     flickr_api_favorites_max_calls_to_make = 1
+    flickr_api_contacts_max_per_call = 1000
 
     output_queue_url = "${module.ingester_database.ingester_queue_url}"
     output_queue_arn = "${module.ingester_database.ingester_queue_arn}"
@@ -200,7 +201,7 @@ module "ingester_database" {
     mysql_database_username = "${module.database.database_username}"
     mysql_database_password = "${var.database_password_dev}"
     mysql_database_name     = "${module.database.database_name}"
-    mysql_database_min_batch_size = 50 # Small batches here to take advantage of having lots of instances. Otherwise, messages get tied up getting batched with other messages while some instances are sitting unused
+    mysql_database_min_batch_size = 10000
     mysql_database_maxretries = 3
 
     input_queue_batch_size  = 1 # Each message takes a while to process because it contains many individual items, so only get one at a time so that we're not blocking other instances from picking them up
@@ -318,7 +319,7 @@ module "alarms" {
 
     queue_names = [ "${module.scheduler.puller_queue_full_name}", "${module.scheduler.puller_response_queue_full_name}", "${module.ingester_database.ingester_queue_full_name}"]
     queue_item_size_threshold = 235520 # 230kB -- 256kB is the absolute max
-    queue_item_age_threshold = 500 # 8.3 minutes
+    queue_item_age_threshold = 900 # 15 minutes: it can take a long time to process stuff in dev, with a limited numbers of workers
     queue_reader_error_threshold = 1
     queue_writer_error_threshold = 1
 
