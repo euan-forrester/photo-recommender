@@ -168,6 +168,8 @@ class FavoritesStoreDatabase:
 
             # Took the scoring formula from https://www.flickr.com/groups/709526@N23/discuss/72157604460161681/72157604455830572
 
+            # Note that we exclude any photos we've already favorited from these recommendations
+
             cursor.execute("""
                 SELECT possible_photos.image_id, possible_photos.image_owner, possible_photos.image_url, sum(neighbor_scores.score) as 'total_score' from
                         (select image_id, image_owner, image_url, favorited_by from favorites 
@@ -223,6 +225,8 @@ class FavoritesStoreDatabase:
             # See SQL queries.md for an explanation of the various portions of this query
             #
             # See note above re the complexity and brittleness of this query
+            #
+            # Note that we exclude anyone we're currently following from these recommendations.
 
             # OPTIMIZATION: Is it possible to pre-compile this statement? 
 
@@ -244,10 +248,13 @@ class FavoritesStoreDatabase:
                         group by neighbor_favorites.favorited_by) as common_favorites
                 on 
                     total_favorites.neighbor_user_id = common_favorites.neighbor_user_id
+                where 
+                    total_favorites.neighbor_user_id not in 
+                        (select followee_id from followers where follower_id=%s)
                 order by
                     score desc
                 limit 0,%s;
-            """, (user_id, user_id, user_id, num_users))
+            """, (user_id, user_id, user_id, user_id, num_users))
      
             recommendations = []
 
