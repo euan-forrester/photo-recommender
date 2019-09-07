@@ -249,6 +249,21 @@ def put_user_received_puller_responses(user_id=None):
 
     return "OK", status.HTTP_200_OK
 
+# Notifies that there have been some ingester responses for a particular user
+@application.route("/api/users/<user_id>/received-ingester-responses", methods = ['PUT'])
+def put_user_received_ingester_responses(user_id=None):
+    if user_id is None:
+        return user_not_specified()
+
+    num_ingester_responses = request.args.get('num-ingester-responses')
+
+    if not num_ingester_responses:
+        return parameter_not_specified("num-ingester-responses")
+
+    favorites_store.received_ingester_responses(user_id, num_ingester_responses)
+
+    return "OK", status.HTTP_200_OK
+
 # Notifies that a particular user has had all of their data successfully updated (i.e. for all their neighbors)
 @application.route("/api/users/<user_id>/all-data-updated", methods = ['PUT'])
 def put_user_all_data_updated(user_id=None):

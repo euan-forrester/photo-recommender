@@ -7,6 +7,17 @@ class PullerQueueItem:
     '''
 
     def __init__(self, user_id, initial_requesting_user_id, request_favorites, request_contacts, request_neighbor_list):
+   
+        # As an optimization, we're going to make the assumption that one message to the puller results in
+        # one message to the ingester. Otherwise we have to have the puller report how many messages it
+        # generated, and either send that directly to the API server (slowing down the puller), or added
+        # to its response message. But then that response message, and the ingester message and its response,
+        # may not be processed in the expected order, resulting in false positives when detecting whether
+        # all ingester messages have been processed.
+
+        if request_favorites and request_contacts:
+            raise RuntimeError("Can only request one thing at a time from the puller")
+
         self.user_id                    = user_id
         self.initial_requesting_user_id = initial_requesting_user_id
         self.request_favorites          = request_favorites # Should the puller get the user's favorites?
