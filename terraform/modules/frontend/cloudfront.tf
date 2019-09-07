@@ -60,8 +60,8 @@ resource "aws_cloudfront_distribution" "application" {
 
         viewer_protocol_policy = "allow-all"
         min_ttl                = 0
-        default_ttl            = 3600
-        max_ttl                = 86400
+        default_ttl            = 5
+        max_ttl                = 5
     }
 
     # Forward everything else to our S3 bucket
