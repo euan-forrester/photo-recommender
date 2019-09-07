@@ -13,9 +13,13 @@ CREATE TABLE favorites (
 
 CREATE TABLE registered_users (
     id INT AUTO_INCREMENT,
-    user_id VARCHAR(64) NOT NULL,
+    user_id VARCHAR(16) NOT NULL,
     data_last_requested_at TIMESTAMP,
     all_data_last_successfully_processed_at TIMESTAMP,
+    num_puller_requests_made INT,
+    num_puller_requests_finished INT,
+    num_ingester_requests_made INT,
+    num_ingester_requests_finished INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),

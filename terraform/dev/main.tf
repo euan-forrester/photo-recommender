@@ -100,6 +100,9 @@ module "scheduler" {
     ingester_database_queue_url = "${module.ingester_database.ingester_queue_url}"
     ingester_database_queue_arn = "${module.ingester_database.ingester_queue_arn}"
 
+    puller_queue_long_polling_seconds = 10 # We can poll as long as we want, because nothing happens when we find no more new messages other than we restart
+    puller_response_queue_long_polling_seconds = 1 # Don't do long polling for too long: we can only write out our batches to the API server after we find no more new messages
+
     max_iterations_before_exit = 1000
     sleep_ms_between_iterations = 500
 
@@ -206,6 +209,7 @@ module "ingester_database" {
 
     input_queue_batch_size  = 1 # Each message takes a while to process because it contains many individual items, so only get one at a time so that we're not blocking other instances from picking them up
     input_queue_max_items_to_process = 10000
+    input_queue_long_polling_seconds = 1 # Don't do long polling for too long: we can only commit after we find no more new messages
 }
 
 module "api_server" {

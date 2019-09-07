@@ -18,3 +18,4 @@ variable "ecs_instances_role_name" {}
 variable "ecs_days_to_keep_images" {}
 variable "input_queue_batch_size" {}
 variable "input_queue_max_items_to_process" {}
+variable "input_queue_long_polling_seconds" {}

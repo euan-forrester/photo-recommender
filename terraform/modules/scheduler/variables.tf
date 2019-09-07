@@ -18,3 +18,5 @@ variable "ingester_database_queue_arn" {}
 variable "max_iterations_before_exit" {}
 variable "sleep_ms_between_iterations" {}
 variable "duration_to_request_lock_seconds" {}
+variable "puller_queue_long_polling_seconds" {}
+variable "puller_response_queue_long_polling_seconds" {}
