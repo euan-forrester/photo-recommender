@@ -25,7 +25,6 @@ export default {
   },
   async mounted() {
     try {
-
       // It would probably be better if we had all the information we needed about each potential
       // user recommendation in our database already. That would allow us to get information about
       // how to display them faster.

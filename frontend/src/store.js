@@ -41,7 +41,7 @@ export default new Vuex.Store({
       const userResponse = await FlickrRepository.getUserIdFromUrl(userUrl);
 
       const user = {
-        id: userReponse.id,
+        id: userResponse.id,
         name: userResponse.name,
         recommendations: [],
         currentlyProcessingData: false,

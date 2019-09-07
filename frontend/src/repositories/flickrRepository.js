@@ -19,7 +19,7 @@ export default {
   },
   async getPersonInfo(userId) {
     const response = await repository.get(`${resource}/people/get-info`, { params: { 'user-id': userId } });
-  
+
     // 'realname' may not be defined, or it may be defined and contains an empty string.
     // Either way, we want to default to their username instead
 
@@ -51,5 +51,5 @@ export default {
   },
   getPhotoUrl(imageOwner, imageId) {
     return `https://www.flickr.com/photos/${imageOwner}/${imageId}`;
-  }
+  },
 };
