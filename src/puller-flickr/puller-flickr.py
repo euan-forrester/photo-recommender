@@ -140,7 +140,11 @@ def get_favorites_for_user(puller_queue_item):
         output_queue.send_messages(objects=[batch_item], to_string=lambda x : x.to_json())
 
     else:
-        logging.info("Not sending a message because we didn't find any photos")
+        # It would be nice to change this behavior in the future, so keeping this all in an else so it can be deleted or changed easily later
+        # See comment in PullerQueueItem.py
+        logging.info("Didn't find any photos, but still sending an empty message so the count of puller messages matches the count of ingester messages")
+        batch_item = IngesterQueueBatchItem(user_id=flickr_user_id, initial_requesting_user_id=puller_queue_item.get_initial_requesting_user_id(), favorites_list=[], contacts_list=[])
+        output_queue.send_messages(objects=[batch_item], to_string=lambda x : x.to_json())
 
     logging.info(f"Finished getting favorites for requested user {flickr_user_id}. Took {duration_to_query_flickr} seconds to query Flickr")
 
@@ -171,7 +175,11 @@ def get_contacts_for_user(puller_queue_item):
         output_queue.send_messages(objects=[batch_item], to_string=lambda x : x.to_json())
 
     else:
-        logging.info("Not sending a message because we didn't find any contacts")
+        # It would be nice to change this behavior in the future, so keeping this all in an else so it can be deleted or changed easily later
+        # See comment in PullerQueueItem.py
+        logging.info("Didn't find any contacts, but still sending an empty message so the count of puller messages matches the count of ingester messages")
+        batch_item = IngesterQueueBatchItem(user_id=flickr_user_id, initial_requesting_user_id=puller_queue_item.get_initial_requesting_user_id(), favorites_list=[], contacts_list=[])
+        output_queue.send_messages(objects=[batch_item], to_string=lambda x : x.to_json())
 
     logging.info(f"Finished getting contacts for requested user {flickr_user_id}. Took {duration_to_query_flickr} seconds to query Flickr")
 
