@@ -4,6 +4,7 @@ ADD ingester-database/databasebatchwriter.py /ingester-database/
 ADD ingester-database/contactitem.py /ingester-database/
 ADD common/ingesterqueuefavorite.py /common/
 ADD common/ingesterqueuebatchitem.py /common/
+ADD common/ingesterresponsequeueitem.py /common/
 ADD common/queuereader.py /common/
 ADD common/queuewriter.py /common/
 ADD common/confighelper.py /common/

@@ -76,7 +76,7 @@ queue = SQSQueueReader(
     max_messages_to_read=input_queue_max_items_to_process,
     metrics_helper=metrics_helper)
 
-response_queue = SQSQueueWriter(
+output_queue = SQSQueueWriter(
     queue_url=output_queue_url, 
     batch_size=output_queue_batch_size, 
     metrics_helper=metrics_helper)

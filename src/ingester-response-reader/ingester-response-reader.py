@@ -32,7 +32,7 @@ logging.basicConfig(format='%(levelname)s: %(message)s', level=log_level)
 # Get our config
 #
 
-config_helper = ConfigHelper.get_config_helper(default_env_name="dev", aws_parameter_prefix="puller-response-reader")
+config_helper = ConfigHelper.get_config_helper(default_env_name="dev", aws_parameter_prefix="ingester-response-reader")
 
 metrics_namespace                   = config_helper.get("metrics-namespace")
 
@@ -55,7 +55,7 @@ unhandled_exception_helper  = UnhandledExceptionHelper.setup_unhandled_exception
 # 
 
 users_store             = UsersStoreAPIServer(host=api_server_host, port=api_server_port)
-ingester_response_queue   = SQSQueueReader(ingester_response_queue_url, ingester_response_queue_batch_size, ingester_response_queue_max_items_to_process, metrics_helper)
+ingester_response_queue = SQSQueueReader(ingester_response_queue_url, ingester_response_queue_batch_size, ingester_response_queue_max_items_to_process, metrics_helper)
 
 #
 # Process any ingester response messages
@@ -82,7 +82,7 @@ try:
 
         logging.info(f"Received response message: User ID: {user_id}, initial requesting user ID: {initial_requesting_user_id}, contained num favorites: {response.get_contained_num_favorites()}, contained num contacts: {response.get_contained_num_contacts()}")
 
-        puller_response_queue.finished_with_message(queue_message)
+        ingester_response_queue.finished_with_message(queue_message)
 
     # Now that we have no new messages to process, tell the API server how many messages we saw for each user
 
@@ -101,7 +101,7 @@ except UsersStoreException as e:
     sys.exit()
 
 finally:
-    puller_response_queue.shutdown()
+    ingester_response_queue.shutdown()
 
 logging.info("Ended processing ingester response messages")
 
