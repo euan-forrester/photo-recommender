@@ -103,7 +103,11 @@ class UsersStoreAPIServer:
 
             response.raise_for_status()
 
-            return
+            response.encoding = "utf-8"
+
+            response_object = response.json()
+
+            return response_object
 
         except HTTPError as http_err:
             raise UsersStoreException from http_err

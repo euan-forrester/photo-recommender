@@ -418,6 +418,9 @@ class FavoritesStoreDatabase:
             cnx.close()  
 
     def received_ingester_responses(self, user_id, num_ingester_responses):
+        
+        finished_processing = False
+
         cnx = self.cnxpool.get_connection()
 
         cursor = cnx.cursor() 
@@ -452,6 +455,9 @@ class FavoritesStoreDatabase:
             num_ingester_requests_finished = row[1]
 
             if num_ingester_requests_finished >= num_ingester_requests_made:
+                
+                finished_processing = True
+
                 cursor.execute("""
                     UPDATE 
                         registered_users 
@@ -470,6 +476,8 @@ class FavoritesStoreDatabase:
         finally:
             cursor.close()
             cnx.close()  
+
+        return finished_processing
 
     def get_time_to_update_all_data(self, user_id):
 

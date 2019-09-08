@@ -260,9 +260,16 @@ def put_user_received_ingester_responses(user_id=None):
     if not num_ingester_responses:
         return parameter_not_specified("num-ingester-responses")
 
-    favorites_store.received_ingester_responses(user_id, num_ingester_responses)
+    finished_processing = favorites_store.received_ingester_responses(user_id, num_ingester_responses)
 
-    return "OK", status.HTTP_200_OK
+    response_object = {
+        'finished_processing': finished_processing
+    }
+
+    resp = jsonify(response_object)
+    resp.status_code = status.HTTP_200_OK
+
+    return resp
 
 # Gets how long it took for a particular user has had all of their data successfully updated
 @application.route("/api/users/<user_id>/get-time-to-update-all-data", methods = ['GET'])
