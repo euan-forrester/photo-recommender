@@ -18,7 +18,7 @@ from usersstoreexception import UsersStoreException
 # Read in commandline arguments
 #
 
-parser = argparse.ArgumentParser(description="Read items from the puller-reponse-queue, and write new items to the puller-queue based on them")
+parser = argparse.ArgumentParser(description="Read items from the puller-reponse-queue, write new items to the puller-queue based on them, and write to the API server that we received them.")
 
 parser.add_argument("-d", "--debug", action="store_true", dest="debug", default=False, help="Display debug information")
 
@@ -72,25 +72,48 @@ logging.info("Beginning processing puller response messages")
 
 try:
 
+    messages_received = {} # Keep track of how many messages we received for each user, so we can do batch calls at the end rather than many individual calls
+
     for queue_message in puller_response_queue:
         response = PullerResponseQueueItem.from_json(queue_message.get_message_body())
 
-        logging.info(f"Received response message: User ID: {response.get_user_id()}, neighbor list requested: {str(response.get_neighbor_list_requested())}")
+        user_id = response.get_user_id()
+        initial_requesting_user_id = response.get_initial_requesting_user_id();
+
+        if not initial_requesting_user_id in messages_received:
+            messages_received[initial_requesting_user_id] = {
+                'count': 0
+            }
+
+        messages_received[initial_requesting_user_id]['count'] += 1
+
+        logging.info(f"Received response message: User ID: {user_id}, initial requesting user ID: {initial_requesting_user_id}, neighbor list requested: {str(response.get_neighbor_list_requested())}")
 
         if response.get_neighbor_list_requested():
 
-            neighbors_to_request_data_for = [PullerQueueItem(user_id=user_id, request_favorites=True, request_contacts=False, request_neighbor_list=False) for user_id in response.get_neighbor_list()]
+            neighbors_to_request_data_for = [PullerQueueItem(user_id=neighbor_user_id, initial_requesting_user_id=response.get_user_id(), request_favorites=True, request_contacts=False, request_neighbor_list=False) for neighbor_user_id in response.get_neighbor_list()]
 
-            logging.info(f"Found {len(neighbors_to_request_data_for)} neighbors who need their data updated. Sending messages to queue {puller_queue_url} in batches of {puller_queue_batch_size}")
+            if len(neighbors_to_request_data_for) == 0:
+                logging.warn("No neighbors in list despite requesting data for neighbors")
 
-            if len(neighbors_to_request_data_for) > 0:
-                puller_queue.send_messages(objects=neighbors_to_request_data_for, to_string=lambda user : user.to_json())
+            else:
+                logging.info(f"Found {len(neighbors_to_request_data_for)} neighbors who need their data updated. Sending messages to queue {puller_queue_url} in batches of {puller_queue_batch_size}")
+
+                puller_queue.send_messages(objects=neighbors_to_request_data_for, to_string=lambda queue_item : queue_item.to_json())
+
+                users_store.made_more_puller_requests(user_id, len(neighbors_to_request_data_for))
 
                 if logging.getLogger().getEffectiveLevel() <= logging.INFO:
                     for neighbor in neighbors_to_request_data_for:
                         logging.info(f"Requested data for neighbor {neighbor.get_user_id()}")
 
         puller_response_queue.finished_with_message(queue_message)
+
+    # Now that we have no new messages to process, tell the API server how many messages we saw for each user
+
+    for initial_requesting_user_id in messages_received:
+        logging.info(f"Telling users store that we received {messages_received[initial_requesting_user_id]['count']} responses for initial requesting user {initial_requesting_user_id}")
+        users_store.received_puller_responses(initial_requesting_user_id, messages_received[initial_requesting_user_id]['count'])
 
 except UsersStoreException as e:
     logging.error("Unable to talk to our users store. Exiting.", e)

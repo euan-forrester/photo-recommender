@@ -210,21 +210,68 @@ def put_user_data_requested(user_id=None):
     if user_id is None:
         return user_not_specified()
 
-    favorites_store.user_data_requested(user_id)
+    num_puller_requests = request.args.get('num-puller-requests')
+
+    if not num_puller_requests:
+        return parameter_not_specified("num-puller-requests")
+
+    favorites_store.user_data_requested(user_id, num_puller_requests)
 
     return "OK", status.HTTP_200_OK
 
-# Notifies that a particular user has had all of their data successfully updated (i.e. for all their neighbors)
-@application.route("/api/users/<user_id>/all-data-updated", methods = ['PUT'])
-def put_user_all_data_updated(user_id=None):
+# Notifies that there have been more puller requests made for a particular user
+@application.route("/api/users/<user_id>/more-puller-requests", methods = ['PUT'])
+def put_user_more_puller_requests(user_id=None):
     if user_id is None:
         return user_not_specified()
 
-    favorites_store.all_user_data_updated(user_id)
+    num_puller_requests = request.args.get('num-puller-requests')
+
+    if not num_puller_requests:
+        return parameter_not_specified("num-puller-requests")
+
+    favorites_store.more_puller_requests(user_id, num_puller_requests)
 
     return "OK", status.HTTP_200_OK
 
-# Notifies that a particular user has had all of their data successfully updated (i.e. for all their neighbors)
+# Notifies that there have been some puller responses for a particular user
+@application.route("/api/users/<user_id>/received-puller-responses", methods = ['PUT'])
+def put_user_received_puller_responses(user_id=None):
+    if user_id is None:
+        return user_not_specified()
+
+    num_puller_responses = request.args.get('num-puller-responses')
+
+    if not num_puller_responses:
+        return parameter_not_specified("num-puller-responses")
+
+    favorites_store.received_puller_responses(user_id, num_puller_responses)
+
+    return "OK", status.HTTP_200_OK
+
+# Notifies that there have been some ingester responses for a particular user
+@application.route("/api/users/<user_id>/received-ingester-responses", methods = ['PUT'])
+def put_user_received_ingester_responses(user_id=None):
+    if user_id is None:
+        return user_not_specified()
+
+    num_ingester_responses = request.args.get('num-ingester-responses')
+
+    if not num_ingester_responses:
+        return parameter_not_specified("num-ingester-responses")
+
+    finished_processing = favorites_store.received_ingester_responses(user_id, num_ingester_responses)
+
+    response_object = {
+        'finished_processing': finished_processing
+    }
+
+    resp = jsonify(response_object)
+    resp.status_code = status.HTTP_200_OK
+
+    return resp
+
+# Gets how long it took for a particular user has had all of their data successfully updated
 @application.route("/api/users/<user_id>/get-time-to-update-all-data", methods = ['GET'])
 def get_time_to_update_all_data(user_id=None):
     if user_id is None:

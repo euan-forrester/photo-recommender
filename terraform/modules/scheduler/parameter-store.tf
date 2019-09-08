@@ -40,25 +40,11 @@ resource "aws_ssm_parameter" "puller_queue_batch_size" {
     value       = "${var.puller_queue_batch_size}"
 }
 
-resource "aws_ssm_parameter" "puller_response_queue_url" {
-    name        = "/${var.environment}/scheduler/puller-response-queue-url"
-    description = "Endpoint of queue we use to ingest responses about successful data pulling"
-    type        = "String"
-    value       = "${module.puller_response_queue.queue_url}"
-}
-
 resource "aws_ssm_parameter" "scheduler_seconds_between_user_data_updates" {
     name        = "/${var.environment}/scheduler/seconds-between-user-data-updates"
     description = "Number of seconds between requests from the scheduler to update user data from each provider"
     type        = "String"
     value       = "${var.scheduler_seconds_between_user_data_updates}"
-}
-
-resource "aws_ssm_parameter" "ingester_queue_url" {
-    name        = "/${var.environment}/scheduler/ingester-queue-url"
-    description = "Endpoint of queue we use to ingest data into the database, only used to check its size"
-    type        = "String"
-    value       = "${var.ingester_database_queue_url}"
 }
 
 resource "aws_ssm_parameter" "max_iterations_before_exit" {

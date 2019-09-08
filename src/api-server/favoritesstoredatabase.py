@@ -330,21 +330,27 @@ class FavoritesStoreDatabase:
             cursor.close()
             cnx.close() 
 
-    def user_data_requested(self, user_id):
+    def user_data_requested(self, user_id, num_puller_requests):
         cnx = self.cnxpool.get_connection()
 
         cursor = cnx.cursor() 
+
+        # Here, we're making the assumption that 1 puller request = 1 ingester request. See pullerqueueitem.py for more details
 
         try:
             cursor.execute("""
                 UPDATE 
                     registered_users 
                 SET 
-                    data_last_requested_at = NOW() 
+                    data_last_requested_at = NOW(), 
+                    num_puller_requests_made = %s,
+                    num_ingester_requests_made = %s,
+                    num_puller_requests_finished = 0,
+                    num_ingester_requests_finished = 0
                 WHERE 
                     user_id=%s
                 ;
-            """, (user_id,))
+            """, (num_puller_requests, num_puller_requests, user_id))
 
             cnx.commit()
 
@@ -356,20 +362,24 @@ class FavoritesStoreDatabase:
             cursor.close()
             cnx.close()         
 
-    def all_user_data_updated(self, user_id):
+    def more_puller_requests(self, user_id, num_puller_requests):
         cnx = self.cnxpool.get_connection()
 
         cursor = cnx.cursor() 
+
+        # Here, we're making the assumption that 1 puller request = 1 ingester request. See pullerqueueitem.py for more details
 
         try:
             cursor.execute("""
                 UPDATE 
                     registered_users 
                 SET 
-                    all_data_last_successfully_processed_at = NOW() 
+                    num_puller_requests_made = num_puller_requests_made + %s,
+                    num_ingester_requests_made = num_ingester_requests_made + %s
                 WHERE 
-                    user_id=%s;
-            """, (user_id,))
+                    user_id=%s
+                ;
+            """, (num_puller_requests, num_puller_requests, user_id))
 
             cnx.commit()
 
@@ -379,7 +389,95 @@ class FavoritesStoreDatabase:
 
         finally:
             cursor.close()
-            cnx.close() 
+            cnx.close()  
+
+    def received_puller_responses(self, user_id, num_puller_responses):
+        cnx = self.cnxpool.get_connection()
+
+        cursor = cnx.cursor() 
+
+        try:
+            cursor.execute("""
+                UPDATE 
+                    registered_users 
+                SET 
+                    num_puller_requests_finished = num_puller_requests_finished + %s
+                WHERE 
+                    user_id=%s
+                ;
+            """, (num_puller_responses, user_id))
+
+            cnx.commit()
+
+        except Exception as e:
+            cnx.rollback()
+            raise FavoritesStoreException from e
+
+        finally:
+            cursor.close()
+            cnx.close()  
+
+    def received_ingester_responses(self, user_id, num_ingester_responses):
+        
+        finished_processing = False
+
+        cnx = self.cnxpool.get_connection()
+
+        cursor = cnx.cursor() 
+
+        # If we have received all of the ingester responses that we wanted, then
+        # we've finished processing
+
+        try:
+            cursor.execute("""
+                UPDATE 
+                    registered_users 
+                SET 
+                    num_ingester_requests_finished = num_ingester_requests_finished + %s
+                WHERE 
+                    user_id=%s
+                ;
+            """, (num_ingester_responses, user_id))
+
+            cursor.execute("""
+                SELECT
+                    num_ingester_requests_made, num_ingester_requests_finished
+                FROM
+                    registered_users
+                WHERE
+                    user_id=%s
+                ;
+            """, (user_id,))
+
+            row = self._get_first_row(cursor)
+                
+            num_ingester_requests_made = row[0]
+            num_ingester_requests_finished = row[1]
+
+            if num_ingester_requests_finished >= num_ingester_requests_made:
+                
+                finished_processing = True
+
+                cursor.execute("""
+                    UPDATE 
+                        registered_users 
+                    SET 
+                        all_data_last_successfully_processed_at = NOW() 
+                    WHERE 
+                        user_id=%s;
+                """, (user_id,))
+
+            cnx.commit()
+
+        except Exception as e:
+            cnx.rollback()
+            raise FavoritesStoreException from e
+
+        finally:
+            cursor.close()
+            cnx.close()  
+
+        return finished_processing
 
     def get_time_to_update_all_data(self, user_id):
 

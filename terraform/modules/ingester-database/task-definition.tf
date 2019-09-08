@@ -51,7 +51,15 @@ resource "aws_iam_policy" "ecs-instance-ingester-database-extra-policy" {
         "sqs:DeleteMessage"
       ],
       "Effect": "Allow",
-      "Resource": "${module.sqs_queue.queue_arn}"
+      "Resource": "${module.input_sqs_queue.queue_arn}"
+    },
+    {
+      "Action": [
+        "sqs:SendMessageBatch",
+        "sqs:SendMessage"
+      ],
+      "Effect": "Allow",
+      "Resource": "${module.output_sqs_queue.queue_arn}"
     }
   ]
 }

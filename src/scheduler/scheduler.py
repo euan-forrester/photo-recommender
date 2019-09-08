@@ -47,11 +47,7 @@ api_server_port                     = config_helper.getInt("api-server-port")
 puller_queue_url                    = config_helper.get("puller-queue-url")
 puller_queue_batch_size             = config_helper.getInt("puller-queue-batchsize")
 
-puller_response_queue_url           = config_helper.get("puller-response-queue-url")
-
 scheduler_seconds_between_user_data_updates = config_helper.getInt("seconds-between-user-data-updates")
-
-ingester_queue_url                  = config_helper.get("ingester-queue-url")
 
 max_iterations_before_exit          = config_helper.getInt("max-iterations-before-exit")
 sleep_ms_between_iterations         = config_helper.getInt("sleep-ms-between-iterations")
@@ -100,15 +96,11 @@ except UsersStoreException as e:
     sys.exit()
 
 #
-# Now that we have permission to continue processing, initialize our queues
+# Now that we have permission to continue processing, initialize our queue
 # 
 
 
-puller_queue            = SQSQueueWriter(puller_queue_url, puller_queue_batch_size, metrics_helper)
-
-puller_queue_reader     = SQSQueueReader(puller_queue_url,          0, 0, metrics_helper) # We're just going to read the size from this queue, and not read any of its messages. We only write to this queue
-puller_response_queue   = SQSQueueReader(puller_response_queue_url, 0, 0, metrics_helper) # We're just going to read the size from this queue, not any of its messages
-ingester_queue          = SQSQueueReader(ingester_queue_url,        0, 0, metrics_helper) # We're just going to read the size from this queue, not any of its messages
+puller_queue = SQSQueueWriter(puller_queue_url, puller_queue_batch_size, metrics_helper)
 
 #
 # Begin by requesting all of the users that haven't been updated in a while
@@ -123,25 +115,27 @@ while lock_acquired:
     try:
         users_ids_to_request_data_for = users_store.get_users_to_request_data_for(scheduler_seconds_between_user_data_updates)
 
-        puller_requests = []
-
-        # We can't necessarily fit a user's favorites + their contacts in a single message to the ingester queue, so split them up. 
-        # A user's favorites barely fit as is, and also that'll let us request the two datasets concurrently in 2 processes, 
-        # rather than one then the other in a single process
-
-        favorites_requests  = [PullerQueueItem(user_id=user_id, request_favorites=True, request_contacts=False, request_neighbor_list=True) for user_id in users_ids_to_request_data_for]
-        contacts_requests   = [PullerQueueItem(user_id=user_id, request_favorites=False, request_contacts=True, request_neighbor_list=False) for user_id in users_ids_to_request_data_for]
-
-        puller_requests.extend(favorites_requests)
-        puller_requests.extend(contacts_requests)
-
         logging.info(f"Found {len(users_ids_to_request_data_for)} registered users who need their data updated. Sending messages to queue {puller_queue_url} in batches of {puller_queue_batch_size}")
 
-        puller_queue.send_messages(objects=puller_requests, to_string=lambda user : user.to_json())
+        puller_requests = []
 
         for user_id in users_ids_to_request_data_for:
-            logging.info(f"Requested data for user {user_id}")
-            users_store.data_requested(user_id)
+
+            # We can't necessarily fit a user's favorites + their contacts in a single message to the ingester queue, so split them up. 
+            # A user's favorites barely fit as is, and also that'll let us request the two datasets concurrently in 2 processes, 
+            # rather than one then the other in a single process
+
+            puller_requests_for_user = []
+
+            puller_requests_for_user.append(PullerQueueItem(user_id=user_id, initial_requesting_user_id=user_id, request_favorites=True, request_contacts=False, request_neighbor_list=True))
+            puller_requests_for_user.append(PullerQueueItem(user_id=user_id, initial_requesting_user_id=user_id, request_favorites=False, request_contacts=True, request_neighbor_list=False))
+
+            logging.info(f"Requesting data for user {user_id}")
+            users_store.data_requested(user_id, len(puller_requests_for_user))
+
+            puller_requests.extend(puller_requests_for_user)
+
+        puller_queue.send_messages(objects=puller_requests, to_string=lambda request : request.to_json())
 
     except UsersStoreException as e:
         logging.error("Unable to talk to our users store. Exiting.", e)
@@ -149,45 +143,6 @@ while lock_acquired:
         sys.exit()
 
     logging.info("Ended looking for users who haven't been updated in a while")
-
-    #
-    # Find any users who are currently updating, and see if we've finished updating
-    #
-
-    logging.info("Beginning looking for users who are still updating")
-
-    try:
-        user_ids_still_updating = users_store.get_users_that_are_currently_updating()
-
-        if len(user_ids_still_updating) == 0:
-            logging.info("No user IDs are currently updating")
-
-        else:
-            puller_queue_num_messages            = puller_queue_reader.get_total_number_of_messages_available()
-            puller_response_queue_num_messages   = puller_response_queue.get_total_number_of_messages_available()
-            ingester_queue_num_messages          = ingester_queue.get_total_number_of_messages_available()
-
-            total_messages_in_system = puller_queue_num_messages + puller_response_queue_num_messages + ingester_queue_num_messages
-                
-            logging.info(f"Currently found {puller_queue_num_messages} puller messages, {puller_response_queue_num_messages} puller response messages, and {ingester_queue_num_messages} ingester messages, for a total of {total_messages_in_system}")
-
-            if total_messages_in_system == 0:
-                logging.info("No messages currently in the system, so we're done updating our users")
-                
-                for user_id in user_ids_still_updating:              
-                    users_store.all_data_updated(user_id)
-                    time_in_seconds = users_store.get_time_to_update_all_data(user_id)
-                    logging.info(f"It took {time_in_seconds} to update user {user_id}")
-                    metrics_helper.send_time("time_to_get_all_data", time_in_seconds)
-            else:
-                logging.info("There are still messages in the system, so we are not done updating our users")
-
-    except UsersStoreException as e:
-        logging.error("Unable to talk to our users store. Exiting.", e)
-        metrics_helper.increment_count("UsersStoreException")
-        sys.exit() 
-
-    logging.info("Ended looking for users who are still updating")
 
     #
     # Make sure we can still keep processing. We re-acquire our lock after each iteration to keep extending the lock end time.

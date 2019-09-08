@@ -131,7 +131,7 @@ def get_favorites_for_user(puller_queue_item):
 
     if len(favorite_photos) > 0:
 
-        batch_item = IngesterQueueBatchItem(user_id=flickr_user_id, favorites_list=favorite_photos, contacts_list=[])
+        batch_item = IngesterQueueBatchItem(user_id=flickr_user_id, initial_requesting_user_id=puller_queue_item.get_initial_requesting_user_id(), favorites_list=favorite_photos, contacts_list=[])
 
         if batch_item.get_max_favorites_exceeded():
             logging.warn(f"User {flickr_user_id} exceeded max number of batched favorite photos: has {len(favorite_photos)} favorites. Consider putting this list is S3 rather than in this SQS message")
@@ -140,7 +140,11 @@ def get_favorites_for_user(puller_queue_item):
         output_queue.send_messages(objects=[batch_item], to_string=lambda x : x.to_json())
 
     else:
-        logging.info("Not sending a message because we didn't find any photos")
+        # It would be nice to change this behavior in the future, so keeping this all in an else so it can be deleted or changed easily later
+        # See comment in PullerQueueItem.py
+        logging.info("Didn't find any photos, but still sending an empty message so the count of puller messages matches the count of ingester messages")
+        batch_item = IngesterQueueBatchItem(user_id=flickr_user_id, initial_requesting_user_id=puller_queue_item.get_initial_requesting_user_id(), favorites_list=[], contacts_list=[])
+        output_queue.send_messages(objects=[batch_item], to_string=lambda x : x.to_json())
 
     logging.info(f"Finished getting favorites for requested user {flickr_user_id}. Took {duration_to_query_flickr} seconds to query Flickr")
 
@@ -162,7 +166,7 @@ def get_contacts_for_user(puller_queue_item):
 
     if len(my_contacts) > 0:
 
-        batch_item = IngesterQueueBatchItem(user_id=flickr_user_id, favorites_list=[], contacts_list=my_contacts)
+        batch_item = IngesterQueueBatchItem(user_id=flickr_user_id, initial_requesting_user_id=puller_queue_item.get_initial_requesting_user_id(), favorites_list=[], contacts_list=my_contacts)
 
         if batch_item.get_max_contacts_exceeded():
             logging.warn(f"User {flickr_user_id} exceeded max number of batched contacts: has {len(my_contacts)} contacts. Consider putting this list is S3 rather than in this SQS message")
@@ -171,7 +175,11 @@ def get_contacts_for_user(puller_queue_item):
         output_queue.send_messages(objects=[batch_item], to_string=lambda x : x.to_json())
 
     else:
-        logging.info("Not sending a message because we didn't find any contacts")
+        # It would be nice to change this behavior in the future, so keeping this all in an else so it can be deleted or changed easily later
+        # See comment in PullerQueueItem.py
+        logging.info("Didn't find any contacts, but still sending an empty message so the count of puller messages matches the count of ingester messages")
+        batch_item = IngesterQueueBatchItem(user_id=flickr_user_id, initial_requesting_user_id=puller_queue_item.get_initial_requesting_user_id(), favorites_list=[], contacts_list=[])
+        output_queue.send_messages(objects=[batch_item], to_string=lambda x : x.to_json())
 
     logging.info(f"Finished getting contacts for requested user {flickr_user_id}. Took {duration_to_query_flickr} seconds to query Flickr")
 
@@ -213,6 +221,7 @@ try:
                 my_neighbors_list = [] # The Scheduler doesn't care about neighbors this time
 
             puller_response_queue_item = PullerResponseQueueItem(   user_id=puller_queue_item.get_user_id(), 
+                                                                    initial_requesting_user_id=puller_queue_item.get_initial_requesting_user_id(),
                                                                     favorites_requested=puller_queue_item.get_request_favorites(), 
                                                                     contacts_requested=puller_queue_item.get_request_contacts(), 
                                                                     neighbor_list_requested=puller_queue_item.get_request_neighbor_list(), 

@@ -19,11 +19,11 @@ variable "puller_flickr_max_neighbors_exceeded_error_threshold" {}
 variable "puller_flickr_max_flickr_api_exceptions_threshold" {}
 variable "process_names" { 
     type = "list" 
-    default = ["api-server", "scheduler", "puller-flickr", "ingester-database", "puller-response-reader"]
+    default = ["api-server", "scheduler", "puller-flickr", "ingester-database", "puller-response-reader", "ingester-response-reader"]
 }
 variable "process_names_that_read_from_queues" { 
     type = "list" 
-    default = ["scheduler", "puller-flickr", "ingester-database", "puller-response-reader"]
+    default = ["scheduler", "puller-flickr", "ingester-database", "puller-response-reader", "ingester-response-reader"]
 }
 variable "process_names_that_write_to_queues" { 
     type = "list" 
@@ -31,7 +31,7 @@ variable "process_names_that_write_to_queues" {
 }
 variable "process_names_that_use_api_server" {
     type = "list"
-    default = ["scheduler", "puller-response-reader"]
+    default = ["scheduler", "puller-response-reader", "ingester-response-reader"]
 }
 variable "queue_names" { type = "list" }
 variable "dead_letter_queue_names" { type = "list" }

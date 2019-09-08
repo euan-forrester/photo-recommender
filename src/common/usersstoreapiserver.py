@@ -56,10 +56,11 @@ class UsersStoreAPIServer:
         except HTTPError as http_err:
             raise UsersStoreException from http_err
 
-    def data_requested(self, user_id):
+    def data_requested(self, user_id, num_puller_requests):
 
         try:
-            response = requests.put(f"{self.url_prefix}/users/{user_id}/data-requested")
+            response = requests.put(f"{self.url_prefix}/users/{user_id}/data-requested",
+                params={'num-puller-requests': num_puller_requests})
 
             response.raise_for_status()
 
@@ -68,14 +69,45 @@ class UsersStoreAPIServer:
         except HTTPError as http_err:
             raise UsersStoreException from http_err
 
-    def all_data_updated(self, user_id):
+    def made_more_puller_requests(self, user_id, num_puller_requests):
 
         try:
-            response = requests.put(f"{self.url_prefix}/users/{user_id}/all-data-updated")
+            response = requests.put(f"{self.url_prefix}/users/{user_id}/more-puller-requests",
+                params={'num-puller-requests': num_puller_requests})
 
             response.raise_for_status()
 
             return
+
+        except HTTPError as http_err:
+            raise UsersStoreException from http_err
+
+    def received_puller_responses(self, user_id, num_puller_responses):
+
+        try:
+            response = requests.put(f"{self.url_prefix}/users/{user_id}/received-puller-responses",
+                params={'num-puller-responses': num_puller_responses})
+
+            response.raise_for_status()
+
+            return
+
+        except HTTPError as http_err:
+            raise UsersStoreException from http_err
+
+    def received_ingester_responses(self, user_id, num_ingester_responses):
+
+        try:
+            response = requests.put(f"{self.url_prefix}/users/{user_id}/received-ingester-responses",
+                params={'num-ingester-responses': num_ingester_responses})
+
+            response.raise_for_status()
+
+            response.encoding = "utf-8"
+
+            response_object = response.json()
+
+            return response_object
 
         except HTTPError as http_err:
             raise UsersStoreException from http_err

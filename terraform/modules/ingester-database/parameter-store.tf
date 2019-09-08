@@ -73,7 +73,7 @@ resource "aws_ssm_parameter" "input_queue_url" {
     name        = "/${var.environment}/ingester-database/input-queue-url"
     description = "Endpoint of queue we use to ingest favorites data intended for the database"
     type        = "String"
-    value       = "${module.sqs_queue.queue_url}"
+    value       = "${module.input_sqs_queue.queue_url}"
 }
 
 resource "aws_ssm_parameter" "input_queue_batch_size" {
@@ -88,4 +88,18 @@ resource "aws_ssm_parameter" "input_queue_max_items_to_process" {
     description = "Maximum number of items to take off the input queue before exiting"
     type        = "String"
     value       = "${var.input_queue_max_items_to_process}"
+}
+
+resource "aws_ssm_parameter" "output_queue_url" {
+    name        = "/${var.environment}/ingester-database/output-queue-url"
+    description = "URL of the queue to put ingester response messages on"
+    type        = "String"
+    value       = "${module.output_sqs_queue.queue_url}"
+}
+
+resource "aws_ssm_parameter" "output_queue_batch_size" {
+    name        = "/${var.environment}/ingester-database/output-queue-batchsize"
+    description = "Number of items to put on the output queue in a single batch"
+    type        = "String"
+    value       = "${var.output_queue_batch_size}"
 }
