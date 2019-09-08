@@ -1,4 +1,4 @@
-module "sqs_queue" {
+module "input_sqs_queue" {
     source = "../sqs-queue"
 
     queue_name                  = "ingester-queue"

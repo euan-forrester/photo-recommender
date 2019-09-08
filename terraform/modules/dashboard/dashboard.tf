@@ -21,9 +21,16 @@ resource "aws_cloudwatch_dashboard" "main" {
        {
           "x":12,
           "y":6,
-          "width":12,
+          "width":6,
           "height":6,
           ${data.template_file.puller_response_queue.rendered}
+       },
+       {
+          "x":18,
+          "y":6,
+          "width":6,
+          "height":6,
+          ${data.template_file.ingester_response_queue.rendered}
        },
        {
           "x":0,
@@ -146,6 +153,17 @@ data "template_file" "ingester_queue" {
         queue_full_name             = "${var.ingester_queue_full_name}"
         queue_base_name             = "${var.ingester_queue_base_name}"
         queue_dead_letter_full_name = "${var.ingester_queue_dead_letter_full_name}"
+        region                      = "${var.region}"
+    }
+
+    template = "${file("${path.module}/sqs_queue.tpl")}"
+}
+
+data "template_file" "ingester_response_queue" {
+    vars = {
+        queue_full_name             = "${var.ingester_response_queue_full_name}"
+        queue_base_name             = "${var.ingester_response_queue_base_name}"
+        queue_dead_letter_full_name = "${var.ingester_response_queue_dead_letter_full_name}"
         region                      = "${var.region}"
     }
 

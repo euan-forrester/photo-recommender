@@ -140,6 +140,33 @@ module "puller-response-reader" {
     puller_response_queue_max_items_to_process = 10000
 }
 
+module "ingester_response_reader" {
+    source = "../modules/ingester-response-reader"
+
+    environment = "dev"
+    region = "${var.region}"
+    metrics_namespace = "${var.metrics_namespace}"
+
+    parameter_memcached_location = "${module.memcached.location}"
+
+    ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
+    ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
+    ecs_instances_desired_count = 1#20
+    ecs_instances_memory = 64
+    ecs_instances_cpu = 200
+    ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
+    ecs_days_to_keep_images = 1
+
+    api_server_host = "${module.api_server.load_balancer_dns_name}"
+    api_server_port = "${module.api_server.load_balancer_port}"
+
+    ingester_response_queue_url = "${module.ingester_database.ingester_response_queue_url}"
+    ingester_response_queue_arn = "${module.ingester_database.ingester_response_queue_arn}"
+
+    ingester_response_queue_batch_size = 1 # Each message takes a while to process, so hoarding a bunch of messages in an individual instance means that other instances may be underutilized
+    ingester_response_queue_max_items_to_process = 10000
+}
+
 module "puller_flickr" {
     source = "../modules/puller-flickr"
 
@@ -210,6 +237,9 @@ module "ingester_database" {
     input_queue_batch_size  = 1 # Each message takes a while to process because it contains many individual items, so only get one at a time so that we're not blocking other instances from picking them up
     input_queue_max_items_to_process = 10000
     input_queue_long_polling_seconds = 1 # Don't do long polling for too long: we can only commit after we find no more new messages
+
+    output_queue_long_polling_seconds = 1 # Don't do long polling for too long: the ingester response reader can only write to the API server after finding no more new messages
+    output_queue_batch_size = 10
 }
 
 module "api_server" {
@@ -301,6 +331,10 @@ module "dashboard" {
     ingester_queue_full_name                = "${module.ingester_database.ingester_queue_full_name}"
     ingester_queue_dead_letter_full_name    = "${module.ingester_database.ingester_queue_dead_letter_full_name}"
 
+    ingester_response_queue_base_name                = "${module.ingester_database.ingester_response_queue_base_name}"
+    ingester_response_queue_full_name                = "${module.ingester_database.ingester_response_queue_full_name}"
+    ingester_response_queue_dead_letter_full_name    = "${module.ingester_database.ingester_response_queue_dead_letter_full_name}"
+
     database_identifier                     = "${module.database.database_instance_identifier}"
 
     ecs_autoscaling_group_name              = "${module.elastic_container_service.autoscaling_group_name}"
@@ -321,13 +355,13 @@ module "alarms" {
 
     unhandled_exceptions_threshold = 1
 
-    queue_names = [ "${module.scheduler.puller_queue_full_name}", "${module.scheduler.puller_response_queue_full_name}", "${module.ingester_database.ingester_queue_full_name}"]
+    queue_names = [ "${module.scheduler.puller_queue_full_name}", "${module.scheduler.puller_response_queue_full_name}", "${module.ingester_database.ingester_queue_full_name}", "${module.ingester_database.ingester_response_queue_full_name}"]
     queue_item_size_threshold = 235520 # 230kB -- 256kB is the absolute max
     queue_item_age_threshold = 900 # 15 minutes: it can take a long time to process stuff in dev, with a limited numbers of workers
     queue_reader_error_threshold = 1
     queue_writer_error_threshold = 1
 
-    dead_letter_queue_names = [ "${module.scheduler.puller_queue_dead_letter_full_name}", "${module.scheduler.puller_response_queue_dead_letter_full_name}", "${module.ingester_database.ingester_queue_dead_letter_full_name}"]
+    dead_letter_queue_names = [ "${module.scheduler.puller_queue_dead_letter_full_name}", "${module.scheduler.puller_response_queue_dead_letter_full_name}", "${module.ingester_database.ingester_queue_dead_letter_full_name}", "${module.ingester_database.ingester_response_queue_dead_letter_full_name}"]
     dead_letter_queue_items_threshold = 1
 
     users_store_exception_threshold = 1

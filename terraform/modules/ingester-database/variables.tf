@@ -19,3 +19,5 @@ variable "ecs_days_to_keep_images" {}
 variable "input_queue_batch_size" {}
 variable "input_queue_max_items_to_process" {}
 variable "input_queue_long_polling_seconds" {}
+variable "output_queue_long_polling_seconds" {}
+variable "output_queue_batch_size" {}
