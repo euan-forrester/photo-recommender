@@ -1,0 +1,5 @@
+boto3==1.9.214
+jsonpickle==1.2
+pymemcache==2.2.2
+requests==2.22.0
+diskcache==4.0.0

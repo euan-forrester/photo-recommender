@@ -4,4 +4,5 @@ src/ingester-database/config/secrets.ini
 src/api-server/config/secrets.ini
 src/scheduler/config/secrets.ini
 src/puller-response-reader/config/secrets.ini
+src/ingester-response-reader/config/secrets.ini
 src/common/dummy.sh

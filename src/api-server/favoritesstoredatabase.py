@@ -422,6 +422,9 @@ class FavoritesStoreDatabase:
 
         cursor = cnx.cursor() 
 
+        # If we have received all of the ingester responses that we wanted, then
+        # we've finished processing
+
         try:
             cursor.execute("""
                 UPDATE 
@@ -433,6 +436,31 @@ class FavoritesStoreDatabase:
                 ;
             """, (num_ingester_responses, user_id))
 
+            cursor.execute("""
+                SELECT
+                    num_ingester_requests_made, num_ingester_requests_finished
+                FROM
+                    registered_users
+                WHERE
+                    user_id=%s
+                ;
+            """, (user_id,))
+
+            row = self._get_first_row(cursor)
+                
+            num_ingester_requests_made = row[0]
+            num_ingester_requests_finished = row[1]
+
+            if num_ingester_requests_finished >= num_ingester_requests_made:
+                cursor.execute("""
+                    UPDATE 
+                        registered_users 
+                    SET 
+                        all_data_last_successfully_processed_at = NOW() 
+                    WHERE 
+                        user_id=%s;
+                """, (user_id,))
+
             cnx.commit()
 
         except Exception as e:
@@ -442,31 +470,6 @@ class FavoritesStoreDatabase:
         finally:
             cursor.close()
             cnx.close()  
-
-    def all_user_data_updated(self, user_id):
-        cnx = self.cnxpool.get_connection()
-
-        cursor = cnx.cursor() 
-
-        try:
-            cursor.execute("""
-                UPDATE 
-                    registered_users 
-                SET 
-                    all_data_last_successfully_processed_at = NOW() 
-                WHERE 
-                    user_id=%s;
-            """, (user_id,))
-
-            cnx.commit()
-
-        except Exception as e:
-            cnx.rollback()
-            raise FavoritesStoreException from e
-
-        finally:
-            cursor.close()
-            cnx.close() 
 
     def get_time_to_update_all_data(self, user_id):
 

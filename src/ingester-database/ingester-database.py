@@ -8,8 +8,10 @@ import logging
 import time
 from ingesterqueuefavorite import IngesterQueueFavorite
 from ingesterqueuebatchitem import IngesterQueueBatchItem
+from ingesterresponsequeueitem import IngesterResponseQueueItem
 from contactitem import ContactItem
 from queuereader import SQSQueueReader
+from queuewriter import SQSQueueWriter
 from confighelper import ConfigHelper
 from databasebatchwriter import DatabaseBatchWriter
 from metricshelper import MetricsHelper
@@ -19,7 +21,7 @@ from unhandledexceptionhelper import UnhandledExceptionHelper
 # Read in commandline arguments
 #
 
-parser = argparse.ArgumentParser(description="Pull data from the ingestion queue and write it to the favorites database")
+parser = argparse.ArgumentParser(description="Pull data from the ingestion queue and write it to the database")
 
 parser.add_argument("-d", "--debug", action="store_true", dest="debug", default=False, help="Display debug information")
 
@@ -42,6 +44,9 @@ metrics_namespace                   = config_helper.get("metrics-namespace")
 input_queue_url                     = config_helper.get("input-queue-url")
 input_queue_batch_size              = config_helper.getInt("input-queue-batchsize")
 input_queue_max_items_to_process    = config_helper.getInt("input-queue-maxitemstoprocess")
+
+output_queue_url                    = config_helper.get("output-queue-url")
+output_queue_batch_size             = config_helper.getInt("output-queue-batchsize")
 
 output_database_username            = config_helper.get("output-database-username")
 output_database_password            = config_helper.get("output-database-password", is_secret=True)
@@ -71,6 +76,11 @@ queue = SQSQueueReader(
     max_messages_to_read=input_queue_max_items_to_process,
     metrics_helper=metrics_helper)
 
+response_queue = SQSQueueWriter(
+    queue_url=output_queue_url, 
+    batch_size=output_queue_batch_size, 
+    metrics_helper=metrics_helper)
+
 database = DatabaseBatchWriter(
     username=output_database_username, 
     password=output_database_password, 
@@ -83,6 +93,7 @@ database = DatabaseBatchWriter(
 favorites_batch = []
 contacts_batch = []
 read_message_batch = []
+response_message_batch = []
 
 def write_favorites_batch(favorites_batch):
 
@@ -126,13 +137,15 @@ def write_contacts_batch(contacts_batch):
 
         logging.info(f"Wrote out batch of {len(contacts_batch)} contacts to database. Took {database_write_duration} seconds.")
 
-def commit_batches(favorites_batch, contacts_batch, database, read_message_batch):
+def commit_batches(favorites_batch, contacts_batch, database, response_message_batch, read_message_batch):
     write_favorites_batch(favorites_batch)
     write_contacts_batch(contacts_batch)
     
     database.commit_current_batches()
 
-    # Only delete our messages after we've successfully committed them into the database.
+    output_queue.send_messages(response_message_batch, lambda response : response.to_json())
+
+    # Only delete our messages after we've successfully committed them into the database (and successfully sent our responses).
     # Otherwise, if there's an error inserting, we want all of these messages to get re-driven so we can try again.
     # There shouldn't be any duplicates, because an error here will mean that the process has to quit and thus the 
     # database transaction won't be committed. But if there were any resultant duplicates they would just be ignored.
@@ -156,10 +169,11 @@ for queue_message in queue:
 
     favorites_batch.extend(batch_queue_item.get_favorites_list())
     contacts_batch.extend([ContactItem(batch_queue_item.get_user_id(), followee_id) for followee_id in batch_queue_item.get_contacts_list()]) # Don't include these ContactItems in the actual message, because they're bloated with the follower_id over and over. But we need them here because we're inserting items as a batch, and different items may have different follower_ids
+    response_message_batch.append(IngesterResponseQueueItem(user_id=batch_queue_item.get_user_id(), initial_requesting_user_id=batch_queue_item.get_initial_requesting_user_id(), contained_num_favorites=len(batch_queue_item.get_favorites_list()), contained_num_contacts=len(batch_queue_item.get_contacts_list())))
     read_message_batch.append(queue_message)
 
     if (len(favorites_batch) >= output_database_min_batch_size) or (len(contacts_batch) >= output_database_min_batch_size):
-        commit_batches(favorites_batch, contacts_batch, database, read_message_batch);
+        commit_batches(favorites_batch, contacts_batch, database, response_message_batch, read_message_batch);
         favorites_batch = []
         contacts_batch = []
         read_message_batch = []
@@ -170,7 +184,7 @@ for queue_message in queue:
     logging.info(f"Took {process_batch_message_duration} seconds to process batch message")
 
 # Write out any remaining items that didn't make a full batch
-commit_batches(favorites_batch, contacts_batch, database, read_message_batch)
+commit_batches(favorites_batch, contacts_batch, database, response_message_batch, read_message_batch)
 
 database.shutdown()
 queue.shutdown()

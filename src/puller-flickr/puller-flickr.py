@@ -131,7 +131,7 @@ def get_favorites_for_user(puller_queue_item):
 
     if len(favorite_photos) > 0:
 
-        batch_item = IngesterQueueBatchItem(user_id=flickr_user_id, favorites_list=favorite_photos, contacts_list=[])
+        batch_item = IngesterQueueBatchItem(user_id=flickr_user_id, initial_requesting_user_id=puller_queue_item.get_initial_requesting_user_id(), favorites_list=favorite_photos, contacts_list=[])
 
         if batch_item.get_max_favorites_exceeded():
             logging.warn(f"User {flickr_user_id} exceeded max number of batched favorite photos: has {len(favorite_photos)} favorites. Consider putting this list is S3 rather than in this SQS message")
@@ -162,7 +162,7 @@ def get_contacts_for_user(puller_queue_item):
 
     if len(my_contacts) > 0:
 
-        batch_item = IngesterQueueBatchItem(user_id=flickr_user_id, favorites_list=[], contacts_list=my_contacts)
+        batch_item = IngesterQueueBatchItem(user_id=flickr_user_id, initial_requesting_user_id=puller_queue_item.get_initial_requesting_user_id(), favorites_list=[], contacts_list=my_contacts)
 
         if batch_item.get_max_contacts_exceeded():
             logging.warn(f"User {flickr_user_id} exceeded max number of batched contacts: has {len(my_contacts)} contacts. Consider putting this list is S3 rather than in this SQS message")

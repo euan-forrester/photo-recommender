@@ -18,7 +18,7 @@ from usersstoreexception import UsersStoreException
 # Read in commandline arguments
 #
 
-parser = argparse.ArgumentParser(description="Read items from the puller-reponse-queue, and write new items to the puller-queue based on them")
+parser = argparse.ArgumentParser(description="Read items from the puller-reponse-queue, write new items to the puller-queue based on them, and write to the API server that we received them.")
 
 parser.add_argument("-d", "--debug", action="store_true", dest="debug", default=False, help="Display debug information")
 
