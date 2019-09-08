@@ -176,7 +176,9 @@ class FavoritesStoreDatabase:
                             where 
                                 favorited_by in (select distinct image_owner from favorites where favorited_by=%s) 
                             and
-                                image_id not in (select image_id from favorites where favorited_by=%s)) as possible_photos
+                                image_id not in (select image_id from favorites where favorited_by=%s)
+                            and
+                                image_id not in (select recommendation_image_id from dismissed_photo_recommendations where user_id=%s)) as possible_photos
                     join
                         (select 
                             total_favorites.neighbor_user_id as 'neighbor_user_id', 
@@ -199,7 +201,7 @@ class FavoritesStoreDatabase:
                     group by possible_photos.image_id
                     order by total_score desc
                     limit 0,%s; 
-            """, (user_id, user_id, user_id, user_id, user_id, num_photos))
+            """, (user_id, user_id, user_id, user_id, user_id, user_id, num_photos))
      
             recommendations = []
 
@@ -251,10 +253,13 @@ class FavoritesStoreDatabase:
                 where 
                     total_favorites.neighbor_user_id not in 
                         (select followee_id from followers where follower_id=%s)
+                and
+                    total_favorites.neighbor_user_id not in 
+                        (select recommendation_user_id from dismissed_user_recommendations where user_id=%s)
                 order by
                     score desc
                 limit 0,%s;
-            """, (user_id, user_id, user_id, user_id, num_users))
+            """, (user_id, user_id, user_id, user_id, user_id, num_users))
      
             recommendations = []
 
@@ -506,6 +511,72 @@ class FavoritesStoreDatabase:
             return row[0]
 
         except Exception as e:
+            raise FavoritesStoreException from e
+
+        finally:
+            cursor.close()
+            cnx.close()
+
+    def dismiss_photo_recommendation(self, user_id, recommendation_image_id):
+
+        cnx = self.cnxpool.get_connection()
+
+        cursor = cnx.cursor() 
+
+        try:
+            cursor.execute("""
+                INSERT INTO
+                    dismissed_photo_recommendations
+                SET user_id=%s, recommendation_image_id=%s;
+            """, (user_id, recommendation_image_id))
+
+            cnx.commit()
+
+        except errors.IntegrityError as e:
+            
+            if e.errno == errorcode.ER_DUP_ENTRY:
+                # We have a UNIQUE constraint on a particular user/image-id combination. 
+                # No need to surface an error: the database is already in the requested state
+                return
+            else:
+                cnx.rollback()
+                raise FavoritesStoreException from e
+
+        except Exception as e:
+            cnx.rollback()
+            raise FavoritesStoreException from e
+
+        finally:
+            cursor.close()
+            cnx.close()
+
+    def dismiss_user_recommendation(self, user_id, recommendation_user_id):
+
+        cnx = self.cnxpool.get_connection()
+
+        cursor = cnx.cursor() 
+
+        try:
+            cursor.execute("""
+                INSERT INTO
+                    dismissed_user_recommendations
+                SET user_id=%s, recommendation_user_id=%s;
+            """, (user_id, recommendation_user_id))
+
+            cnx.commit()
+
+        except errors.IntegrityError as e:
+            
+            if e.errno == errorcode.ER_DUP_ENTRY:
+                # We have a UNIQUE constraint on a particular user/recommendation combination. 
+                # No need to surface an error: the database is already in the requested state
+                return
+            else:
+                cnx.rollback()
+                raise FavoritesStoreException from e
+
+        except Exception as e:
+            cnx.rollback()
             raise FavoritesStoreException from e
 
         finally:
