@@ -118,7 +118,7 @@ data "template_file" "time_to_get_all_data" {
     vars = {
         title                       = "Time to get all data"
         environment                 = "${var.environment}"
-        process_name                = "scheduler"
+        process_name                = "ingester-response-reader"
         metric_name                 = "time_to_get_all_data"
         region                      = "${var.region}"
     }

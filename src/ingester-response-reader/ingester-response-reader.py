@@ -90,7 +90,7 @@ try:
         logging.info(f"Telling users store that we received {messages_received[initial_requesting_user_id]['count']} responses for initial requesting user {initial_requesting_user_id}")
         processing_status = users_store.received_ingester_responses(initial_requesting_user_id, messages_received[initial_requesting_user_id]['count'])
 
-        if processing_status['finished-processing']:
+        if processing_status['finished_processing']:
             time_in_seconds = users_store.get_time_to_update_all_data(initial_requesting_user_id)
             logging.info(f"We have finished processing user {initial_requesting_user_id}. It took {time_in_seconds}")
             metrics_helper.send_time("time_to_get_all_data", time_in_seconds)
