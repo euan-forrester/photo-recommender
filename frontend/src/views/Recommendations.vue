@@ -47,7 +47,7 @@ export default {
     try {
       await this.$store.dispatch('getRecommendationsForUser', { userId: this.$route.params.userId, numPhotos, numUsers });
 
-      this.recommendations = this.$store.state.user.recommendations;
+      this.recommendations = this.$store.state.recommendations.recommendations;
     } catch (error) {
       this.encounteredError = true;
     }

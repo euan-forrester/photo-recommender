@@ -38,7 +38,7 @@ export default {
 
       await this.$store.dispatch('getPersonInfo', this.userId);
 
-      this.personInfo = this.$store.state.personInfo[this.userId];
+      this.personInfo = this.$store.state.recommendations.personInfo[this.userId];
     } catch (error) {
       this.encounteredError = true;
     }
