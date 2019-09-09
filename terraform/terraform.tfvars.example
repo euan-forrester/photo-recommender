@@ -15,3 +15,7 @@ alarms_email = ""
 
 # The domain under which instances (dev, prod) of the application will run as subdomains
 dns_address = "abc123.com"
+
+# This is added to the various bucket names so that they don't conflict with other instances of this project
+# e.g. if it's set to "-dave-" then the bucket "photo-recommender-dev" will become "photo-recommender-dave-dev"
+bucketname_user_string = ""

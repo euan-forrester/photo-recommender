@@ -187,7 +187,6 @@ TODO:
 - Make frontend vendor file smaller (it's mostly bootstrap): https://bootstrap-vue.js.org/docs/#tree-shaking-with-module-bundlers
   - See also https://medium.com/js-dojo/how-to-reduce-your-vue-js-bundle-size-with-webpack-3145bf5019b7
 - Add versioning to the front end, so that old versions of file (with different hashes) don't live in S3 forever: https://stackoverflow.com/questions/46166337/how-can-i-deploy-a-new-cloudfront-s3-version-without-a-small-period-of-unavailab?rq=1
-- Fix S3 bucket name conflicts if other people run this terraform
 - Fix website S3 bucket permissions to allow deployments but not allow public access
 - Get domain name + add hooks for google analytics
 - Add button to dismiss a photo or user recommendation, and add that photo/user to a table so that they aren't recommended again

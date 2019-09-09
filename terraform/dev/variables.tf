@@ -7,3 +7,4 @@ variable "flickr_api_key" {}
 variable "flickr_secret_key" {}
 variable "database_password_dev" {}
 variable "dns_address" {}
+variable "bucketname_user_string" {}
