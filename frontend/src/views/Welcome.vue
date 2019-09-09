@@ -1,5 +1,8 @@
 <template>
   <div>
+    <b-jumbotron>
+      <template v-slot:header>Photo Recommender</template>
+    </b-jumbotron>
     <b-form @submit.stop.prevent="onSubmit" @reset="onReset">
       <b-form-group id="user-url-group" label="Enter the URL of your Flickr photos" label-for="user-url">
         <b-form-input

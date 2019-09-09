@@ -1,9 +1,12 @@
 <template>
-  <div class="recommendation">
-    <b-link :href="this.photoUrl">
-      <b-img left fluid :src="imageUrl"></b-img>
-    </b-link>
-  </div>
+  <b-collapse v-model="visible" id="recommendation-collapse">
+    <div class="recommendation">
+      <b-link :href="this.photoUrl">
+        <b-img left fluid :src="imageUrl"></b-img>
+      </b-link>
+      <b-button-close @click="onDismiss()" aria-controls="recommendation-collapse"></b-button-close>
+    </div>
+  </b-collapse>
 </template>
 
 <script>
@@ -20,10 +23,16 @@ export default {
   data() {
     return {
       photoUrl: '',
+      visible: true,
     };
   },
   async mounted() {
     this.photoUrl = FlickrRepository.getPhotoUrl(this.imageOwner, this.imageId);
+  },
+  methods: {
+    onDismiss() {
+      this.visible = false;
+    },
   },
 };
 </script>
@@ -32,4 +41,5 @@ export default {
 .recommendation {
     clear: both;
 }
+
 </style>
