@@ -4,24 +4,21 @@
       <b-link :href="this.photoUrl">
         <b-img left fluid :src="imageUrl"></b-img>
       </b-link>
-      <b-button-close 
-        @click="onDismiss()" 
-        aria-controls="recommendation-collapse" 
-        data-toggle="tooltip" 
-        data-placement="left" 
-        title="I don't want this recommendation"
-      >
-      </b-button-close>
+      <DismissButton @click="onDismiss()"></DismissButton>
     </div>
   </b-collapse>
 </template>
 
 <script>
+import DismissButton from './DismissButton.vue';
 import RepositoryFactory from '../repositories/repositoryFactory';
 
 const FlickrRepository = RepositoryFactory.get('flickr');
 
 export default {
+  components: {
+    DismissButton,
+  },
   props: {
     userId: String,
     imageId: String,
