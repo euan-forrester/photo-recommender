@@ -13,6 +13,7 @@
       <PhotoRecommendation
         v-for="photo in recommendations.photos"
         v-bind:key="photo.image_id"
+        v-bind:userId="userId"
         v-bind:imageId="photo.image_id"
         v-bind:imageOwner="photo.image_owner"
         v-bind:imageUrl="photo.image_url">
@@ -38,14 +39,16 @@ export default {
     return {
       recommendations: [],
       encounteredError: false,
+      userId: '',
     };
   },
   async mounted() {
+    this.userId = this.$route.params.userId;
     const numPhotos = this.$route.query && this.$route.query['num-photos'] ? this.$route.query['num-photos'] : 10;
     const numUsers = this.$route.query && this.$route.query['num-users'] ? this.$route.query['num-users'] : 10;
 
     try {
-      await this.$store.dispatch('getRecommendationsForUser', { userId: this.$route.params.userId, numPhotos, numUsers });
+      await this.$store.dispatch('getRecommendationsForUser', { userId: this.userId, numPhotos, numUsers });
 
       this.recommendations = this.$store.state.recommendations.recommendations;
     } catch (error) {

@@ -9,6 +9,8 @@ export default {
   state: {
     recommendations: [],
     personInfo: {},
+    dismissedPhotoRecommendations: {},
+    dismissedUserRecommendations: {},
   },
   mutations: {
     setRecommendations(state, recommendations) {
@@ -16,6 +18,20 @@ export default {
     },
     setPersonInfo(state, { userId, personInfo }) {
       state.personInfo[userId] = personInfo;
+    },
+    addDismissedPhotoRecommendation(state, { userId, dismissedImageId }) {
+      if (!(userId in state.dismissedPhotoRecommendations)) {
+        state.dismissedPhotoRecommendations[userId] = [];
+      }
+
+      state.dismissedPhotoRecommendations[userId].push(dismissedImageId);
+    },
+    addDismissedUserRecommendation(state, { userId, dismissedUserId }) {
+      if (!(userId in state.dismissedPhotoRecommendations)) {
+        state.dismissedPhotoRecommendations[userId] = [];
+      }
+
+      state.dismissedPhotoRecommendations[userId].push(dismissedUserId);
     },
   },
   actions: {
@@ -28,6 +44,16 @@ export default {
       const personInfo = await FlickrRepository.getPersonInfo(userId);
 
       commit('setPersonInfo', { userId, personInfo });
+    },
+    async dismissPhotoRecommendation({ commit }, { userId, dismissedImageId }) {
+      await UsersRepository.dismissPhotoRecommendation(userId, dismissedImageId);
+
+      commit('addDismissedPhotoRecommendation', { userId, dismissedImageId });
+    },
+    async dismissUserRecommendation({ commit }, { userId, dismissedUserId }) {
+      await UsersRepository.dismissPhotoRecommendation(userId, dismissedUserId);
+
+      commit('addDismissedPhotoRecommendation', { userId, dismissedUserId });
     },
   },
 };

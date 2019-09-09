@@ -16,6 +16,7 @@ const FlickrRepository = RepositoryFactory.get('flickr');
 
 export default {
   props: {
+    userId: String,
     imageId: String,
     imageOwner: String,
     imageUrl: String,
@@ -30,8 +31,10 @@ export default {
     this.photoUrl = FlickrRepository.getPhotoUrl(this.imageOwner, this.imageId);
   },
   methods: {
-    onDismiss() {
+    async onDismiss() {
       this.visible = false;
+
+      await this.$store.dispatch('dismissPhotoRecommendation', { userId: this.userId, dismissedImageId: this.imageId });
     },
   },
 };
