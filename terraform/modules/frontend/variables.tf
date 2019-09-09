@@ -10,3 +10,4 @@ variable "application_domain" {}
 variable "frontend_access_logs_bucket" {}
 variable "retain_frontend_access_logs_after_destroy" {}
 variable "days_to_keep_frontend_access_logs" {}
+variable "bucketname_user_string" {}

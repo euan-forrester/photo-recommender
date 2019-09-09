@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "frontend" {
-    bucket = "${var.application_name}-${var.environment}"
+    bucket = "${var.application_name}${var.bucketname_user_string}-${var.environment}"
     acl    = "bucket-owner-full-control"
     force_destroy = true
 
@@ -75,7 +75,7 @@ resource "aws_s3_bucket_policy" "frontend_cloudfront_current_user" {
 }
 
 resource "aws_s3_bucket" "frontend_access_logs" {
-    bucket = "${var.frontend_access_logs_bucket}-${var.environment}"
+    bucket = "${var.frontend_access_logs_bucket}${var.bucketname_user_string}-${var.environment}"
     acl    = "log-delivery-write"
     force_destroy = "${!var.retain_frontend_access_logs_after_destroy}"
 

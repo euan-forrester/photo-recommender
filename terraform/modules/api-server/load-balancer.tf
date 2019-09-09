@@ -88,7 +88,7 @@ data "aws_caller_identity" "load_balancer" {}
 data "aws_elb_service_account" "main" {}
 
 resource "aws_s3_bucket" "load_balancer_access_logs" {
-    bucket = "${var.load_balancer_access_logs_bucket}-${var.environment}"
+    bucket = "${var.load_balancer_access_logs_bucket}${var.bucketname_user_string}-${var.environment}"
     acl    = "bucket-owner-full-control"
     force_destroy = "${!var.retain_load_balancer_access_logs_after_destroy}"
     policy = <<EOF

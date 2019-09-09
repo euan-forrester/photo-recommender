@@ -268,6 +268,7 @@ module "api_server" {
     load_balancer_days_to_keep_access_logs = 1
     load_balancer_access_logs_bucket = "load-balancer-access-logs"
     load_balancer_access_logs_prefix = "api-server-lb"
+    bucketname_user_string  = "${var.bucketname_user_string}"
 
     local_machine_cidr      = "${var.local_machine_cidr}"
 
@@ -296,6 +297,8 @@ module "frontend" {
 
     environment             = "dev"
     region                  = "${var.region}"
+
+    bucketname_user_string  = "${var.bucketname_user_string}"
 
     application_domain      = "dev.${var.dns_address}"
     application_name        = "photo-recommender"
