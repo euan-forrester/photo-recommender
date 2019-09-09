@@ -51,9 +51,9 @@ export default {
       commit('addDismissedPhotoRecommendation', { userId, dismissedImageId });
     },
     async dismissUserRecommendation({ commit }, { userId, dismissedUserId }) {
-      await UsersRepository.dismissPhotoRecommendation(userId, dismissedUserId);
+      await UsersRepository.dismissUserRecommendation(userId, dismissedUserId);
 
-      commit('addDismissedPhotoRecommendation', { userId, dismissedUserId });
+      commit('addDismissedUserRecommendation', { userId, dismissedUserId });
     },
   },
 };

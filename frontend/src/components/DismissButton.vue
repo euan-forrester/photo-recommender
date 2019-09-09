@@ -1,5 +1,6 @@
 <template>
   <b-button-close
+    v-on="$listeners"
     aria-controls="recommendation-collapse"
     data-toggle="tooltip"
     data-placement="left"

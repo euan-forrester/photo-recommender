@@ -1,26 +1,36 @@
 <template>
-  <div class="recommendation">
-    <b-alert variant="danger" :show="this.encounteredError">
-      Could not get information about this user. Please try again later
-    </b-alert>
-    <div v-if="!this.encounteredError">
-      <b-link :href="this.personInfo.profileUrl">
-        <b-img left fluid :src="personInfo.iconUrl"></b-img>
-        {{ personInfo.realName }}
-      </b-link>
+  <b-collapse v-model="visible" id="recommendation-collapse">
+    <div class="recommendation">
+      <b-alert variant="danger" :show="this.encounteredError">
+        Could not get information about this user. Please try again later
+      </b-alert>
+      <div v-if="!this.encounteredError">
+        <b-link :href="this.personInfo.profileUrl">
+          <b-img left fluid :src="personInfo.iconUrl"></b-img>
+          {{ personInfo.realName }}
+        </b-link>
+        <DismissButton @click="onDismiss()"></DismissButton>
+      </div>
     </div>
-  </div>
+  </b-collapse>
 </template>
 
 <script>
+import DismissButton from './DismissButton.vue';
+
 export default {
+  components: {
+    DismissButton,
+  },
   props: {
     userId: String,
+    recommendationUserId: String,
   },
   data() {
     return {
       personInfo: {},
       encounteredError: false,
+      visible: true,
     };
   },
   async mounted() {
@@ -36,12 +46,19 @@ export default {
       // So, in the interest of keeping the system running as quickly as possible, let's just get the
       // info about how to display a user in the front end instead.
 
-      await this.$store.dispatch('getPersonInfo', this.userId);
+      await this.$store.dispatch('getPersonInfo', this.recommendationUserId);
 
-      this.personInfo = this.$store.state.recommendations.personInfo[this.userId];
+      this.personInfo = this.$store.state.recommendations.personInfo[this.recommendationUserId];
     } catch (error) {
       this.encounteredError = true;
     }
+  },
+  methods: {
+    async onDismiss() {
+      this.visible = false;
+
+      await this.$store.dispatch('dismissUserRecommendation', { userId: this.userId, dismissedUserId: this.recommendationUserId });
+    },
   },
 };
 </script>

@@ -5,7 +5,8 @@
       <UserRecommendation
         v-for="user in recommendations.users"
         v-bind:key="user.user_id"
-        v-bind:userId="user.user_id">
+        v-bind:userId="userId"
+        v-bind:recommendationUserId="user.user_id">
       </UserRecommendation>
     </div>
     <div>
