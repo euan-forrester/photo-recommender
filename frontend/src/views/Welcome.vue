@@ -12,7 +12,7 @@
               <b-form-input
                 v-model="userUrl"
                 @input="$v.userUrl.$touch()"
-                :state="$v.userUrl.$dirty ? !$v.userUrl.$error : null"
+                :state="$v.userUrl.$dirty && $v.userUrl.$error ? false : null"
                 id="user-url"
                 placeholder="e.g. https://www.flickr.com/photos/my_user/"
               ></b-form-input>
@@ -26,11 +26,12 @@
             <b-alert variant="danger" :show="this.currentState === 'apiError'">
               Could not get the requested information. Please try again later
             </b-alert>
-            <b-form-group id="num-photos-group" label="Enter the number of photo recommendations you would like" label-for="num-photos">
+            <b-form-group id="num-photos-group" label="Number of photo recommendations you would like" label-for="num-photos" label-align="left" label-cols=10>
               <b-form-input
                 v-model="numPhotos"
+                type="number"
                 @input="$v.numPhotos.$touch()"
-                :state="$v.numPhotos.$dirty ? !$v.numPhotos.$error : null"
+                :state="$v.numPhotos.$dirty && $v.numPhotos.$error ? false : null"
                 id="num-photos"
                 placeholder="e.g. 50"
               ></b-form-input>
@@ -38,11 +39,12 @@
                 You must enter a number
               </b-form-invalid-feedback>
             </b-form-group>
-            <b-form-group id="num-users-group" label="Enter the number of recommendations for users to follow you would like" label-for="num-users">
+            <b-form-group id="num-users-group" label="Number of recommendations for users to follow you would like" label-for="num-users" label-align="left" label-cols=10>
               <b-form-input
                 v-model="numUsers"
+                type="number"
                 @input="$v.numUsers.$touch()"
-                :state="$v.numUsers.$dirty ? !$v.numUsers.$error : null"
+                :state="$v.numUsers.$dirty && $v.numUsers.$error ? false : null"
                 id="num-users"
                 placeholder="e.g. 5"
               ></b-form-input>
@@ -50,7 +52,7 @@
                 You must enter a number
               </b-form-invalid-feedback>
             </b-form-group>
-            <b-button type="submit" variant="primary" :disabled="$v.$invalid">Submit</b-button>
+            <b-button type="submit" variant="primary" :disabled="$v.$anyError">Submit</b-button>
             <b-button type="reset" variant="danger">Reset</b-button>
           </b-form>
           <div v-if="this.currentState === 'waitingForInitiallyProcessedData'">
