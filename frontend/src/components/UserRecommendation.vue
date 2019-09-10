@@ -1,18 +1,24 @@
 <template>
-  <b-collapse v-model="visible" id="recommendation-collapse">
-    <div class="recommendation">
-      <b-alert variant="danger" :show="this.encounteredError">
-        Could not get information about this user. Please try again later
-      </b-alert>
-      <div v-if="!this.encounteredError">
-        <b-link :href="this.personInfo.profileUrl">
-          <b-img left fluid rounded="circle" :src="personInfo.iconUrl"></b-img>
-          {{ personInfo.realName }}
-        </b-link>
-        <DismissButton @click="onDismiss()"></DismissButton>
+  <b-col cols=2 class="mb-3">
+    <b-collapse v-model="visible" id="recommendation-collapse">
+      <div class="recommendation">
+        <b-alert variant="danger" :show="this.encounteredError">
+          Could not get information about this user. Please try again later
+        </b-alert>
+        <div v-if="!this.encounteredError">
+          <b-link :href="this.personInfo.profileUrl">
+            <b-row align-h="center">
+              <b-img left fluid rounded="circle" :src="personInfo.iconUrl"></b-img>
+            </b-row>
+            <b-row align-h="center">
+              {{ personInfo.realName }}
+            </b-row>
+          </b-link>
+          <DismissButton @click="onDismiss()" class="dismissbutton"></DismissButton>
+        </div>
       </div>
-    </div>
-  </b-collapse>
+    </b-collapse>
+  </b-col>
 </template>
 
 <script>
@@ -64,7 +70,12 @@ export default {
 </script>
 
 <style scoped>
-.recommendation {
+/*.recommendation {
     clear: both;
+}*/
+.dismissbutton {
+  position: absolute;
+  top: 0px;
+  right: 0px;
 }
 </style>
