@@ -1,5 +1,8 @@
 <template>
   <div>
+    <b-jumbotron>
+      <template v-slot:header>Photo Recommender</template>
+    </b-jumbotron>
     <b-form @submit.stop.prevent="onSubmit" @reset="onReset">
       <b-form-group id="user-url-group" label="Enter the URL of your Flickr photos" label-for="user-url">
         <b-form-input
@@ -101,8 +104,8 @@ export default {
 
         await this.$store.dispatch('getUserIdFromUrl', this.userUrl);
 
-        this.userName = this.$store.state.user.name;
-        this.userId = this.$store.state.user.id;
+        this.userName = this.$store.state.welcome.user.name;
+        this.userId = this.$store.state.welcome.user.id;
         this.currentState = 'userFound';
       } catch (error) {
         if (error.response && error.response.status === 404) {
@@ -147,7 +150,7 @@ export default {
         return new Promise(resolve => setTimeout(resolve, ms));
       }
 
-      while (!this.$store.state.user.haveInitiallyProcessedData) {
+      while (!this.$store.state.welcome.user.haveInitiallyProcessedData) {
         this.currentState = 'waitingForInitiallyProcessedData';
 
         await delay(1000); // eslint-disable-line no-await-in-loop
@@ -164,7 +167,7 @@ export default {
 
       this.$router.push({
         name: 'recommendations',
-        params: { userId: this.$store.state.user.id },
+        params: { userId: this.$store.state.welcome.user.id },
         query: { 'num-photos': this.numPhotos, 'num-users': this.numUsers },
       });
     },

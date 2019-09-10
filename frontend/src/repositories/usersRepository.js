@@ -15,4 +15,10 @@ export default {
   getUser(userId) {
     return repository.get(`${resource}/${userId}`);
   },
+  dismissPhotoRecommendation(userId, dismissedImageId) {
+    return repository.put(`${resource}/${userId}/dismiss-photo-recommendation`, null, { params: { 'image-id': dismissedImageId } });
+  },
+  dismissUserRecommendation(userId, dismissedUserId) {
+    return repository.put(`${resource}/${userId}/dismiss-user-recommendation`, null, { params: { 'user-id': dismissedUserId } });
+  },
 };

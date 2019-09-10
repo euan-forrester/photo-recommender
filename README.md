@@ -189,4 +189,6 @@ TODO:
 - Add versioning to the front end, so that old versions of file (with different hashes) don't live in S3 forever: https://stackoverflow.com/questions/46166337/how-can-i-deploy-a-new-cloudfront-s3-version-without-a-small-period-of-unavailab?rq=1
 - Fix website S3 bucket permissions to allow deployments but not allow public access
 - Get domain name + add hooks for google analytics
-- Add button to dismiss a photo or user recommendation, and add that photo/user to a table so that they aren't recommended again
+- Make batch messages for both types of response readers, rather than sending each message individually
+- Have dismissed photos + users feed back into recommendations with negative scores
+- Make visualization of how many instances of each process are doing work at a given time - send task ID to metics and get a count of distinct IDs?

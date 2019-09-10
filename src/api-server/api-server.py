@@ -286,6 +286,36 @@ def get_time_to_update_all_data(user_id=None):
 
     return resp
 
+# Notifies that a user no longer wants to see a particular photo recommendation
+@application.route("/api/users/<user_id>/dismiss-photo-recommendation", methods = ['PUT'])
+def put_user_dismiss_photo_recommendation(user_id=None):
+    if user_id is None:
+        return user_not_specified()
+
+    recommendation_image_id = request.args.get('image-id')
+
+    if not recommendation_image_id:
+        return parameter_not_specified("image-id")
+
+    favorites_store.dismiss_photo_recommendation(user_id, recommendation_image_id)
+
+    return "OK", status.HTTP_200_OK
+
+# Notifies that a user no longer wants to see a particular user recommendation
+@application.route("/api/users/<user_id>/dismiss-user-recommendation", methods = ['PUT'])
+def put_user_dismiss_user_recommendation(user_id=None):
+    if user_id is None:
+        return user_not_specified()
+
+    recommendation_user_id = request.args.get('user-id')
+
+    if not recommendation_user_id:
+        return parameter_not_specified("user-id")
+
+    favorites_store.dismiss_user_recommendation(user_id, recommendation_user_id)
+
+    return "OK", status.HTTP_200_OK
+
 @application.route("/api/locks/request", methods = ['PUT'])
 def request_lock():
 

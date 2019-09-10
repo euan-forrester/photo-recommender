@@ -1,18 +1,26 @@
 <template>
-  <div class="recommendation">
-    <b-link :href="this.photoUrl">
-      <b-img left fluid :src="imageUrl"></b-img>
-    </b-link>
-  </div>
+  <b-collapse v-model="visible" id="recommendation-collapse">
+    <div class="recommendation">
+      <b-link :href="this.photoUrl">
+        <b-img left fluid :src="imageUrl"></b-img>
+      </b-link>
+      <DismissButton @click="onDismiss()"></DismissButton>
+    </div>
+  </b-collapse>
 </template>
 
 <script>
+import DismissButton from './DismissButton.vue';
 import RepositoryFactory from '../repositories/repositoryFactory';
 
 const FlickrRepository = RepositoryFactory.get('flickr');
 
 export default {
+  components: {
+    DismissButton,
+  },
   props: {
+    userId: String,
     imageId: String,
     imageOwner: String,
     imageUrl: String,
@@ -20,10 +28,18 @@ export default {
   data() {
     return {
       photoUrl: '',
+      visible: true,
     };
   },
   async mounted() {
     this.photoUrl = FlickrRepository.getPhotoUrl(this.imageOwner, this.imageId);
+  },
+  methods: {
+    async onDismiss() {
+      this.visible = false;
+
+      await this.$store.dispatch('dismissPhotoRecommendation', { userId: this.userId, dismissedImageId: this.imageId });
+    },
   },
 };
 </script>
@@ -32,4 +48,5 @@ export default {
 .recommendation {
     clear: both;
 }
+
 </style>
