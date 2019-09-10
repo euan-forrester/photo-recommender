@@ -1,25 +1,51 @@
 <template>
-  <b-col cols=2 class="mb-3">
+  <b-col cols=2 class="mb-3, recommendation">
     <b-collapse v-model="visible" id="recommendation-collapse">
-      <div class="recommendation">
-        <b-alert variant="danger" :show="this.encounteredError">
-          Could not get information about this user. Please try again later
-        </b-alert>
-        <div v-if="!this.encounteredError">
-          <b-link :href="this.personInfo.profileUrl">
-            <b-row align-h="center">
-              <b-img left fluid rounded="circle" :src="personInfo.iconUrl"></b-img>
-            </b-row>
-            <b-row align-h="center">
+      <b-alert variant="danger" :show="this.encounteredError">
+        Could not get information about this user. Please try again later
+      </b-alert>
+      <div v-if="!this.encounteredError">
+        <b-link :href="this.personInfo.profileUrl">
+          <b-row align-h="center">
+            <b-img left fluid rounded="circle" class="photo" :src="personInfo.iconUrl"></b-img>
+          </b-row>
+          <b-row align-h="center">
+            <div class="personname">
               {{ personInfo.realName }}
-            </b-row>
-          </b-link>
-          <DismissButton @click="onDismiss()" class="dismissbutton"></DismissButton>
-        </div>
+            </div>  
+          </b-row>
+        </b-link>
+        <DismissButton @click="onDismiss()" class="dismissbutton"></DismissButton>
       </div>
     </b-collapse>
   </b-col>
 </template>
+
+<style scoped>
+/*.recommendation {
+    clear: both;
+}*/
+.dismissbutton {
+  position: absolute;
+  top: 0px;
+  right: 4px;
+}
+.recommendation {
+  background-color: Gainsboro;
+  margin: 2px;
+  padding-left: 25px;
+  padding-right: 25px;
+  border-radius: 10px;
+}
+.photo {
+  padding-top: 5px;
+}
+.personname {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+</style>
 
 <script>
 import DismissButton from './DismissButton.vue';
@@ -68,14 +94,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-/*.recommendation {
-    clear: both;
-}*/
-.dismissbutton {
-  position: absolute;
-  top: 0px;
-  right: 0px;
-}
-</style>
