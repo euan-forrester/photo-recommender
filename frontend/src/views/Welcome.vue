@@ -1,60 +1,68 @@
 <template>
   <div>
-    <b-jumbotron>
-      <template v-slot:header>Photo Recommender</template>
-    </b-jumbotron>
-    <b-form @submit.stop.prevent="onSubmit" @reset="onReset">
-      <b-form-group id="user-url-group" label="Enter the URL of your Flickr photos" label-for="user-url">
-        <b-form-input
-          v-model="userUrl"
-          @input="$v.userUrl.$touch()"
-          :state="$v.userUrl.$dirty ? !$v.userUrl.$error : null"
-          id="user-url"
-          placeholder="e.g. https://www.flickr.com/photos/my_user/"
-        ></b-form-input>
-        <b-form-invalid-feedback :state="$v.userUrl.$dirty ? !$v.userUrl.$error : null">
-          Your photos URL must look like https://www.flickr.com/photos/my_user/
-        </b-form-invalid-feedback>
-      </b-form-group>
-      <b-alert variant="info" :show="this.currentState === 'userNotFound'">
-        User not found - maybe there's a typo?
-      </b-alert>
-      <b-alert variant="danger" :show="this.currentState === 'apiError'">
-        Could not get the requested information. Please try again later
-      </b-alert>
-      <b-form-group id="num-photos-group" label="Enter the number of photo recommendations you would like" label-for="num-photos">
-        <b-form-input
-          v-model="numPhotos"
-          @input="$v.numPhotos.$touch()"
-          :state="$v.numPhotos.$dirty ? !$v.numPhotos.$error : null"
-          id="num-photos"
-          placeholder="e.g. 50"
-        ></b-form-input>
-        <b-form-invalid-feedback :state="$v.numPhotos.$dirty ? !$v.numPhotos.$error : null">
-          You must enter a number
-        </b-form-invalid-feedback>
-      </b-form-group>
-      <b-form-group id="num-users-group" label="Enter the number of recommendations for users to follow you would like" label-for="num-users">
-        <b-form-input
-          v-model="numUsers"
-          @input="$v.numUsers.$touch()"
-          :state="$v.numUsers.$dirty ? !$v.numUsers.$error : null"
-          id="num-users"
-          placeholder="e.g. 5"
-        ></b-form-input>
-        <b-form-invalid-feedback :state="$v.numUsers.$dirty ? !$v.numUsers.$error : null">
-          You must enter a number
-        </b-form-invalid-feedback>
-      </b-form-group>
-      <b-button type="submit" variant="primary" :disabled="$v.$invalid">Submit</b-button>
-      <b-button type="reset" variant="danger">Reset</b-button>
-     </b-form>
-     <div v-if="this.currentState === 'waitingForInitiallyProcessedData'">
-       <b-alert variant="info" :show="true">
-          Calculating initial recommendations for user {{this.userName}}
-       </b-alert>
-       <b-spinner label="Waiting to receive initial recommendations for user"></b-spinner>
-     </div>
+    <b-container>
+      <b-row no-gutters>
+        <b-col sm=0 md=1 lg=2 xl=3></b-col>
+        <b-col sm=12 md=10 lg=8 xl=6>
+          <b-jumbotron>
+            <template v-slot:header>Photo Recommender</template>
+          </b-jumbotron>
+          <b-form @submit.stop.prevent="onSubmit" @reset="onReset">
+            <b-form-group id="user-url-group" label="Enter the URL of your Flickr photos" label-for="user-url">
+              <b-form-input
+                v-model="userUrl"
+                @input="$v.userUrl.$touch()"
+                :state="$v.userUrl.$dirty ? !$v.userUrl.$error : null"
+                id="user-url"
+                placeholder="e.g. https://www.flickr.com/photos/my_user/"
+              ></b-form-input>
+              <b-form-invalid-feedback :state="$v.userUrl.$dirty ? !$v.userUrl.$error : null">
+                Your photos URL must look like https://www.flickr.com/photos/my_user/
+              </b-form-invalid-feedback>
+            </b-form-group>
+            <b-alert variant="info" :show="this.currentState === 'userNotFound'">
+              User not found - maybe there's a typo?
+            </b-alert>
+            <b-alert variant="danger" :show="this.currentState === 'apiError'">
+              Could not get the requested information. Please try again later
+            </b-alert>
+            <b-form-group id="num-photos-group" label="Enter the number of photo recommendations you would like" label-for="num-photos">
+              <b-form-input
+                v-model="numPhotos"
+                @input="$v.numPhotos.$touch()"
+                :state="$v.numPhotos.$dirty ? !$v.numPhotos.$error : null"
+                id="num-photos"
+                placeholder="e.g. 50"
+              ></b-form-input>
+              <b-form-invalid-feedback :state="$v.numPhotos.$dirty ? !$v.numPhotos.$error : null">
+                You must enter a number
+              </b-form-invalid-feedback>
+            </b-form-group>
+            <b-form-group id="num-users-group" label="Enter the number of recommendations for users to follow you would like" label-for="num-users">
+              <b-form-input
+                v-model="numUsers"
+                @input="$v.numUsers.$touch()"
+                :state="$v.numUsers.$dirty ? !$v.numUsers.$error : null"
+                id="num-users"
+                placeholder="e.g. 5"
+              ></b-form-input>
+              <b-form-invalid-feedback :state="$v.numUsers.$dirty ? !$v.numUsers.$error : null">
+                You must enter a number
+              </b-form-invalid-feedback>
+            </b-form-group>
+            <b-button type="submit" variant="primary" :disabled="$v.$invalid">Submit</b-button>
+            <b-button type="reset" variant="danger">Reset</b-button>
+          </b-form>
+          <div v-if="this.currentState === 'waitingForInitiallyProcessedData'">
+            <b-alert variant="info" :show="true">
+              Calculating initial recommendations for user {{this.userName}}
+            </b-alert>
+            <b-spinner label="Waiting to receive initial recommendations for user"></b-spinner>
+          </div>
+        </b-col>
+        <b-col sm=0 md=1 lg=2 xl=3></b-col>
+      </b-row>
+    </b-container>
   </div>
 </template>
 
