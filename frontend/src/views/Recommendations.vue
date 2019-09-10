@@ -1,16 +1,20 @@
 <template>
   <div>
-    <div>
-      People you might want to follow:
-      <UserRecommendation
-        v-for="user in recommendations.users"
-        v-bind:key="user.user_id"
-        v-bind:userId="userId"
-        v-bind:recommendationUserId="user.user_id">
-      </UserRecommendation>
-    </div>
-    <div>
-      Photos you might like:
+    <b-container>
+      <h2 align="left">People you might want to follow</h2>
+      <b-row>
+        <b-col cols=3>
+          <UserRecommendation
+            v-for="user in recommendations.users"
+            v-bind:key="user.user_id"
+            v-bind:userId="userId"
+            v-bind:recommendationUserId="user.user_id">
+          </UserRecommendation>
+        </b-col>
+      </b-row>
+    </b-container>
+    <b-container>
+      <h2 align="left" style="margin-top: 20px">Photos you might like</h2>
       <PhotoRecommendation
         v-for="photo in recommendations.photos"
         v-bind:key="photo.image_id"
@@ -19,7 +23,7 @@
         v-bind:imageOwner="photo.image_owner"
         v-bind:imageUrl="photo.image_url">
       </PhotoRecommendation>
-    </div>
+    </b-container>
     <b-alert variant="danger" :show="this.encounteredError">
       Could not get the information requested. Please try again later
     </b-alert>
@@ -45,8 +49,8 @@ export default {
   },
   async mounted() {
     this.userId = this.$route.params.userId;
-    const numPhotos = this.$route.query && this.$route.query['num-photos'] ? this.$route.query['num-photos'] : 10;
-    const numUsers = this.$route.query && this.$route.query['num-users'] ? this.$route.query['num-users'] : 10;
+    const numPhotos = this.$route.query && this.$route.query['num-photos'] ? this.$route.query['num-photos'] : 50;
+    const numUsers = this.$route.query && this.$route.query['num-users'] ? this.$route.query['num-users'] : 5;
 
     try {
       await this.$store.dispatch('getRecommendationsForUser', { userId: this.userId, numPhotos, numUsers });
@@ -58,3 +62,7 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+
+</style>

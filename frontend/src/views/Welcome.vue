@@ -26,7 +26,13 @@
             <b-alert variant="danger" :show="this.currentState === 'apiError'">
               Could not get the requested information. Please try again later
             </b-alert>
-            <b-form-group id="num-photos-group" label="Number of photo recommendations you would like" label-for="num-photos" label-align="left" label-cols=10>
+            <b-form-group
+              id="num-photos-group"
+              label="Number of photo recommendations you would like"
+              label-for="num-photos"
+              label-align="left"
+              label-cols=10
+            >
               <b-form-input
                 v-model="numPhotos"
                 type="number"
@@ -39,7 +45,13 @@
                 You must enter a number
               </b-form-invalid-feedback>
             </b-form-group>
-            <b-form-group id="num-users-group" label="Number of recommendations for users to follow you would like" label-for="num-users" label-align="left" label-cols=10>
+            <b-form-group
+              id="num-users-group"
+              label="Number of recommendations for users to follow you would like"
+              label-for="num-users"
+              label-align="left"
+              label-cols=10
+            >
               <b-form-input
                 v-model="numUsers"
                 type="number"
