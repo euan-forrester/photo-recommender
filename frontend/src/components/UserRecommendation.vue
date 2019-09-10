@@ -6,7 +6,7 @@
       </b-alert>
       <div v-if="!this.encounteredError">
         <b-link :href="this.personInfo.profileUrl">
-          <b-img left fluid :src="personInfo.iconUrl"></b-img>
+          <b-img left fluid rounded="circle" :src="personInfo.iconUrl"></b-img>
           {{ personInfo.realName }}
         </b-link>
         <DismissButton @click="onDismiss()"></DismissButton>
