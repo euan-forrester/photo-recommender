@@ -175,6 +175,16 @@ def get_recommendations(user_id=None):
     resp = jsonify(output) 
     resp.status_code = status.HTTP_200_OK
 
+    # When we navigate away from our recommendations page, then hit the back button, the browser
+    # uses a cached version of our response rather than asking again. This is a problem if
+    # the user has dismissed some photos or users: the cached response won't reflect those
+    # updates and it'll show the dismissed recommendations. So, we ask the browser not to cache this response. 
+    #
+    # This means that empty spaces that used to hold user recommendations will be filled in
+    # by new recommendations that exclude the dismissed ones. But at least it doesn't
+    # show the dismissed recommendations.
+    resp.headers["Cache-Control"] = "no-cache, max-age=0, must-revalidate, no-store" # https://blog.55minutes.com/2011/10/how-to-defeat-the-browser-back-button-cache/
+
     return resp
 
 # Gets a list of registered users who need to have their data refreshed
