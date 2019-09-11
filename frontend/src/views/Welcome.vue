@@ -63,8 +63,19 @@
                 You must enter a number
               </b-form-invalid-feedback>
             </b-form-group>
-            <b-button type="submit" variant="primary" :disabled="$v.$anyError || (this.currentState === 'waitingForInitiallyProcessedData')">Submit</b-button>
-            <b-button type="reset" variant="danger">Reset</b-button>
+            <b-button
+              type="submit"
+              variant="primary"
+              :disabled="$v.$anyError || (this.currentState === 'waitingForInitiallyProcessedData')"
+            >
+              Submit
+            </b-button>
+            <b-button
+              type="reset"
+              variant="danger"
+            >
+              Reset
+            </b-button>
           </b-form>
           <div v-if="this.currentState === 'waitingForInitiallyProcessedData'">
             <b-alert variant="info" :show="true" id="calculating-initial-recommendations">

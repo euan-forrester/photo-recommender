@@ -13,7 +13,7 @@
             <b-row align-h="center">
               <div class="personname">
                 {{ personInfo.realName }}
-              </div>  
+              </div>
             </b-row>
           </b-link>
           <DismissButton @click="onDismiss()" class="dismissbutton"></DismissButton>
