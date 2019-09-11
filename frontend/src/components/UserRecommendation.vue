@@ -1,19 +1,59 @@
 <template>
-  <b-collapse v-model="visible" id="recommendation-collapse">
-    <div class="recommendation">
-      <b-alert variant="danger" :show="this.encounteredError">
-        Could not get information about this user. Please try again later
-      </b-alert>
-      <div v-if="!this.encounteredError">
-        <b-link :href="this.personInfo.profileUrl">
-          <b-img left fluid rounded="circle" :src="personInfo.iconUrl"></b-img>
-          {{ personInfo.realName }}
-        </b-link>
-        <DismissButton @click="onDismiss()"></DismissButton>
-      </div>
+  <b-col cols=2 class="mb-3, recommendation">
+    <b-alert variant="danger" :show="this.encounteredError">
+      Could not get information about this user. Please try again later
+    </b-alert>
+    <div v-if="!this.encounteredError">
+      <transition name="fade">
+        <div v-if="this.visible">
+          <b-link :href="this.personInfo.profileUrl">
+            <b-row align-h="center">
+              <b-img left fluid rounded="circle" class="photo" :src="personInfo.iconUrl"></b-img>
+            </b-row>
+            <b-row align-h="center">
+              <div class="personname">
+                {{ personInfo.realName }}
+              </div>
+            </b-row>
+          </b-link>
+          <DismissButton @click="onDismiss()" class="dismissbutton"></DismissButton>
+        </div>
+      </transition>
     </div>
-  </b-collapse>
+  </b-col>
 </template>
+
+<style scoped>
+/*.recommendation {
+    clear: both;
+}*/
+.dismissbutton {
+  position: absolute;
+  top: 0px;
+  right: 4px;
+}
+.recommendation {
+  background-color: Gainsboro;
+  margin: 2px;
+  padding-left: 25px;
+  padding-right: 25px;
+  border-radius: 10px;
+}
+.photo {
+  padding-top: 5px;
+}
+.personname {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.fade-enter-active, .fade-leave-active {
+  transition: opacity .5s;
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+  opacity: 0;
+}
+</style>
 
 <script>
 import DismissButton from './DismissButton.vue';
@@ -62,9 +102,3 @@ export default {
   },
 };
 </script>
-
-<style scoped>
-.recommendation {
-    clear: both;
-}
-</style>

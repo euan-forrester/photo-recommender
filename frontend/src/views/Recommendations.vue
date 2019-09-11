@@ -1,20 +1,18 @@
 <template>
   <div>
     <b-container>
-      <h2 align="left">People you might want to follow</h2>
+      <h2 align="left" id="user-recommendations-header">People you might want to follow</h2>
       <b-row>
-        <b-col cols=3>
-          <UserRecommendation
-            v-for="user in recommendations.users"
-            v-bind:key="user.user_id"
-            v-bind:userId="userId"
-            v-bind:recommendationUserId="user.user_id">
-          </UserRecommendation>
-        </b-col>
+        <UserRecommendation
+          v-for="user in recommendations.users"
+          v-bind:key="user.user_id"
+          v-bind:userId="userId"
+          v-bind:recommendationUserId="user.user_id">
+        </UserRecommendation>
       </b-row>
     </b-container>
     <b-container>
-      <h2 align="left" style="margin-top: 20px">Photos you might like</h2>
+      <h2 align="left" id="photo-recommendations-header">Photos you might like</h2>
       <PhotoRecommendation
         v-for="photo in recommendations.photos"
         v-bind:key="photo.image_id"
@@ -64,5 +62,7 @@ export default {
 </script>
 
 <style scoped>
-
+#photo-recommendations-header {
+  margin-top: 20px;
+}
 </style>

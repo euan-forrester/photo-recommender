@@ -1,10 +1,7 @@
 <template>
   <b-button-close
+    v-b-popover.hover.top="'I don\'t want this recommendation'"
     v-on="$listeners"
-    aria-controls="recommendation-collapse"
-    data-toggle="tooltip"
-    data-placement="left"
-    title="I don't want this recommendation"
   >
   </b-button-close>
 </template>
