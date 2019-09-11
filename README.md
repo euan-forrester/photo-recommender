@@ -180,14 +180,13 @@ TODO:
 - Centralize logging and make it searchable. Maybe like this: https://aws.amazon.com/solutions/centralized-logging/
 - Make puller-flickr only get incremental updates since the last time it ran, rather than pulling all data every time
 - Make puller-flickr look for deletions of favorites
-- Investigate transaction usage in the batch database writer: does committing after every batch help improve concurrency? is there a better transaction isolation level to use to help concurrency?
+- Investigate transaction usage in the batch database writer: what batch size should we use? is there a better transaction isolation level to use to help concurrency?
 - Add auth to API server - use AWS API gateway?
 - Audit for XSS attacks
 - Add CSRF token
 - Make frontend vendor file smaller (it's mostly bootstrap): https://bootstrap-vue.js.org/docs/#tree-shaking-with-module-bundlers
   - See also https://medium.com/js-dojo/how-to-reduce-your-vue-js-bundle-size-with-webpack-3145bf5019b7
 - Add versioning to the front end, so that old versions of file (with different hashes) don't live in S3 forever: https://stackoverflow.com/questions/46166337/how-can-i-deploy-a-new-cloudfront-s3-version-without-a-small-period-of-unavailab?rq=1
-- Fix website S3 bucket permissions to allow deployments but not allow public access
 - Get domain name + add hooks for google analytics
 - Make batch messages for both types of response readers, rather than sending each message individually
 - Have dismissed photos + users feed back into recommendations with negative scores
