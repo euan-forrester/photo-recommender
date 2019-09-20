@@ -1,8 +1,8 @@
 __pycache__/
-src/puller-flickr/config/secrets.ini
-src/ingester-database/config/secrets.ini
-src/api-server/config/secrets.ini
-src/scheduler/config/secrets.ini
-src/puller-response-reader/config/secrets.ini
-src/ingester-response-reader/config/secrets.ini
-src/common/dummy.sh
+backend/puller-flickr/config/secrets.ini
+backend/ingester-database/config/secrets.ini
+backend/api-server/config/secrets.ini
+backend/scheduler/config/secrets.ini
+backend/puller-response-reader/config/secrets.ini
+backend/ingester-response-reader/config/secrets.ini
+backend/common/dummy.sh

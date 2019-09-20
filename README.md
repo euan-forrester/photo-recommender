@@ -191,3 +191,4 @@ TODO:
 - Make batch messages for both types of response readers, rather than sending each message individually
 - Have dismissed photos + users feed back into recommendations with negative scores
 - Make visualization of how many instances of each process are doing work at a given time - send task ID to metics and get a count of distinct IDs?
+- Have Scheduler ask for the number of seconds until the next user needs updating, then sleep for that long
