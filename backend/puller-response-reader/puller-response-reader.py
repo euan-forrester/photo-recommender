@@ -110,6 +110,9 @@ try:
         puller_response_queue.finished_with_message(queue_message)
 
     # Now that we have no new messages to process, tell the API server how many messages we saw for each user
+    #
+    # Note that we have to do this *after* making any more puller requests above, so that we don't 
+    # accidentally mark this user as being complete if only their initial requests have been fully processed.
 
     for initial_requesting_user_id in messages_received:
         logging.info(f"Telling users store that we received {messages_received[initial_requesting_user_id]['count']} responses for initial requesting user {initial_requesting_user_id}")
