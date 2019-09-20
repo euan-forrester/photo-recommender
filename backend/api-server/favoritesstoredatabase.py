@@ -397,6 +397,12 @@ class FavoritesStoreDatabase:
             cnx.close()  
 
     def received_puller_responses(self, user_id, num_puller_responses):
+        
+        # We can receive puller and ingester responses in any order, so we need to check if
+        # we're finished processing when receiving either of them
+
+        finished_processing = False
+
         cnx = self.cnxpool.get_connection()
 
         cursor = cnx.cursor() 
@@ -412,6 +418,8 @@ class FavoritesStoreDatabase:
                 ;
             """, (num_puller_responses, user_id))
 
+            finished_processing = self._check_if_finished_processing(cursor, user_id)
+
             cnx.commit()
 
         except Exception as e:
@@ -422,16 +430,18 @@ class FavoritesStoreDatabase:
             cursor.close()
             cnx.close()  
 
+        return finished_processing
+
     def received_ingester_responses(self, user_id, num_ingester_responses):
+
+        # We can receive puller and ingester responses in any order, so we need to check if
+        # we're finished processing when receiving either of them
         
         finished_processing = False
 
         cnx = self.cnxpool.get_connection()
 
         cursor = cnx.cursor() 
-
-        # If we have received all of the ingester responses that we wanted, then
-        # we've finished processing
 
         try:
             cursor.execute("""
@@ -444,33 +454,7 @@ class FavoritesStoreDatabase:
                 ;
             """, (num_ingester_responses, user_id))
 
-            cursor.execute("""
-                SELECT
-                    num_ingester_requests_made, num_ingester_requests_finished
-                FROM
-                    registered_users
-                WHERE
-                    user_id=%s
-                ;
-            """, (user_id,))
-
-            row = self._get_first_row(cursor)
-                
-            num_ingester_requests_made = row[0]
-            num_ingester_requests_finished = row[1]
-
-            if num_ingester_requests_finished >= num_ingester_requests_made:
-                
-                finished_processing = True
-
-                cursor.execute("""
-                    UPDATE 
-                        registered_users 
-                    SET 
-                        all_data_last_successfully_processed_at = NOW() 
-                    WHERE 
-                        user_id=%s;
-                """, (user_id,))
+            finished_processing = self._check_if_finished_processing(cursor, user_id)
 
             cnx.commit()
 
@@ -481,6 +465,45 @@ class FavoritesStoreDatabase:
         finally:
             cursor.close()
             cnx.close()  
+
+        return finished_processing
+
+    def _check_if_finished_processing(self, cursor, user_id):
+
+        # If we have received all of the puller and ingester responses that we wanted, 
+        # then we've finished processing
+
+        finished_processing = False
+
+        cursor.execute("""
+            SELECT
+                num_puller_requests_made, num_puller_requests_finished, num_ingester_requests_made, num_ingester_requests_finished
+            FROM
+                registered_users
+            WHERE
+                user_id=%s
+            ;
+        """, (user_id,))
+
+        row = self._get_first_row(cursor)
+
+        num_puller_requests_made        = row[0]
+        num_puller_requests_finished    = row[1]            
+        num_ingester_requests_made      = row[2]
+        num_ingester_requests_finished  = row[3]
+
+        if (num_puller_requests_made >= num_puller_requests_finished) and (num_ingester_requests_finished >= num_ingester_requests_made):
+            
+            finished_processing = True
+
+            cursor.execute("""
+                UPDATE 
+                    registered_users 
+                SET 
+                    all_data_last_successfully_processed_at = NOW() 
+                WHERE 
+                    user_id=%s;
+            """, (user_id,))
 
         return finished_processing
 

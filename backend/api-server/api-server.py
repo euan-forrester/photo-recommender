@@ -255,9 +255,16 @@ def put_user_received_puller_responses(user_id=None):
     if not num_puller_responses:
         return parameter_not_specified("num-puller-responses")
 
-    favorites_store.received_puller_responses(user_id, num_puller_responses)
+    finished_processing = favorites_store.received_puller_responses(user_id, num_puller_responses)
 
-    return "OK", status.HTTP_200_OK
+    response_object = {
+        'finished_processing': finished_processing
+    }
+
+    resp = jsonify(response_object)
+    resp.status_code = status.HTTP_200_OK
+
+    return resp
 
 # Notifies that there have been some ingester responses for a particular user
 @application.route("/api/users/<user_id>/received-ingester-responses", methods = ['PUT'])

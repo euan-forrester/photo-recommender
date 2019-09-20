@@ -116,14 +116,11 @@ resource "aws_cloudwatch_dashboard" "main" {
 
 data "template_file" "time_to_get_all_data" {
     vars = {
-        title                       = "Time to get all data"
         environment                 = "${var.environment}"
-        process_name                = "ingester-response-reader"
-        metric_name                 = "time_to_get_all_data"
         region                      = "${var.region}"
     }
 
-    template = "${file("${path.module}/generic_metric.tpl")}"
+    template = "${file("${path.module}/time_to_get_all_data.tpl")}"
 }
 
 data "template_file" "puller_queue" {
