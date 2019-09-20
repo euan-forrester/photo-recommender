@@ -110,10 +110,18 @@ try:
         puller_response_queue.finished_with_message(queue_message)
 
     # Now that we have no new messages to process, tell the API server how many messages we saw for each user
+    #
+    # Note that we have to do this *after* making any more puller requests above, so that we don't 
+    # accidentally mark this user as being complete if only their initial requests have been fully processed.
 
     for initial_requesting_user_id in messages_received:
         logging.info(f"Telling users store that we received {messages_received[initial_requesting_user_id]['count']} responses for initial requesting user {initial_requesting_user_id}")
-        users_store.received_puller_responses(initial_requesting_user_id, messages_received[initial_requesting_user_id]['count'])
+        processing_status = users_store.received_puller_responses(initial_requesting_user_id, messages_received[initial_requesting_user_id]['count'])
+
+        if processing_status['finished_processing']:
+            time_in_seconds = users_store.get_time_to_update_all_data(initial_requesting_user_id)
+            logging.info(f"We have finished processing user {initial_requesting_user_id}. It took {time_in_seconds}")
+            metrics_helper.send_time("time_to_get_all_data", time_in_seconds)
 
 except UsersStoreException as e:
     logging.error("Unable to talk to our users store. Exiting.", e)
