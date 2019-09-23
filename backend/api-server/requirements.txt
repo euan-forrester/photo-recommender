@@ -8,3 +8,4 @@ diskcache==4.0.0
 flickrapi==2.4.0
 django==2.2.4
 python-memcached==1.59
+Authlib[client]==0.12.1
