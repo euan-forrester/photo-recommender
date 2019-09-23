@@ -161,7 +161,6 @@ export default {
       try {
         await this.$store.dispatch('getUserInfo', this.userId);
       } catch (error) {
-        console.log('Got back error in initial attempt to get user info', error);
         if (error.response && error.response.status === 404) {
           needToAddUser = true;
         } else {
@@ -174,7 +173,6 @@ export default {
         try {
           await this.$store.dispatch('addNewUser', this.userId);
         } catch (error) {
-          console.log('Got back error trying to add user', error);
           this.currentState = 'apiError';
           return;
         }
@@ -197,7 +195,6 @@ export default {
         try {
           await this.$store.dispatch('getUserInfo', this.userId); // eslint-disable-line no-await-in-loop
         } catch (error) {
-          console.log('Got back error in loop trying to get user info', error);
           this.currentState = 'apiError';
           return;
         }
