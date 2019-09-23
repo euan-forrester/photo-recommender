@@ -153,6 +153,8 @@ def get_user_info(user_id=None):
     resp = jsonify(user_info)
     resp.status_code = status.HTTP_200_OK
 
+    do_not_cache_response(resp)
+
     return resp
 
 # Gets our recommendations for a specific user
@@ -183,7 +185,7 @@ def get_recommendations(user_id=None):
     # This means that empty spaces that used to hold user recommendations will be filled in
     # by new recommendations that exclude the dismissed ones. But at least it doesn't
     # show the dismissed recommendations.
-    resp.headers["Cache-Control"] = "no-cache, max-age=0, must-revalidate, no-store" # https://blog.55minutes.com/2011/10/how-to-defeat-the-browser-back-button-cache/
+    do_not_cache_response(resp)
 
     return resp
 
@@ -417,25 +419,34 @@ def parameter_not_specified(param_name, error=None):
 def encountered_favorites_store_exception(e):
     metrics_helper.increment_count("FavoritesStoreException")
     logging.exception("Encountered FavoritesStoreException") # Logs a stack trace
-    return "Internal server error", status.HTTP_500_INTERNAL_SERVER_ERROR
+    return "Internal server error", status.HTTP_500_INTERNAL_SERVER_ERROR, do_not_cache()
 
 @application.errorhandler(FavoritesStoreUserNotFoundException)
 def encountered_user_not_found_exception(e):
-    return "Requested user not found", status.HTTP_404_NOT_FOUND
+    return "Requested user not found", status.HTTP_404_NOT_FOUND, do_not_cache()
 
 @application.errorhandler(FavoritesStoreDuplicateUserException)
 def encountered_duplicate_not_exception(e):
-    return "Requested user already exists", status.HTTP_409_CONFLICT
+    return "Requested user already exists", status.HTTP_409_CONFLICT, do_not_cache()
 
 @application.errorhandler(FlickrApiNotFoundException)
 def encountered_flickr_not_found_exception(e):
-    return "Requested object not found", status.HTTP_404_NOT_FOUND
+    return "Requested object not found", status.HTTP_404_NOT_FOUND, do_not_cache()
 
 @application.errorhandler(Exception)
 def encountered_exception(e):
     metrics_helper.increment_count("Exception")
     logging.exception("Excountered Exception") # Logs a stack trace
     return "Internal server error", status.HTTP_500_INTERNAL_SERVER_ERROR
+
+def do_not_cache_response(resp):
+    # Note that there are settings in the response that provide a cleaner way to do this: https://stackoverflow.com/questions/23112316/using-flask-how-do-i-modify-the-cache-control-header-for-all-output/23115561#23115561
+    resp.headers["Cache-Control"] = "no-cache, max-age=0, must-revalidate, no-store" # https://blog.55minutes.com/2011/10/how-to-defeat-the-browser-back-button-cache/
+
+def do_not_cache():
+    return {
+        "Cache-Control": "no-cache, max-age=0, must-revalidate, no-store"
+    }
 
 if __name__ == '__main__':
     # Note that running Flask like this results in the output saying "lazy loading" and I'm not sure what that means.
