@@ -47,11 +47,14 @@ resource "aws_cloudfront_distribution" "application" {
     ordered_cache_behavior {
         path_pattern     = "/api/*"
         allowed_methods  = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
-        cached_methods   = ["GET", "HEAD", "OPTIONS"]
+        cached_methods   = ["GET", "HEAD"]
         target_origin_id = "${local.load_balancer_origin_id}"
 
         forwarded_values {
             query_string = true
+            headers = ["*"] # This seems to be the magic that makes cloudfront not cache anything from this origin, 
+                            # despite having set the TTLs to 0: https://aws.amazon.com/premiumsupport/knowledge-center/prevent-cloudfront-from-caching-files/
+                            # This makes a special note appear in the UI saying that cacheing is disabled for this origin.
 
             cookies {
                 forward = "all"
@@ -60,8 +63,8 @@ resource "aws_cloudfront_distribution" "application" {
 
         viewer_protocol_policy = "allow-all"
         min_ttl                = 0
-        default_ttl            = 5
-        max_ttl                = 5
+        default_ttl            = 0
+        max_ttl                = 0
     }
 
     # Forward everything else to our S3 bucket

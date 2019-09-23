@@ -120,9 +120,8 @@ class FavoritesStoreDatabase:
                 SELECT
                     UNIX_TIMESTAMP(created_at),
                     (all_data_last_successfully_processed_at IS NOT NULL) AS have_initially_processed_data,
-                    ((all_data_last_successfully_processed_at IS NOT NULL) AND 
-                        (data_last_requested_at IS NOT NULL) AND 
-                        (all_data_last_successfully_processed_at < data_last_requested_at)) AS currently_processing_data
+                    ((data_last_requested_at IS NOT NULL) AND 
+                        (IFNULL(all_data_last_successfully_processed_at, TIMESTAMP('1970-01-01')) < data_last_requested_at)) AS currently_processing_data
                 FROM 
                     registered_users
                 WHERE
@@ -487,23 +486,25 @@ class FavoritesStoreDatabase:
 
         row = self._get_first_row(cursor)
 
-        num_puller_requests_made        = row[0]
-        num_puller_requests_finished    = row[1]            
-        num_ingester_requests_made      = row[2]
-        num_ingester_requests_finished  = row[3]
+        if row is not None:
 
-        if (num_puller_requests_made >= num_puller_requests_finished) and (num_ingester_requests_finished >= num_ingester_requests_made):
-            
-            finished_processing = True
+            num_puller_requests_made        = row[0]
+            num_puller_requests_finished    = row[1]            
+            num_ingester_requests_made      = row[2]
+            num_ingester_requests_finished  = row[3]
 
-            cursor.execute("""
-                UPDATE 
-                    registered_users 
-                SET 
-                    all_data_last_successfully_processed_at = NOW() 
-                WHERE 
-                    user_id=%s;
-            """, (user_id,))
+            if (num_puller_requests_made >= num_puller_requests_finished) and (num_ingester_requests_finished >= num_ingester_requests_made):
+                
+                finished_processing = True
+
+                cursor.execute("""
+                    UPDATE 
+                        registered_users 
+                    SET 
+                        all_data_last_successfully_processed_at = NOW() 
+                    WHERE 
+                        user_id=%s;
+                """, (user_id,))
 
         return finished_processing
 
