@@ -21,7 +21,6 @@ CREATE TABLE registered_users (
     num_puller_requests_finished INT NOT NULL DEFAULT 0,
     num_ingester_requests_made INT NOT NULL DEFAULT 0,
     num_ingester_requests_finished INT NOT NULL DEFAULT 0,
-    temporary_flickr_access_token BLOB,
     flickr_access_token BLOB,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

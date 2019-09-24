@@ -126,13 +126,6 @@ class dummy_cache:
     def delete(self, key):
         logging.info(f"Got delete called with key {key}")
 
-
-def save_oauth_request_token(token):
-    logging.info(f"Requested to save temporary token {token}")
-
-def fetch_oauth_request_token(request):
-    logging.info(f"Requested to fetch temporary token for request {request}")
-
 application = Flask(__name__)
 application.secret_key = session_encryption_key
 oauth = OAuth(application, cache=dummy_cache())
@@ -141,9 +134,9 @@ flickrauth = oauth.register(
                 client_id=flickr_api_key, 
                 client_secret=flickr_api_secret, 
                 request_token_url='https://www.flickr.com/services/oauth/request_token',
-                request_token_params=None,
+                request_token_params=None, # According to the authlib docs https://flask-oauthlib.readthedocs.io/en/latest/api.html, we can pass a dictionary here of extra parameters, and according to the Flickr docs https://www.flickr.com/services/api/auth.oauth.html we can pass a 'perms=' parameter to restrict permissions. But I can't seem to get it to work. Needs more testing.
                 access_token_url='https://www.flickr.com/services/oauth/access_token',
-                access_token_params = None,
+                access_token_params=None,
                 authorize_url='https://www.flickr.com/services/oauth/authorize',
                 api_base_url='https://www.flickr.com/services/rest/',
                 client_kwargs=None)
@@ -153,12 +146,13 @@ flickrauth = oauth.register(
 def health_check():
     return "OK", status.HTTP_200_OK
 
-# 
+# Allow the user to log into Flickr so that we can get an access key for them
 @application.route('/api/flickr/login')
 def flickr_login():
     redirect_uri = url_for('flickr_authorize', _external=True)
     return flickrauth.authorize_redirect(redirect_uri)
 
+# Gets the access key for a user who just logged in
 @application.route('/api/flickr/authorize')
 def flickr_authorize():
     token = flickrauth.authorize_access_token()
