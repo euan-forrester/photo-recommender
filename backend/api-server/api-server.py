@@ -9,7 +9,9 @@ import atexit
 from flask import Flask
 from flask import request
 from flask import jsonify
+from flask import url_for
 from flask_api import status
+from authlib.flask.client import OAuth
 from confighelper import ConfigHelper
 from favoritesstoredatabase import FavoritesStoreDatabase
 from favoritesstoreexception import FavoritesStoreException
@@ -50,8 +52,10 @@ database_port               = config_helper.getInt("database-port")
 database_name               = config_helper.get("database-name")
 database_fetch_batch_size   = config_helper.getInt("database-fetch-batch-size")
 database_connection_pool_size = config_helper.getInt("database-connection-pool-size")
+database_user_data_encryption_key = config_helper.get("database-user-data-encryption-key", is_secret=True)
 server_host                 = config_helper.get("server-host")
 server_port                 = config_helper.getInt("server-port")
+session_encryption_key      = config_helper.get("session-encryption-key", is_secret=True)
 default_num_photo_recommendations = config_helper.getInt('default-num-photo-recommendations')
 default_num_user_recommendations = config_helper.getInt('default-num-user-recommendations')
 
@@ -91,7 +95,8 @@ favorites_store = FavoritesStoreDatabase(
     database_port=database_port, 
     database_name=database_name, 
     fetch_batch_size=database_fetch_batch_size,
-    connection_pool_size=database_connection_pool_size)
+    connection_pool_size=database_connection_pool_size,
+    user_data_encryption_key=database_user_data_encryption_key)
 
 def cleanup_data_store():
     favorites_store.shutdown()
@@ -106,12 +111,61 @@ atexit.register(cleanup_data_store)
 #   https://medium.com/@kmmanoj/deploying-a-scalable-flask-app-using-gunicorn-and-nginx-in-docker-part-1-3344f13c9649
 #
 
+class dummy_cache:
+    def __init__(self):
+        self.data = None
+
+    def get(self, key):
+        logging.info(f"Got get called with key: {key}")
+        return self.data
+
+    def set(self, key, value, timeout=None):
+        logging.info(f"Got set called with key {key} value {value} timeout {timeout}")
+        self.data = value
+
+    def delete(self, key):
+        logging.info(f"Got delete called with key {key}")
+
+
+def save_oauth_request_token(token):
+    logging.info(f"Requested to save temporary token {token}")
+
+def fetch_oauth_request_token(request):
+    logging.info(f"Requested to fetch temporary token for request {request}")
+
 application = Flask(__name__)
+application.secret_key = session_encryption_key
+oauth = OAuth(application, cache=dummy_cache())
+flickrauth = oauth.register(
+                name='flickr', 
+                client_id=flickr_api_key, 
+                client_secret=flickr_api_secret, 
+                request_token_url='https://www.flickr.com/services/oauth/request_token',
+                request_token_params=None,
+                access_token_url='https://www.flickr.com/services/oauth/access_token',
+                access_token_params = None,
+                authorize_url='https://www.flickr.com/services/oauth/authorize',
+                api_base_url='https://www.flickr.com/services/rest/',
+                client_kwargs=None)
 
 # Health check for our load balancer
 @application.route("/healthcheck", methods = ['GET'])
 def health_check():
     return "OK", status.HTTP_200_OK
+
+# 
+@application.route('/api/flickr/login')
+def flickr_login():
+    redirect_uri = url_for('flickr_authorize', _external=True)
+    return flickrauth.authorize_redirect(redirect_uri)
+
+@application.route('/api/flickr/authorize')
+def flickr_authorize():
+    token = flickrauth.authorize_access_token()
+    logging.info(f"Got back token {token}")
+    # you can save the token into database
+    #profile = flickrauth.get('/user')
+    return jsonify(token)#jsonify(profile)
 
 # Create a new user
 @application.route("/api/users/<user_id>", methods = ['POST'])

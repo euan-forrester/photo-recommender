@@ -53,6 +53,9 @@ Copy the file `terraform/terraform.tfvars.example` to `terraform/terraform.tfvar
 - Fill in your Flickr API key and secret: https://www.flickr.com/services/apps/create/apply
 - Fill in your numerical Flickr user ID. You may need to get your numerical ID from: http://idgettr.com/
 - Fill in a master password for the various databases
+- Fill in a 256-bit AES encryption key, used to encrypt user access tokens in the database. Can be obtained from https://www.allkeysgenerator.com/Random/Security-Encryption-Key-Generator.aspx for example
+
+We specially encrypt these tokens because in dev we may want to have a small RDS instance for billing purposes that doesn't support encrypting the whole database, but it will still be storing real user access tokens.
 
 You'll be able to ssh into any EC2 instances created with `ssh ec2-user@<public ip of instance>`
 

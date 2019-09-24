@@ -258,6 +258,8 @@ module "api_server" {
     load_balancer_port      = 4444
     api_server_port         = 4445
 
+    session_encryption_key     = "${var.api_server_session_encryption_key}"
+
     flickr_api_key = "${var.flickr_api_key}"
     flickr_secret_key = "${var.flickr_secret_key}"
     flickr_api_retries = 3
@@ -279,6 +281,7 @@ module "api_server" {
     mysql_database_name     = "${module.database.database_name}"
     mysql_database_fetch_batch_size = 10000
     mysql_database_connection_pool_size = 20
+    mysql_database_user_data_encryption_key = "${var.database_user_data_encryption_key}"
 
     ecs_cluster_id          = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
