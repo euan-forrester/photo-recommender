@@ -8,7 +8,7 @@ import logging
 
 class DiscCacheWrapper():
 
-    DISC_CACHE_PATH = "./flickr-auth-disc-cache"
+    DISC_CACHE_PATH = "./tmp/flickr-auth-disc-cache"
 
     def __init__(self):
         self.disc_cache = Cache(directory=DiscCacheWrapper.DISC_CACHE_PATH)
