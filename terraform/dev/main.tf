@@ -6,9 +6,14 @@ module "vpc" {
 
     cidr_block = "10.10.0.0/16"
 
-    subnets = {
+    public_subnets = {
         us-west-2a = "10.10.1.0/24"
         us-west-2b = "10.10.2.0/24"
+    }
+
+    private_subnets = {
+        us-west-2a = "10.10.3.0/24"
+        us-west-2b = "10.10.4.0/24"
     }
 }
 
@@ -60,13 +65,15 @@ module "database" {
 module "memcached" {
     source = "../modules/memcached"
 
+    # Note that some sensitive info can get stored here, such as temporary tokens during the flickr auth process.
+    # Thus, this instance isn't accessible publicly.
+
     environment = "dev"
     region = "${var.region}"
 
     vpc_id                  = "${module.vpc.vpc_id}"
-    vpc_public_subnet_ids   = "${module.vpc.vpc_public_subnet_ids}"
+    vpc_public_subnet_ids   = "${module.vpc.vpc_private_subnet_ids}"
     vpc_cidr                = "${module.vpc.vpc_cidr_block}"
-    local_machine_cidr      = "${var.local_machine_cidr}"
 
     memcached_node_type = "cache.t2.micro"
     memcached_num_cache_nodes = 1 # Set to 0 to disable memcached in dev to save billing charges
@@ -265,7 +272,7 @@ module "api_server" {
     flickr_api_retries = 3
     flickr_api_memcached_location = "localhost:11211" # Disable cacheing Flickr API responses for now
     flickr_api_memcached_ttl = 7200
-    flickr_auth_memcached_location = "${module.flickr_auth_memcached}"
+    flickr_auth_memcached_location = "${module.memcached.location}"
 
     retain_load_balancer_access_logs_after_destroy = "false" # For dev, we don't care about retaining these logs after doing a terraform destroy
     load_balancer_days_to_keep_access_logs = 1

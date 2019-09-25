@@ -1,4 +1,5 @@
 variable "vpc_name" {}
 variable "environment" {}
 variable "cidr_block" {}
-variable "subnets" { type = "map" }
+variable "public_subnets" { type = "map" }
+variable "private_subnets" { type = "map" }

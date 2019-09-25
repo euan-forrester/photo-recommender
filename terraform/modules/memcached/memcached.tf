@@ -8,9 +8,9 @@ resource "aws_security_group" "elasticache" {
     }
 }
 
-resource "aws_security_group_rule" "elasticache-local-machine" {
-    cidr_blocks       = ["${var.local_machine_cidr}", "${var.vpc_cidr}"]
-    description       = "Allow local machine and EC2 instances to communicate with the memcached instance"
+resource "aws_security_group_rule" "elasticache" {
+    cidr_blocks       = ["${var.vpc_cidr}"]
+    description       = "Allow EC2 instances to communicate with the memcached instance"
     from_port         = 11211
     protocol          = "tcp"
     security_group_id = "${aws_security_group.elasticache.id}"
@@ -18,8 +18,8 @@ resource "aws_security_group_rule" "elasticache-local-machine" {
     type              = "ingress"
 }
 
-resource "aws_elasticache_subnet_group" "public_subnet_group" {
-    name       = "public-elasticache-subnet-group-memcached-${var.environment}"
+resource "aws_elasticache_subnet_group" "subnet_group" {
+    name       = "elasticache-subnet-group-memcached-${var.environment}"
     subnet_ids = ["${var.vpc_public_subnet_ids}"]
 }
 
@@ -34,5 +34,5 @@ resource "aws_elasticache_cluster" "memcached" {
     parameter_group_name = "default.memcached1.5"
     port                 = 11211
     security_group_ids   = ["${aws_security_group.elasticache.id}"]
-    subnet_group_name    = "${aws_elasticache_subnet_group.public_subnet_group.name}"
+    subnet_group_name    = "${aws_elasticache_subnet_group.subnet_group.name}"
 }

@@ -19,13 +19,25 @@ resource "aws_internet_gateway" "internet-gateway" {
 
 # Public subnet - 1 per subnet listed in our variables
 resource "aws_subnet" "public-subnet" {
-    count = "${length(var.subnets)}"
+    count = "${length(var.public_subnets)}"
 
     vpc_id = "${aws_vpc.vpc.id}"
-    cidr_block = "${element(values(var.subnets), count.index)}"
-    availability_zone = "${element(keys(var.subnets), count.index)}"
+    cidr_block = "${element(values(var.public_subnets), count.index)}"
+    availability_zone = "${element(keys(var.public_subnets), count.index)}"
     tags {
-        Name = "public-subnet-${var.vpc_name}-${element(keys(var.subnets), count.index)}-${var.environment}"
+        Name = "public-subnet-${var.vpc_name}-${element(keys(var.public_subnets), count.index)}-${var.environment}"
+    }
+}
+
+# Private subnet - 1 per subnet listed in our variables
+resource "aws_subnet" "private-subnet" {
+    count = "${length(var.private_subnets)}"
+
+    vpc_id = "${aws_vpc.vpc.id}"
+    cidr_block = "${element(values(var.private_subnets), count.index)}"
+    availability_zone = "${element(keys(var.private_subnets), count.index)}"
+    tags {
+        Name = "private-subnet-${var.vpc_name}-${element(keys(var.private_subnets), count.index)}-${var.environment}"
     }
 }
 
@@ -43,7 +55,7 @@ resource "aws_route_table" "public-subnet-routing-table" {
 
 # Associate the routing table to each public subnet
 resource "aws_route_table_association" "public-subnet-routing-table-association" {
-    count           = "${length(var.subnets)}"
+    count           = "${length(var.public_subnets)}"
 
     subnet_id       = "${element(aws_subnet.public-subnet.*.id, count.index)}"
     route_table_id  = "${aws_route_table.public-subnet-routing-table.id}"
