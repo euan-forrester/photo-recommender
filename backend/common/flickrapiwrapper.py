@@ -28,16 +28,30 @@ class FlickrApiWrapper:
             }
         })
 
-        self.flickr                 = flickrapi.FlickrAPI(flickr_api_key, flickr_api_secret, format='parsed-json', cache=True)
-        self.flickr.cache           = cache
+        self.flickr_api_key      = flickr_api_key
+        self.flickr_api_secret   = flickr_api_secret
+        self.cache               = cache
 
-        self.max_retries            = max_retries
+        self.unauth_flickr       = flickrapi.FlickrAPI(self.flickr_api_key, self.flickr_api_secret, format='parsed-json', cache=True) # Not authenticated; used to make calls that don't require auth
+        self.unauth_flickr.cache = self.cache
 
-        self.metrics_helper         = metrics_helper
+        self.max_retries         = max_retries
+
+        self.metrics_helper      = metrics_helper
+
+    def login_test(self, user_authentication_token):
+
+        auth_flickr = self._get_auth_flickr(user_authentication_token)
+
+        lambda_to_call = lambda: auth_flickr.test.login()
+
+        person_info = self._call_with_retries(lambda_to_call)
+
+        return person_info
 
     def lookup_user(self, user_url):
         
-        lambda_to_call = lambda: self.flickr.urls.lookupUser(url=user_url)
+        lambda_to_call = lambda: self.unauth_flickr.urls.lookupUser(url=user_url)
 
         person_info = self._call_with_retries(lambda_to_call)
 
@@ -47,7 +61,7 @@ class FlickrApiWrapper:
 
     def get_person_info(self, user_id):
         
-        lambda_to_call = lambda: self.flickr.people.getInfo(user_id=user_id)
+        lambda_to_call = lambda: self.unauth_flickr.people.getInfo(user_id=user_id)
 
         person_info = self._call_with_retries(lambda_to_call)
 
@@ -83,10 +97,10 @@ class FlickrApiWrapper:
 
     def _get_favorites_page(self, user_id, page_number, max_favorites_per_call):
 
-        # There's also flickr.favorites.getList(), which gets all the faves that our current API key can see. While it would be nice to get
+        # There's also unauth_flickr.favorites.getList(), which gets all the faves that our current API key can see. While it would be nice to get
         # more photos, some users might not be able to see the same things as this API key, so ultimately it'll result in broken links. 
         # Also some users might be upset at having their semi-private photos surfaced.
-        lambda_to_call = lambda: self.flickr.favorites.getPublicList(user_id=user_id, extras='url_l,url_m', per_page=max_favorites_per_call, page=page_number)
+        lambda_to_call = lambda: self.unauth_flickr.favorites.getPublicList(user_id=user_id, extras='url_l,url_m', per_page=max_favorites_per_call, page=page_number)
 
         favorites = self._call_with_retries(lambda_to_call)
 
@@ -121,11 +135,11 @@ class FlickrApiWrapper:
 
     def _get_contacts_page(self, user_id, page_number, max_contacts_per_call):
 
-        # There's also flickr.contacts.getList(), but it requires authentication. 
+        # There's also unauth_flickr.contacts.getList(), but it requires authentication. 
         # It would be nice to be more accurate by getting all of our contacts, but that would require doing this on the frontend side rather than
         # in the database, which seems like a world of hurt. We'd have to get all of the user's contacts, then keep getting more an more recommendations
         # of users until we'd filled the required number. Seems complicated and slow vs just doing it all in a single SQL statement.
-        lambda_to_call = lambda: self.flickr.contacts.getPublicList(user_id=user_id, per_page=max_contacts_per_call, page=page_number)
+        lambda_to_call = lambda: self.unauth_flickr.contacts.getPublicList(user_id=user_id, per_page=max_contacts_per_call, page=page_number)
 
         response = self._call_with_retries(lambda_to_call)
 
@@ -137,6 +151,15 @@ class FlickrApiWrapper:
         logging.info(f"Just called get_contacts_page() for page {page_number} with max_contacts_per_call {max_contacts_per_call} and returning {len(contacts)} contacts")
 
         return contacts
+
+    def _get_auth_flickr(self, user_authentication_token):
+        
+        # Gets an instance of FlickrAPI that is authenticated to a particular user
+
+        auth_flickr         = flickrapi.FlickrAPI(self.flickr_api_key, self.flickr_api_secret, token=user_authentication_token, store_token=False, format='parsed-json', cache=True)
+        auth_flickr.cache   = self.cache
+
+        return auth_flickr
 
     @staticmethod
     def _make_memcached_key(key, key_prefix, version):

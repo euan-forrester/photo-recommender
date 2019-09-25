@@ -134,16 +134,18 @@ def health_check():
 @application.route('/api/flickr/login', methods = ['GET'])
 def flickr_login():
     redirect_uri = url_for('flickr_authorize', _external=True)
-    return flickr_auth_wrapper.get_flickrauth().authorize_redirect(redirect_uri)
+    return flickr_auth_wrapper.authorize_redirect(redirect_uri)
 
 # Gets the access key for a user who just logged in
 @application.route('/api/flickr/authorize', methods = ['GET'])
 def flickr_authorize():
-    token = flickr_auth_wrapper.get_flickrauth().authorize_access_token()
-    logging.info(f"Got back token {token}")
+    token = flickr_auth_wrapper.authorize_access_token()
+
+    resp = jsonify(flickrapi.login_test(token))
+
     # you can save the token into database
     #profile = flickrauth.get('/user')
-    return jsonify(token)#jsonify(profile)
+    return resp#jsonify(profile)
 
 # Create a new user
 @application.route("/api/users/<user_id>", methods = ['POST'])

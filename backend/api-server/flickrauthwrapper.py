@@ -3,6 +3,7 @@ from diskcache import Cache
 from pymemcache.client.base import Client
 from pymemcache import serde
 import logging
+import flickrapi
 
 # authlib has some slightly different names for parameters, so we can't just pass a disc cache or memcached client directly to them
 
@@ -60,6 +61,8 @@ class FlickrAuthWrapper():
     Wraps the process of authenticating to Flickr and getting back an access token
     """
 
+    ACCESS_LEVEL = 'write' # This is the amount of permissions that we need to be able to comment/favorite photos. Options are read/write/delete
+
     def __init__(self, application, cache_type, memcached_location, flickr_api_key, flickr_api_secret):
         
         cache = None
@@ -82,5 +85,22 @@ class FlickrAuthWrapper():
                 api_base_url='https://www.flickr.com/services/rest/',
                 client_kwargs=None)
 
-    def get_flickrauth(self):
-        return self.flickrauth
+    def authorize_redirect(self, redirect_uri):
+        return self.flickrauth.authorize_redirect(redirect_uri)
+
+    def authorize_access_token(self):
+        token = self.flickrauth.authorize_access_token()
+        return FlickrAuthWrapper._get_flickr_access_token(token)
+
+    @staticmethod
+    def _get_flickr_access_token(token):
+        # Takes the token returned from the Flickr auth API and turns it into the internal object needed by the FlickrAPI package
+        # https://github.com/sybrenstuvel/flickrapi/blob/master/flickrapi/auth.py#L96
+
+        return flickrapi.auth.FlickrAccessToken(
+            token=token['oauth_token'], 
+            token_secret=token['oauth_token_secret'], 
+            access_level=FlickrAuthWrapper.ACCESS_LEVEL,
+            fullname=token['fullname'], 
+            username=token['username'], 
+            user_nsid=token['user_nsid'])
