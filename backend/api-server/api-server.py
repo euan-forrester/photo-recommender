@@ -64,6 +64,8 @@ flickr_api_secret           = config_helper.get("flickr-api-secret", is_secret=T
 flickr_api_retries          = config_helper.getInt("flickr-api-retries")
 flickr_api_memcached_location   = config_helper.get("flickr-api-memcached-location")
 flickr_api_memcached_ttl        = config_helper.getInt("flickr-api-memcached-ttl")
+
+# We have a separate memcached instance for storing this info that isn't on a public subnet because it's storing potentially-sensitive user tokens (even though they're just the temporary tokens given during the auth process)
 flickr_auth_cache_type      = config_helper.get("flickr-auth-cache-type")
 flickr_auth_memcached_location = config_helper.get("flickr-auth-memcached-location")
 
