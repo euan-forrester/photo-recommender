@@ -36,3 +36,4 @@ variable "flickr_secret_key" {}
 variable "flickr_api_retries" {}
 variable "flickr_api_memcached_location" {}
 variable "flickr_api_memcached_ttl" {}
+variable "flickr_auth_memcached_location" {}

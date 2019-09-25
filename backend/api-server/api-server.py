@@ -11,7 +11,6 @@ from flask import request
 from flask import jsonify
 from flask import url_for
 from flask_api import status
-from authlib.flask.client import OAuth
 from confighelper import ConfigHelper
 from favoritesstoredatabase import FavoritesStoreDatabase
 from favoritesstoreexception import FavoritesStoreException
@@ -21,6 +20,7 @@ from metricshelper import MetricsHelper
 from unhandledexceptionhelper import UnhandledExceptionHelper
 from flickrapiwrapper import FlickrApiWrapper
 from flickrapiwrapper import FlickrApiNotFoundException
+from flickrauthwrapper import FlickrAuthWrapper
 
 #
 # Read in commandline arguments
@@ -64,6 +64,8 @@ flickr_api_secret           = config_helper.get("flickr-api-secret", is_secret=T
 flickr_api_retries          = config_helper.getInt("flickr-api-retries")
 flickr_api_memcached_location   = config_helper.get("flickr-api-memcached-location")
 flickr_api_memcached_ttl        = config_helper.getInt("flickr-api-memcached-ttl")
+flickr_auth_cache_type      = config_helper.get("flickr-auth-cache-type")
+flickr_auth_memcached_location = config_helper.get("flickr-auth-memcached-location")
 
 #
 # Metrics and unhandled exceptions
@@ -111,35 +113,15 @@ atexit.register(cleanup_data_store)
 #   https://medium.com/@kmmanoj/deploying-a-scalable-flask-app-using-gunicorn-and-nginx-in-docker-part-1-3344f13c9649
 #
 
-class dummy_cache:
-    def __init__(self):
-        self.data = None
-
-    def get(self, key):
-        logging.info(f"Got get called with key: {key}")
-        return self.data
-
-    def set(self, key, value, timeout=None):
-        logging.info(f"Got set called with key {key} value {value} timeout {timeout}")
-        self.data = value
-
-    def delete(self, key):
-        logging.info(f"Got delete called with key {key}")
-
 application = Flask(__name__)
 application.secret_key = session_encryption_key
-oauth = OAuth(application, cache=dummy_cache())
-flickrauth = oauth.register(
-                name='flickr', 
-                client_id=flickr_api_key, 
-                client_secret=flickr_api_secret, 
-                request_token_url='https://www.flickr.com/services/oauth/request_token',
-                request_token_params=None, # According to the authlib docs https://flask-oauthlib.readthedocs.io/en/latest/api.html, we can pass a dictionary here of extra parameters, and according to the Flickr docs https://www.flickr.com/services/api/auth.oauth.html we can pass a 'perms=' parameter to restrict permissions. But I can't seem to get it to work. Needs more testing.
-                access_token_url='https://www.flickr.com/services/oauth/access_token',
-                access_token_params=None,
-                authorize_url='https://www.flickr.com/services/oauth/authorize',
-                api_base_url='https://www.flickr.com/services/rest/',
-                client_kwargs=None)
+
+flickr_auth_wrapper = FlickrAuthWrapper(
+    application=application, 
+    cache_type=flickr_auth_cache_type,
+    memcached_location=flickr_auth_memcached_location,
+    flickr_api_key=flickr_api_key, 
+    flickr_api_secret=flickr_api_secret)
 
 # Health check for our load balancer
 @application.route("/healthcheck", methods = ['GET'])
@@ -147,15 +129,15 @@ def health_check():
     return "OK", status.HTTP_200_OK
 
 # Allow the user to log into Flickr so that we can get an access key for them
-@application.route('/api/flickr/login')
+@application.route('/api/flickr/login', methods = ['GET'])
 def flickr_login():
     redirect_uri = url_for('flickr_authorize', _external=True)
-    return flickrauth.authorize_redirect(redirect_uri)
+    return flickr_auth_wrapper.get_flickrauth().authorize_redirect(redirect_uri)
 
 # Gets the access key for a user who just logged in
-@application.route('/api/flickr/authorize')
+@application.route('/api/flickr/authorize', methods = ['GET'])
 def flickr_authorize():
-    token = flickrauth.authorize_access_token()
+    token = flickr_auth_wrapper.get_flickrauth().authorize_access_token()
     logging.info(f"Got back token {token}")
     # you can save the token into database
     #profile = flickrauth.get('/user')

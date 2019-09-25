@@ -135,6 +135,20 @@ resource "aws_ssm_parameter" "flickr_api_memcached_location" {
     value       = "${var.flickr_api_memcached_location}"
 }
 
+resource "aws_ssm_parameter" "flickr_auth_memcached_location" {
+    name        = "/${var.environment}/api-server/flickr-auth-memcached-location"
+    description = "Endpoint of the memcached cluster that we cache temporary Flickr auth request tokens in"
+    type        = "String"
+    value       = "${var.flickr_auth_memcached_location}"
+}
+
+resource "aws_ssm_parameter" "flickr_auth_cache_type" {
+    name        = "/${var.environment}/api-server/flickr-auth-cache-type"
+    description = "Type of cache that we use to store temporary Flickr auth request tokens in"
+    type        = "String"
+    value       = "memcached"
+}
+
 resource "aws_ssm_parameter" "default_num_photo_recommendations" {
     name        = "/${var.environment}/api-server/default-num-photo-recommendations"
     description = "Number of photo recommendations we return if the caller doesn't specify"

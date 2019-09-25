@@ -265,6 +265,7 @@ module "api_server" {
     flickr_api_retries = 3
     flickr_api_memcached_location = "localhost:11211" # Disable cacheing Flickr API responses for now
     flickr_api_memcached_ttl = 7200
+    flickr_auth_memcached_location = "${module.flickr_auth_memcached}"
 
     retain_load_balancer_access_logs_after_destroy = "false" # For dev, we don't care about retaining these logs after doing a terraform destroy
     load_balancer_days_to_keep_access_logs = 1
