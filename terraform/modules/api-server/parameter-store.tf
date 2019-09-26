@@ -70,7 +70,7 @@ resource "aws_ssm_parameter" "database_connection_pool_size" {
 }
 
 resource "aws_ssm_parameter" "database_user_data_encryption_key" {
-    name        = "/${var.environment}/api-server/mysql-database-user-data-encryption-key"
+    name        = "/${var.environment}/api-server/database-user-data-encryption-key"
     description = "256-bit AES encryption key used to encrypt user access tokens stored in the database"
     type        = "SecureString"
     key_id      = "${aws_kms_key.parameter_secrets.id}"

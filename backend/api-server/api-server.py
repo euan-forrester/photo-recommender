@@ -11,6 +11,7 @@ from flask import request
 from flask import jsonify
 from flask import url_for
 from flask_api import status
+from urllib.parse import urlsplit, urlunsplit
 from confighelper import ConfigHelper
 from favoritesstoredatabase import FavoritesStoreDatabase
 from favoritesstoreexception import FavoritesStoreException
@@ -134,7 +135,62 @@ def health_check():
 @application.route('/api/flickr/login', methods = ['GET'])
 def flickr_login():
     redirect_uri = url_for('flickr_authorize', _external=True)
+
+    redirect_uri = hack_fix_redirect_uri(redirect_uri, request)
+
     return flickr_auth_wrapper.authorize_redirect(redirect_uri)
+
+def hack_fix_redirect_uri(redirect_uri, request):
+    # In production, the redirect URI generated will be incorrect. The root cause of the problem is that Cloudfront will
+    # set the Host header of the request to be "<cloudfront domain>:<load balancer port>" which doesn't make sense. The original request didn't
+    # need the port, so adding it makes a URI that points nowhere. 
+    #
+    # It may be the load balancer which is adding on the port number, because the Cloudfront 
+    # docs say it should just be a domain: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/RequestAndResponseBehaviorCustomOrigin.html#request-custom-headers-behavior
+    # However, I didn't see anything in the load balancer docs or UI about this behavior or being able to change it.
+    #
+    # I tried a few possible fixes, none of which worked:
+    #
+    #  - The proxy_fix middleware: https://werkzeug.palletsprojects.com/en/0.15.x/middleware/proxy_fix/
+    #       This will overwrite the Host header in Flask based on the X-Forwarded-Host header, but unfortunately that header isn't sent by Cloudfront
+    #
+    #  - Setting the SERVER_NAME Flask config variable: https://flask.palletsprojects.com/en/1.1.x/api/#flask.url_for and https://flask.palletsprojects.com/en/1.1.x/config/
+    #       We would set it to be the same domain as Cloudfront (but not including a port).
+    #       This correctly overrides the Host header, but it also has the effect of making Flask only respond to requests from that domain
+    #       and responding to all others with a 404. Thus, it fails the healthcheck queries sent by the load balancer. 
+    #       It seemed that this issue https://github.com/pallets/flask/issues/998 described the behavior I experienced, 
+    #       and I hoped its resolution would fix it, but it didn't
+    #
+    #  - Whitelisting the Host header in Cloudfront as described here https://forums.aws.amazon.com/thread.jspa?threadID=84588&start=75&tstart=0 
+    #       didn't make a difference.
+    #
+    # Other possible fixes:
+    #
+    #  - Using AWS Lamba to rewrite the Host or X-Forwarded-Host header on every request:
+    #       https://forums.aws.amazon.com/thread.jspa?threadID=84588&start=75&tstart=0
+    #
+    #       This sounds like it will result in too many billing charges for my needs.
+    #
+    #  - Using a different API server framework than Flask
+    #       I'll consider making this change in the future after more research into competing frameworks.
+    #
+    # Note that this hack has the effect of making it so we can't call this function from the load balancer directly, because it sets
+    # the X-Forwarded-Port header (as well as Cloudfront?). The resultant redirect URI in that case needs to have the port. But at least checking for
+    # X-Forwarded-Port means that this code will not activate when running on a local machine.
+
+    # Remove the port number from the redirect URI if we're running behind Cloudfront
+    if 'X-Forwarded-Port' in request.headers:
+    
+        forwarded_port_string = request.headers['X-Forwarded-Port']
+        forwarded_port = int(forwarded_port_string)
+    
+        o = urlsplit(redirect_uri)
+    
+        if o.port == forwarded_port:
+            o = o._replace(netloc = o.hostname) # We can't set the port directly, so this won't work with URIs that contain a <username>:<password> at the start, which shouldn't bother us here: https://stackoverflow.com/a/21629125
+            redirect_uri = urlunsplit(o)
+
+    return redirect_uri
 
 # Gets the access key for a user who just logged in
 @application.route('/api/flickr/authorize', methods = ['GET'])

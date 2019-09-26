@@ -47,7 +47,7 @@ class MemcachedWrapper():
             timeout=MemcachedWrapper.MEMCACHED_TIMEOUT)
 
     def get(self, key):
-        self.memcached_client.get(key)
+        return self.memcached_client.get(key)
 
     def set(self, key, value, timeout=None):
         self.memcached_client.set(key, value, timeout) 
