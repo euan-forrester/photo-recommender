@@ -91,11 +91,11 @@ module "scheduler" {
 
     ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 1
+    ecs_instances_desired_count = 0
     ecs_instances_memory = 64
     ecs_instances_cpu = 200
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
-    ecs_days_to_keep_images = 1
+    ecs_days_to_keep_images = 1#0
 
     api_server_host = "${module.api_server.load_balancer_dns_name}"
     api_server_port = "${module.api_server.load_balancer_port}"
@@ -127,7 +127,7 @@ module "puller-response-reader" {
 
     ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 1#20
+    ecs_instances_desired_count = 0#1#20
     ecs_instances_memory = 64
     ecs_instances_cpu = 200
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
@@ -158,7 +158,7 @@ module "ingester_response_reader" {
 
     ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 1#20
+    ecs_instances_desired_count = 0#1#20
     ecs_instances_memory = 64
     ecs_instances_cpu = 200
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
@@ -188,7 +188,7 @@ module "puller_flickr" {
 
     ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 1#150
+    ecs_instances_desired_count = 0#1#150
     ecs_instances_memory = 64
     ecs_instances_cpu = 100
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
@@ -227,7 +227,7 @@ module "ingester_database" {
 
     ecs_cluster_id          = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 1#100
+    ecs_instances_desired_count = 0#1#100
     ecs_instances_memory    = 64
     ecs_instances_cpu       = 100
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"

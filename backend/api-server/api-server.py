@@ -132,7 +132,7 @@ def health_check():
     return "OK", status.HTTP_200_OK
 
 # Allow the user to log into Flickr so that we can get an access key for them
-@application.route('/api/flickr/login', methods = ['GET'])
+@application.route('/api/flickr/login', methods = ['POST'])
 def flickr_login():
     redirect_uri = url_for('flickr_authorize', _external=True)
 
