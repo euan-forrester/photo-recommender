@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import VueAxios from 'vue-axios';
-import { VueAuthenticate, getRedirectUri } from 'vue-authenticate';
+import { VueAuthenticate } from 'vue-authenticate';
 import axios from 'axios';
 
 Vue.use(Vuex);
