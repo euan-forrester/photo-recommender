@@ -5,6 +5,8 @@ from pymemcache.client.base import Client
 from pymemcache import serde
 import logging
 import flickrapi
+import uuid
+from flask import session
 
 # authlib has some slightly different names for parameters, so we can't just pass a disc cache or memcached client directly to them
 
@@ -64,19 +66,29 @@ class FlickrAuthWrapper():
 
     ACCESS_LEVEL = 'write' # This is the amount of permissions that we need to be able to comment/favorite photos. Options are read/write/delete
 
+    _req_token_tpl = '_{}_authlib_req_token_' # https://github.com/lepture/authlib/blob/master/authlib/flask/client/oauth.py#L11
+
     def __init__(self, application, cache_type, memcached_location, flickr_api_key, flickr_api_secret):
         
+        # We can't use authlib's readymade OAuth class because vue-authenticate expects our auth function to behave differently.
+        # authlib's class splits the auth into 2 endpoints, and returns a redirect, whereas vue-authenticate handles that from
+        # the frontend side. Ultimately, our frontend is a SPA and just needs us to be an API, so returning a redirect to Flickr
+        # here doesn't make any sense. So, we have to reimplement some of what the OAuth class does ourselves, using the building 
+        # blocks provided by authlib: https://docs.authlib.org/en/latest/client/oauth1.html
+
         self.flickr_api_key = flickr_api_key
         self.flickr_api_secret = flickr_api_secret
 
-        cache = None
+        self.session_key = FlickrAuthWrapper._req_token_tpl.format("flickr")
+
+        self.cache = None
 
         if cache_type == 'disc':
-            cache = DiscCacheWrapper()
+            self.cache = DiscCacheWrapper()
         elif cache_type == 'memcached':
-            cache = MemcachedWrapper(memcached_location)
+            self.cache = MemcachedWrapper(memcached_location)
 
-        oauth = OAuth(application, cache=cache)
+        oauth = OAuth(application, cache=self.cache)
         self.flickrauth = oauth.register(
                 name='flickr', 
                 client_id=flickr_api_key, 
@@ -93,14 +105,35 @@ class FlickrAuthWrapper():
         session = OAuth1Session(self.flickr_api_key, self.flickr_api_secret, token=token, token_secret=token_secret)
         return session
 
-    def get_request_token(self, session, redirect_uri):
+    def fetch_request_token(self, session, redirect_uri):
         session.redirect_uri = redirect_uri
         return session.fetch_request_token('https://www.flickr.com/services/oauth/request_token')
 
-    def get_access_token(self, session, verifier):
+    def fetch_access_token(self, session, verifier):
         return session.fetch_access_token('https://www.flickr.com/services/oauth/access_token', verifier)
 
+    def get_request_token_from_cache(self):
+        # Based on https://github.com/lepture/authlib/blob/master/authlib/flask/client/oauth.py#L132
 
+        session_id = session.pop(self.session_key, None)
+        if not session_id:
+            return None
+
+        token_pair = self.cache.get(session_id)
+
+        return token_pair
+
+    def put_request_token_in_cache(self, token, token_secret):
+        # Based on https://github.com/lepture/authlib/blob/master/authlib/flask/client/oauth.py#L145
+
+        token_pair = {
+            'oauth_token': token,
+            'oauth_token_secret': token_secret
+        }
+
+        session_id = uuid.uuid4().hex
+        session[self.session_key] = session_id
+        self.cache.set(session_id, token_pair, timeout=600)
 
     def authorize_redirect(self, redirect_uri):
         return self.flickrauth.authorize_redirect(redirect_uri)

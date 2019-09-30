@@ -148,14 +148,15 @@ def flickr_auth():
 
         redirect_uri    = request_data['redirectUri']
         session         = flickr_auth_wrapper.get_session()
-        request_token   = flickr_auth_wrapper.get_request_token(session, redirect_uri)
+        request_token   = flickr_auth_wrapper.fetch_request_token(session, redirect_uri)
         
+        flickr_auth_wrapper.put_request_token_in_cache(request_token['oauth_token'], request_token['oauth_token_secret'])
+
         return_value = {
             'oauth_token':          request_token['oauth_token'],
             'oauth_token_secret':   request_token['oauth_token_secret']
         }
 
-        logging.info(f"Created session {session.sid}")
         logging.info(f"Got request token {return_value}")
         logging.info("**************************************************")
 
@@ -165,12 +166,21 @@ def flickr_auth():
 
         logging.info(f"Trying to get access token. Got request token {request_data['oauth_token']}")
 
-        oauth_token     = request_data['oauth_token']
-        oauth_token_secret = None
-        verifier        = request_data['oauth_verifier']
-        session         = flickr_auth_wrapper.get_session(token=oauth_token, token_secret=oauth_token_secret)
-        logging.info(f"Created session {session.sid}")
-        access_token    = flickr_auth_wrapper.get_access_token(session, verifier)
+        token_pair = flickr_auth_wrapper.get_request_token_from_cache()
+
+        if token_pair is None:
+            logging.error("Could not find request token in cache")
+            raise RuntimeError("Could not find request token in cache")
+
+        if token_pair['oauth_token'] != request_data['oauth_token']:
+            logging.error(f"Was passed different oauth_token than found in cache. Was passed {request_data['oauth_token']}, but found {token_pair['oauth_token']} in cache")
+            raise RuntimeError("Was passed different oauth_token than found in cache")
+
+        oauth_token         = token_pair['oauth_token']
+        oauth_token_secret  = token_pair['oauth_token_secret']
+        verifier            = request_data['oauth_verifier']
+        session             = flickr_auth_wrapper.get_session(token=oauth_token, token_secret=oauth_token_secret)
+        access_token        = flickr_auth_wrapper.fetch_access_token(session, verifier)
 
         return_value = {
             'access_token':         access_token['oauth_token'],
