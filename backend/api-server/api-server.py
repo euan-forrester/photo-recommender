@@ -183,8 +183,8 @@ def flickr_auth():
         access_token        = flickr_auth_wrapper.fetch_access_token(session, verifier)
 
         return_value = {
-            'access_token':         access_token['oauth_token'],
-            'access_token_secret':  access_token['oauth_token_secret']
+            'access_token':         access_token.token,
+            'access_token_secret':  access_token.token_secret
         }
 
         logging.info(f"Got access token {return_value}")

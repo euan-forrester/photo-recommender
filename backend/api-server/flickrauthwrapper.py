@@ -88,19 +88,6 @@ class FlickrAuthWrapper():
         elif cache_type == 'memcached':
             self.cache = MemcachedWrapper(memcached_location)
 
-        oauth = OAuth(application, cache=self.cache)
-        self.flickrauth = oauth.register(
-                name='flickr', 
-                client_id=flickr_api_key, 
-                client_secret=flickr_api_secret, 
-                request_token_url='https://www.flickr.com/services/oauth/request_token',
-                request_token_params=None, # According to the authlib docs https://flask-oauthlib.readthedocs.io/en/latest/api.html, we can pass a dictionary here of extra parameters, and according to the Flickr docs https://www.flickr.com/services/api/auth.oauth.html we can pass a 'perms=' parameter to restrict permissions. But I can't seem to get it to work. Needs more testing.
-                access_token_url='https://www.flickr.com/services/oauth/access_token',
-                access_token_params=None,
-                authorize_url='https://www.flickr.com/services/oauth/authorize',
-                api_base_url='https://www.flickr.com/services/rest/',
-                client_kwargs=None)
-
     def get_session(self, token=None, token_secret=None):
         session = OAuth1Session(self.flickr_api_key, self.flickr_api_secret, token=token, token_secret=token_secret)
         return session
@@ -110,7 +97,8 @@ class FlickrAuthWrapper():
         return session.fetch_request_token('https://www.flickr.com/services/oauth/request_token')
 
     def fetch_access_token(self, session, verifier):
-        return session.fetch_access_token('https://www.flickr.com/services/oauth/access_token', verifier)
+        token = session.fetch_access_token('https://www.flickr.com/services/oauth/access_token', verifier)
+        return FlickrAuthWrapper._get_flickr_access_token(token)
 
     def get_request_token_from_cache(self):
         # Based on https://github.com/lepture/authlib/blob/master/authlib/flask/client/oauth.py#L132
@@ -134,13 +122,6 @@ class FlickrAuthWrapper():
         session_id = uuid.uuid4().hex
         session[self.session_key] = session_id
         self.cache.set(session_id, token_pair, timeout=600)
-
-    def authorize_redirect(self, redirect_uri):
-        return self.flickrauth.authorize_redirect(redirect_uri)
-
-    def authorize_access_token(self):
-        token = self.flickrauth.authorize_access_token()
-        return FlickrAuthWrapper._get_flickr_access_token(token)
 
     @staticmethod
     def _get_flickr_access_token(token):
