@@ -9,9 +9,7 @@ import atexit
 from flask import Flask
 from flask import request
 from flask import jsonify
-from flask import url_for
 from flask_api import status
-from urllib.parse import urlsplit, urlunsplit
 from confighelper import ConfigHelper
 from favoritesstoredatabase import FavoritesStoreDatabase
 from favoritesstoreexception import FavoritesStoreException
