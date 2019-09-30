@@ -1,4 +1,5 @@
 from authlib.flask.client import OAuth
+from authlib.client import OAuth1Session
 from diskcache import Cache
 from pymemcache.client.base import Client
 from pymemcache import serde
@@ -65,6 +66,9 @@ class FlickrAuthWrapper():
 
     def __init__(self, application, cache_type, memcached_location, flickr_api_key, flickr_api_secret):
         
+        self.flickr_api_key = flickr_api_key
+        self.flickr_api_secret = flickr_api_secret
+
         cache = None
 
         if cache_type == 'disc':
@@ -84,6 +88,19 @@ class FlickrAuthWrapper():
                 authorize_url='https://www.flickr.com/services/oauth/authorize',
                 api_base_url='https://www.flickr.com/services/rest/',
                 client_kwargs=None)
+
+    def get_session(self, token=None, token_secret=None):
+        session = OAuth1Session(self.flickr_api_key, self.flickr_api_secret, token=token, token_secret=token_secret)
+        return session
+
+    def get_request_token(self, session, redirect_uri):
+        session.redirect_uri = redirect_uri
+        return session.fetch_request_token('https://www.flickr.com/services/oauth/request_token')
+
+    def get_access_token(self, session, verifier):
+        return session.fetch_access_token('https://www.flickr.com/services/oauth/access_token', verifier)
+
+
 
     def authorize_redirect(self, redirect_uri):
         return self.flickrauth.authorize_redirect(redirect_uri)

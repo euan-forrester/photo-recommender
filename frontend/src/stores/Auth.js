@@ -24,9 +24,9 @@ export default {
   actions: {
 
     // Perform VueAuthenticate login using Vuex actions
-    login(context, payload) {
-      console.log("Hello");
-      vueAuth.login(/*payload.user, payload.requestOptions*/).then(() => {
+    login(context/* , payload */) {
+      console.log('Hello');
+      vueAuth.login(/* payload.user, payload.requestOptions */).then(() => {
         context.commit('isAuthenticated', {
           isAuthenticated: vueAuth.isAuthenticated(),
         });

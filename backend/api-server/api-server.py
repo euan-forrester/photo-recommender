@@ -131,6 +131,56 @@ flickr_auth_wrapper = FlickrAuthWrapper(
 def health_check():
     return "OK", status.HTTP_200_OK
 
+# vue-authenticate has a bit of a seemingly-nonstandard way of
+# interacting with our API: it does it all with one method that
+# is passed various combinations of parameters.
+# This is modelled on the example here: https://github.com/dgrubelic/vue-authenticate/blob/739c7fc894089c67b7a2badeb7a5fb97720ca0cd/example/server.js#L275 
+@application.route('/api/flickr/auth', methods = ['POST'])
+def flickr_auth():
+    
+    request_data = request.get_json()
+
+    logging.info(f"Beginning flickr auth. request_data: {request_data}")
+
+    if not ('oauth_token' in request_data):
+
+        logging.info(f"Trying to get request token. Got redirect URI {request_data['redirectUri']}")
+
+        redirect_uri    = request_data['redirectUri']
+        session         = flickr_auth_wrapper.get_session()
+        request_token   = flickr_auth_wrapper.get_request_token(session, redirect_uri)
+        
+        return_value = {
+            'oauth_token':          request_token['oauth_token'],
+            'oauth_token_secret':   request_token['oauth_token_secret']
+        }
+
+        logging.info(f"Created session {session.sid}")
+        logging.info(f"Got request token {return_value}")
+        logging.info("**************************************************")
+
+        return jsonify(return_value)
+
+    else:
+
+        logging.info(f"Trying to get access token. Got request token {request_data['oauth_token']}")
+
+        oauth_token     = request_data['oauth_token']
+        oauth_token_secret = None
+        verifier        = request_data['oauth_verifier']
+        session         = flickr_auth_wrapper.get_session(token=oauth_token, token_secret=oauth_token_secret)
+        logging.info(f"Created session {session.sid}")
+        access_token    = flickr_auth_wrapper.get_access_token(session, verifier)
+
+        return_value = {
+            'access_token':         access_token['oauth_token'],
+            'access_token_secret':  access_token['oauth_token_secret']
+        }
+
+        logging.info(f"Got access token {return_value}")
+
+        return jsonify(return_value)
+
 # Allow the user to log into Flickr so that we can get an access key for them
 @application.route('/api/flickr/login', methods = ['POST'])
 def flickr_login():
