@@ -140,15 +140,11 @@ def flickr_auth():
     
     request_data = request.get_json()
 
-    logging.info(f"Beginning flickr auth. request_data: {request_data}")
-
     if not ('oauth_token' in request_data):
 
-        logging.info(f"Trying to get request token. Got redirect URI {request_data['redirectUri']}")
-
         redirect_uri    = request_data['redirectUri']
-        session         = flickr_auth_wrapper.get_session()
-        request_token   = flickr_auth_wrapper.fetch_request_token(session, redirect_uri)
+        oauth_session   = flickr_auth_wrapper.get_oauth_session()
+        request_token   = flickr_auth_wrapper.fetch_request_token(oauth_session, redirect_uri)
         
         flickr_auth_wrapper.put_request_token_in_cache(request_token['oauth_token'], request_token['oauth_token_secret'])
 
@@ -157,14 +153,9 @@ def flickr_auth():
             'oauth_token_secret':   request_token['oauth_token_secret']
         }
 
-        logging.info(f"Got request token {return_value}")
-        logging.info("**************************************************")
-
         return jsonify(return_value)
 
     else:
-
-        logging.info(f"Trying to get access token. Got request token {request_data['oauth_token']}")
 
         token_pair = flickr_auth_wrapper.get_request_token_from_cache()
 
@@ -179,15 +170,13 @@ def flickr_auth():
         oauth_token         = token_pair['oauth_token']
         oauth_token_secret  = token_pair['oauth_token_secret']
         verifier            = request_data['oauth_verifier']
-        session             = flickr_auth_wrapper.get_session(token=oauth_token, token_secret=oauth_token_secret)
-        access_token        = flickr_auth_wrapper.fetch_access_token(session, verifier)
+        oauth_session       = flickr_auth_wrapper.get_oauth_session(token=oauth_token, token_secret=oauth_token_secret)
+        access_token        = flickr_auth_wrapper.fetch_access_token(oauth_session, verifier)
 
         return_value = {
             'access_token':         access_token.token,
             'access_token_secret':  access_token.token_secret
         }
-
-        logging.info(f"Got access token {return_value}")
 
         return jsonify(return_value)
 

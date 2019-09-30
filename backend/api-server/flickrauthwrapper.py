@@ -88,7 +88,7 @@ class FlickrAuthWrapper():
         elif cache_type == 'memcached':
             self.cache = MemcachedWrapper(memcached_location)
 
-    def get_session(self, token=None, token_secret=None):
+    def get_oauth_session(self, token=None, token_secret=None):
         session = OAuth1Session(self.flickr_api_key, self.flickr_api_secret, token=token, token_secret=token_secret)
         return session
 
@@ -112,6 +112,7 @@ class FlickrAuthWrapper():
         return token_pair
 
     def put_request_token_in_cache(self, token, token_secret):
+
         # Based on https://github.com/lepture/authlib/blob/master/authlib/flask/client/oauth.py#L145
 
         token_pair = {
