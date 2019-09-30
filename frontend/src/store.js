@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 
+import AuthModule from './stores/Auth';
 import WelcomeModule from './stores/Welcome';
 import RecommendationsModule from './stores/Recommendations';
 
@@ -10,6 +11,7 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
   modules: {
+    auth: AuthModule,
     welcome: WelcomeModule,
     recommendations: RecommendationsModule,
   },

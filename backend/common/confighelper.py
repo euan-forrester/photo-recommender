@@ -53,7 +53,7 @@ class ConfigHelperFile(ConfigHelper):
 
     def __init__(self, environment, filename_list):
         self.environment    = environment
-        self.config         = configparser.ConfigParser()
+        self.config         = configparser.ConfigParser(interpolation=None) # We may need % signs in our encryption key, and don't want people to have to worry about escaping them
 
         for filename in filename_list:
             logging.info(f"Reading in config file '{filename}'")

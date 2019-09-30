@@ -6,9 +6,14 @@ module "vpc" {
 
     cidr_block = "10.10.0.0/16"
 
-    subnets = {
+    public_subnets = {
         us-west-2a = "10.10.1.0/24"
         us-west-2b = "10.10.2.0/24"
+    }
+
+    private_subnets = {
+        us-west-2a = "10.10.3.0/24"
+        us-west-2b = "10.10.4.0/24"
     }
 }
 
@@ -60,13 +65,15 @@ module "database" {
 module "memcached" {
     source = "../modules/memcached"
 
+    # Note that some sensitive info can get stored here, such as temporary tokens during the flickr auth process.
+    # Thus, this instance isn't accessible publicly.
+
     environment = "dev"
     region = "${var.region}"
 
     vpc_id                  = "${module.vpc.vpc_id}"
-    vpc_public_subnet_ids   = "${module.vpc.vpc_public_subnet_ids}"
+    vpc_public_subnet_ids   = "${module.vpc.vpc_private_subnet_ids}"
     vpc_cidr                = "${module.vpc.vpc_cidr_block}"
-    local_machine_cidr      = "${var.local_machine_cidr}"
 
     memcached_node_type = "cache.t2.micro"
     memcached_num_cache_nodes = 1 # Set to 0 to disable memcached in dev to save billing charges
@@ -84,11 +91,11 @@ module "scheduler" {
 
     ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 1
+    ecs_instances_desired_count = 0
     ecs_instances_memory = 64
     ecs_instances_cpu = 200
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
-    ecs_days_to_keep_images = 1
+    ecs_days_to_keep_images = 1#0
 
     api_server_host = "${module.api_server.load_balancer_dns_name}"
     api_server_port = "${module.api_server.load_balancer_port}"
@@ -120,7 +127,7 @@ module "puller-response-reader" {
 
     ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 1#20
+    ecs_instances_desired_count = 0#1#20
     ecs_instances_memory = 64
     ecs_instances_cpu = 200
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
@@ -151,7 +158,7 @@ module "ingester_response_reader" {
 
     ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 1#20
+    ecs_instances_desired_count = 0#1#20
     ecs_instances_memory = 64
     ecs_instances_cpu = 200
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
@@ -181,7 +188,7 @@ module "puller_flickr" {
 
     ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 1#150
+    ecs_instances_desired_count = 0#1#150
     ecs_instances_memory = 64
     ecs_instances_cpu = 100
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
@@ -220,7 +227,7 @@ module "ingester_database" {
 
     ecs_cluster_id          = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 1#100
+    ecs_instances_desired_count = 0#1#100
     ecs_instances_memory    = 64
     ecs_instances_cpu       = 100
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
@@ -258,11 +265,14 @@ module "api_server" {
     load_balancer_port      = 4444
     api_server_port         = 4445
 
+    session_encryption_key     = "${var.api_server_session_encryption_key}"
+
     flickr_api_key = "${var.flickr_api_key}"
     flickr_secret_key = "${var.flickr_secret_key}"
     flickr_api_retries = 3
     flickr_api_memcached_location = "localhost:11211" # Disable cacheing Flickr API responses for now
     flickr_api_memcached_ttl = 7200
+    flickr_auth_memcached_location = "${module.memcached.location}"
 
     retain_load_balancer_access_logs_after_destroy = "false" # For dev, we don't care about retaining these logs after doing a terraform destroy
     load_balancer_days_to_keep_access_logs = 1
@@ -279,6 +289,7 @@ module "api_server" {
     mysql_database_name     = "${module.database.database_name}"
     mysql_database_fetch_batch_size = 10000
     mysql_database_connection_pool_size = 20
+    mysql_database_user_data_encryption_key = "${var.database_user_data_encryption_key}"
 
     ecs_cluster_id          = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"

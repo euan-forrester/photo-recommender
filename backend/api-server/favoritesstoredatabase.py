@@ -14,7 +14,7 @@ class FavoritesStoreDatabase:
     This class interfaces with a MySQL database to retrieve a list of my favorites and the favorites of my neighbors
     '''
 
-    def __init__(self, database_username, database_password, database_host, database_port, database_name, connection_pool_size, fetch_batch_size):
+    def __init__(self, database_username, database_password, database_host, database_port, database_name, connection_pool_size, fetch_batch_size, user_data_encryption_key):
         
         # Note that we're using a buffered cursor, meaning that it downloads all results from the database before returning the
         # first result, rather than retrieving results as it needs them.
@@ -42,6 +42,7 @@ class FavoritesStoreDatabase:
                                                                               **dbconfig)
 
         self.fetch_batch_size   = fetch_batch_size
+        self.user_data_encryption_key = user_data_encryption_key
 
     def create_user(self, user_id):
 

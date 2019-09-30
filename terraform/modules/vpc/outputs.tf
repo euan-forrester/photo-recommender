@@ -5,7 +5,12 @@ output "vpc_id" {
 
 output "vpc_public_subnet_ids" {
     value = [ "${aws_subnet.public-subnet.*.id}" ]
-    description = "The IDs of the public subnet created"
+    description = "The IDs of the public subnets created"
+}
+
+output "vpc_private_subnet_ids" {
+    value = [ "${aws_subnet.private-subnet.*.id}" ]
+    description = "The IDs of the private subnets created"
 }
 
 output "vpc_cidr_block" {

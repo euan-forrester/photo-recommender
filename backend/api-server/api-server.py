@@ -19,6 +19,7 @@ from metricshelper import MetricsHelper
 from unhandledexceptionhelper import UnhandledExceptionHelper
 from flickrapiwrapper import FlickrApiWrapper
 from flickrapiwrapper import FlickrApiNotFoundException
+from flickrauthwrapper import FlickrAuthWrapper
 
 #
 # Read in commandline arguments
@@ -50,8 +51,10 @@ database_port               = config_helper.getInt("database-port")
 database_name               = config_helper.get("database-name")
 database_fetch_batch_size   = config_helper.getInt("database-fetch-batch-size")
 database_connection_pool_size = config_helper.getInt("database-connection-pool-size")
+database_user_data_encryption_key = config_helper.get("database-user-data-encryption-key", is_secret=True)
 server_host                 = config_helper.get("server-host")
 server_port                 = config_helper.getInt("server-port")
+session_encryption_key      = config_helper.get("session-encryption-key", is_secret=True)
 default_num_photo_recommendations = config_helper.getInt('default-num-photo-recommendations')
 default_num_user_recommendations = config_helper.getInt('default-num-user-recommendations')
 
@@ -60,6 +63,10 @@ flickr_api_secret           = config_helper.get("flickr-api-secret", is_secret=T
 flickr_api_retries          = config_helper.getInt("flickr-api-retries")
 flickr_api_memcached_location   = config_helper.get("flickr-api-memcached-location")
 flickr_api_memcached_ttl        = config_helper.getInt("flickr-api-memcached-ttl")
+
+# We have a separate memcached instance for storing this info that isn't on a public subnet because it's storing potentially-sensitive user tokens (even though they're just the temporary tokens given during the auth process)
+flickr_auth_cache_type      = config_helper.get("flickr-auth-cache-type")
+flickr_auth_memcached_location = config_helper.get("flickr-auth-memcached-location")
 
 #
 # Metrics and unhandled exceptions
@@ -91,7 +98,8 @@ favorites_store = FavoritesStoreDatabase(
     database_port=database_port, 
     database_name=database_name, 
     fetch_batch_size=database_fetch_batch_size,
-    connection_pool_size=database_connection_pool_size)
+    connection_pool_size=database_connection_pool_size,
+    user_data_encryption_key=database_user_data_encryption_key)
 
 def cleanup_data_store():
     favorites_store.shutdown()
@@ -107,11 +115,70 @@ atexit.register(cleanup_data_store)
 #
 
 application = Flask(__name__)
+application.secret_key = session_encryption_key
+
+flickr_auth_wrapper = FlickrAuthWrapper(
+    application=application, 
+    cache_type=flickr_auth_cache_type,
+    memcached_location=flickr_auth_memcached_location,
+    flickr_api_key=flickr_api_key, 
+    flickr_api_secret=flickr_api_secret)
 
 # Health check for our load balancer
 @application.route("/healthcheck", methods = ['GET'])
 def health_check():
     return "OK", status.HTTP_200_OK
+
+# vue-authenticate has a bit of a seemingly-nonstandard way of
+# interacting with our API: it does it all with one method that
+# is passed various combinations of parameters.
+# This is modelled on the example here: https://github.com/dgrubelic/vue-authenticate/blob/739c7fc894089c67b7a2badeb7a5fb97720ca0cd/example/server.js#L275 
+@application.route('/api/flickr/auth', methods = ['POST'])
+def flickr_auth():
+    
+    request_data = request.get_json()
+
+    if not ('oauth_token' in request_data):
+
+        redirect_uri    = request_data['redirectUri']
+        oauth_session   = flickr_auth_wrapper.get_oauth_session()
+        request_token   = flickr_auth_wrapper.fetch_request_token(oauth_session, redirect_uri)
+        
+        flickr_auth_wrapper.put_request_token_in_cache(request_token['oauth_token'], request_token['oauth_token_secret'])
+
+        return_value = {
+            'oauth_token': request_token['oauth_token']
+            # The example shows passing back the secret as well, but it's ignored
+            # by the vue-authenticate library
+        }
+
+        return jsonify(return_value)
+
+    else:
+
+        token_pair = flickr_auth_wrapper.get_request_token_from_cache()
+
+        if token_pair is None:
+            logging.error("Could not find request token in cache")
+            raise RuntimeError("Could not find request token in cache")
+
+        if token_pair['oauth_token'] != request_data['oauth_token']:
+            logging.error(f"Was passed different oauth_token than found in cache. Was passed {request_data['oauth_token']}, but found {token_pair['oauth_token']} in cache")
+            raise RuntimeError("Was passed different oauth_token than found in cache")
+
+        oauth_token         = token_pair['oauth_token']
+        oauth_token_secret  = token_pair['oauth_token_secret']
+        verifier            = request_data['oauth_verifier']
+        oauth_session       = flickr_auth_wrapper.get_oauth_session(token=oauth_token, token_secret=oauth_token_secret)
+        access_token        = flickr_auth_wrapper.fetch_access_token(oauth_session, verifier)
+
+        return_value = {
+            'access_token': access_token.token
+            # The example shows passing back the secret as well, but it's ignored
+            # by the vue-authenticate library
+        }
+
+        return jsonify(return_value)
 
 # Create a new user
 @application.route("/api/users/<user_id>", methods = ['POST'])

@@ -69,6 +69,14 @@ resource "aws_ssm_parameter" "database_connection_pool_size" {
     value       = "${var.mysql_database_connection_pool_size}"
 }
 
+resource "aws_ssm_parameter" "database_user_data_encryption_key" {
+    name        = "/${var.environment}/api-server/database-user-data-encryption-key"
+    description = "256-bit AES encryption key used to encrypt user access tokens stored in the database"
+    type        = "SecureString"
+    key_id      = "${aws_kms_key.parameter_secrets.id}"
+    value       = "${var.mysql_database_user_data_encryption_key}"
+}
+
 resource "aws_ssm_parameter" "api_server_host" {
     name        = "/${var.environment}/api-server/server-host"
     description = "Host we listen on to serve requests"
@@ -81,6 +89,14 @@ resource "aws_ssm_parameter" "api_server_port" {
     description = "Port we listen on to serve requests"
     type        = "String"
     value       = "${var.api_server_port}"
+}
+
+resource "aws_ssm_parameter" "session_encryption_key" {
+    name        = "/${var.environment}/api-server/session-encryption-key"
+    description = "Encryption key used to sign the session data we return to the user"
+    type        = "SecureString"
+    key_id      = "${aws_kms_key.parameter_secrets.id}"
+    value       = "${var.session_encryption_key}"
 }
 
 resource "aws_ssm_parameter" "flickr_api_key" {
@@ -117,6 +133,20 @@ resource "aws_ssm_parameter" "flickr_api_memcached_location" {
     description = "Endpoint of the memcached cluster that we cache Flickr API calls to"
     type        = "String"
     value       = "${var.flickr_api_memcached_location}"
+}
+
+resource "aws_ssm_parameter" "flickr_auth_memcached_location" {
+    name        = "/${var.environment}/api-server/flickr-auth-memcached-location"
+    description = "Endpoint of the memcached cluster that we cache temporary Flickr auth request tokens in"
+    type        = "String"
+    value       = "${var.flickr_auth_memcached_location}"
+}
+
+resource "aws_ssm_parameter" "flickr_auth_cache_type" {
+    name        = "/${var.environment}/api-server/flickr-auth-cache-type"
+    description = "Type of cache that we use to store temporary Flickr auth request tokens in"
+    type        = "String"
+    value       = "memcached"
 }
 
 resource "aws_ssm_parameter" "default_num_photo_recommendations" {
