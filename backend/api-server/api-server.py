@@ -149,8 +149,9 @@ def flickr_auth():
         flickr_auth_wrapper.put_request_token_in_cache(request_token['oauth_token'], request_token['oauth_token_secret'])
 
         return_value = {
-            'oauth_token':          request_token['oauth_token'],
-            'oauth_token_secret':   request_token['oauth_token_secret']
+            'oauth_token': request_token['oauth_token']
+            # The example shows passing back the secret as well, but it's ignored
+            # by the vue-authenticate library
         }
 
         return jsonify(return_value)
@@ -174,8 +175,9 @@ def flickr_auth():
         access_token        = flickr_auth_wrapper.fetch_access_token(oauth_session, verifier)
 
         return_value = {
-            'access_token':         access_token.token,
-            'access_token_secret':  access_token.token_secret
+            'access_token': access_token.token
+            # The example shows passing back the secret as well, but it's ignored
+            # by the vue-authenticate library
         }
 
         return jsonify(return_value)
