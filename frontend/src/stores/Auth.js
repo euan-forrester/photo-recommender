@@ -1,36 +1,16 @@
 import vueAuth from '../auth';
 
 export default {
-
-  // You can use it as state property
-  state: {
-    isAuthenticated: false,
-  },
-
-  // You can use it as a state getter function (probably the best solution)
   getters: {
-    isAuthenticated() {
-      return vueAuth.isAuthenticated();
-    },
-  },
-
-  // Mutation for when you use it as state property
-  mutations: {
-    isAuthenticated(state, payload) {
-      state.isAuthenticated = payload.isAuthenticated;
-    },
+    // We don't want vuex to cache the result of this function: we want it to be reevaluated every time.
+    // So, return a function, and then this getter is called as a function rather than a property:
+    // https://forum.vuejs.org/t/vuex-getter-not-re-evaluating-return-cached-data/55697/5
+    isAuthenticated: () => () => vueAuth.isAuthenticated(),
   },
 
   actions: {
-
-    // Perform VueAuthenticate login using Vuex actions
-    login(context/* , payload */) {
-      console.log('Hello');
-      vueAuth.login(/* payload.user, payload.requestOptions */).then(() => {
-        context.commit('isAuthenticated', {
-          isAuthenticated: vueAuth.isAuthenticated(),
-        });
-      });
+    async login() {
+      await vueAuth.authenticate('flickr');
     },
   },
 };

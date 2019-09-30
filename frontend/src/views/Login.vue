@@ -80,7 +80,6 @@
 <script>
 import { validationMixin } from 'vuelidate';
 import { required, numeric } from 'vuelidate/lib/validators';
-import auth from '../auth';
 
 export default {
   mixins: [validationMixin],
@@ -112,12 +111,7 @@ export default {
 
       evt.preventDefault();
 
-      console.log('About to try to authenticate with Flickr');
-      console.log('This: ', this);
-
-      await auth.authenticate('flickr');
-
-      console.log('Finished trying to authenticate with Flickr');
+      await this.$store.dispatch('login');
     },
     onReset(evt) {
       evt.preventDefault();

@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import VueAxios from 'vue-axios';
-import { VueAuthenticate } from 'vue-authenticate';
+import { VueAuthenticate, getRedirectUri } from 'vue-authenticate';
 import axios from 'axios';
 
 Vue.use(Vuex);
@@ -13,6 +13,7 @@ function isUndefined(value) {
 }
 
 // Copied from https://github.com/dgrubelic/vue-authenticate/blob/fc4958ceb5ffe1cc0084d370e5e9bd62ebddcfd4/example/vue-authenticate.js#L544
+// This function is included in the dist for vue-authenticate, but I can't figure out how to import it.
 function getRedirectUri(uri) {
   try {
     return (!isUndefined(uri))
