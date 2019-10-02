@@ -151,6 +151,75 @@ class FavoritesStoreDatabase:
         else:
             raise FavoritesStoreUserNotFoundException(f"User {user_id} was not found")
 
+    def save_user_auth_token(self, user_id, token):
+        cnx = self.cnxpool.get_connection()
+
+        cursor = cnx.cursor() 
+
+        # Here we hash the encryption key. The docs suggest doing this if a passphrase is
+        # used instead of random binary data. Hopefully whoever set the key used random data,
+        # but let's hash it anyway just to be safe.
+        # https://dev.mysql.com/doc/refman/8.0/en/encryption-functions.html#function_aes-encrypt
+
+        # Note that we're encrypting this column manually because it contains import secret
+        # data about our users, and we may or may not have database-level encryption enabled
+        # (especially in dev where we may want a small database type that doesn't support database-level encryption)
+        try:
+            cursor.execute("""
+                UPDATE 
+                    registered_users 
+                SET 
+                    flickr_access_token=AES_ENCRYPT(%s, UNHEX(SHA2(%s, 512))) 
+                WHERE 
+                    user_id=%s;
+            """, (token, self.user_data_encryption_key, user_id))
+
+            cnx.commit()
+
+        except Exception as e:
+            cnx.rollback()
+            raise FavoritesStoreException from e
+
+        finally:
+            cursor.close()
+            cnx.close()
+
+    def get_user_auth_token(self, user_id):
+        cnx = self.cnxpool.get_connection()
+
+        cursor = cnx.cursor() 
+
+        auth_token_string = None
+
+        # See note above re hashing the encryption key
+        try:
+            cursor.execute("""
+                SELECT 
+                    CAST(AES_DECRYPT(flickr_access_token, UNHEX(SHA2(%s, 512))) AS CHAR) 
+                FROM 
+                    registered_users 
+                WHERE 
+                    user_id=%s;
+            """, (self.user_data_encryption_key, user_id))
+
+            row = self._get_first_row(cursor)
+            
+            if row is not None:
+                auth_token_string = row[0]
+
+        except Exception as e:
+            cnx.rollback()
+            raise FavoritesStoreException from e
+
+        finally:
+            cursor.close()
+            cnx.close()
+
+        if auth_token_string is not None:
+            return auth_token_string
+        else:
+            raise FavoritesStoreUserNotFoundException(f"User {user_id} was not found")
+
     def get_photo_recommendations(self, user_id, num_photos):
 
         cnx = self.cnxpool.get_connection()
