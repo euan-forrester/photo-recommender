@@ -209,9 +209,10 @@ def flickr_add_comment():
     if not flickr_auth_wrapper.tokens_are_equal(partial_token_from_caller, full_token):
         return auth_token_incorrect()
 
-    flickrapi.add_comment(photo_id, comment_text, full_token)
+    resp = jsonify(flickrapi.add_comment(photo_id, comment_text, full_token))
+    resp.status_code = status.HTTP_200_OK
 
-    return "OK", status.HTTP_200_OK 
+    return resp  
 
 # Create a new user
 @application.route("/api/users/<user_id>", methods = ['POST'])

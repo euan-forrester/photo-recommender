@@ -55,7 +55,9 @@ class FlickrApiWrapper:
 
         lambda_to_call = lambda: auth_flickr.photos.comments.addComment(photo_id=photo_id, comment_text=comment_text)
 
-        self._call_with_retries(lambda_to_call)
+        comment_id = self._call_with_retries(lambda_to_call)
+
+        return comment_id
 
     def lookup_user(self, user_url):
         
