@@ -12,5 +12,8 @@ export default {
     async login() {
       await vueAuth.authenticate('flickr');
     },
+    async logout() {
+      await vueAuth.logout();
+    },
   },
 };

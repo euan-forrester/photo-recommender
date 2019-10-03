@@ -134,7 +134,16 @@ export default {
 
       evt.preventDefault();
 
-      // First, turn the Flickr URL into a Flickr user ID
+      // Before do anything, log out our current user (if any) because we want to be in
+      // unauthenticated mode to display our results
+
+      try {
+        await this.$store.dispatch('logout');
+      } catch (error) {
+        // Just keep going even if we can't log out: the goal here is just to be not logged in
+      }
+
+      // Turn the Flickr URL into a Flickr user ID
 
       try {
         this.currentState = 'none';
