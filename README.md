@@ -184,7 +184,6 @@ TODO:
 - Make puller-flickr only get incremental updates since the last time it ran, rather than pulling all data every time
 - Make puller-flickr look for deletions of favorites
 - Investigate transaction usage in the batch database writer: what batch size should we use? is there a better transaction isolation level to use to help concurrency?
-- Add auth to API server - use AWS API gateway?
 - Audit for XSS attacks
 - Add CSRF token
 - Make frontend vendor file smaller (it's mostly bootstrap): https://bootstrap-vue.js.org/docs/#tree-shaking-with-module-bundlers
@@ -195,3 +194,6 @@ TODO:
 - Have dismissed photos + users feed back into recommendations with negative scores
 - Make visualization of how many instances of each process are doing work at a given time - send task ID to metics and get a count of distinct IDs?
 - Have Scheduler ask for the number of seconds until the next user needs updating, then sleep for that long
+- Need to have the browser authenticate with the API server to prevent API abuse of users whose tokens we have 
+  - Same as CSRF prevention or different?
+  - AWS API Gateway?
