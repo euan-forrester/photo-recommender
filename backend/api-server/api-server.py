@@ -131,7 +131,7 @@ def health_check():
 
 # vue-authenticate has a bit of a seemingly-nonstandard way of
 # interacting with our API: it does it all with one method that
-# is passed various combinations of parameters.
+# is called twice and passed different parameters.
 # This is modelled on the example here: https://github.com/dgrubelic/vue-authenticate/blob/739c7fc894089c67b7a2badeb7a5fb97720ca0cd/example/server.js#L275 
 @application.route('/api/flickr/auth', methods = ['POST'])
 def flickr_auth():
@@ -175,12 +175,43 @@ def flickr_auth():
         favorites_store.save_user_auth_token(flickr_auth_wrapper.get_user_id_from_token(access_token), flickr_auth_wrapper.get_flickr_access_token_as_string(access_token))
 
         return_value = {
-            'access_token': flickr_auth_wrapper.get_flickr_access_token_no_secret_as_string(access_token) # Return a version of the token that doesn't include the secret. We'll fill it in from the database on subsequent calls
+            'access_token': flickr_auth_wrapper.get_flickr_access_token_as_string_no_secret(access_token) # Return a version of the token that doesn't include the secret. We'll fill it in from the database on subsequent calls
             # The example shows passing back the secret as well, but it's ignored
             # by the vue-authenticate library
         }
 
         return jsonify(return_value)
+
+@application.route("/api/flickr/photos/add-comment", methods = ['POST'])
+def flickr_add_comment():
+
+    request_data = request.get_json()
+
+    photo_id                            = request.args.get('photo-id')
+    comment_text                        = request_data['comment-text']
+    partial_token_from_caller_string    = request_data['oauth-token']
+
+    if not photo_id:
+        return parameter_not_specified("photo-id")
+
+    if not comment_text:
+        return parameter_not_specified("comment-text")
+
+    if not partial_token_from_caller_string:
+        return parameter_not_specified("oauth-token")
+
+    partial_token_from_caller = flickr_auth_wrapper.get_flickr_access_token_from_string(partial_token_from_caller_string)
+
+    user_id = flickr_auth_wrapper.get_user_id_from_token(partial_token_from_caller)
+
+    full_token = flickr_auth_wrapper.get_flickr_access_token_from_string(favorites_store.get_user_auth_token(user_id))
+
+    if not flickr_auth_wrapper.tokens_are_equal(partial_token_from_caller, full_token):
+        return auth_token_incorrect()
+
+    flickrapi.add_comment(photo_id, comment_text, full_token)
+
+    return "OK", status.HTTP_200_OK 
 
 # Create a new user
 @application.route("/api/users/<user_id>", methods = ['POST'])
@@ -483,6 +514,10 @@ def user_not_specified(error=None):
 @application.errorhandler(status.HTTP_400_BAD_REQUEST)
 def parameter_not_specified(param_name, error=None):
     return f"Parameter {param_name} not specified", status.HTTP_400_BAD_REQUEST
+
+@application.errorhandler(status.HTTP_400_BAD_REQUEST)
+def auth_token_incorrect(error=None):
+    return "OAuth token provided did not match our records for this user", status.HTTP_400_BAD_REQUEST
 
 @application.errorhandler(FavoritesStoreException)
 def encountered_favorites_store_exception(e):

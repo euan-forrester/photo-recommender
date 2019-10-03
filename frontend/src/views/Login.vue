@@ -81,6 +81,10 @@
 import { validationMixin } from 'vuelidate';
 import { required, numeric } from 'vuelidate/lib/validators';
 
+import RepositoryFactory from '../repositories/repositoryFactory';
+
+const FlickrRepository = RepositoryFactory.get('flickr');
+
 export default {
   mixins: [validationMixin],
   data() {
@@ -112,6 +116,8 @@ export default {
       evt.preventDefault();
 
       await this.$store.dispatch('login');
+
+      await FlickrRepository.addComment('48675081878', 'Test comment');
     },
     onReset(evt) {
       evt.preventDefault();

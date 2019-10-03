@@ -1,4 +1,5 @@
 import repository from './repository';
+import vueAuth from '../auth';
 
 // Our API server proxies certain requests to Flickr, and returns results in whatever format that Flickr defines.
 // The only exception is that our API server will return a 404 if the item isn't found, rather than how
@@ -48,6 +49,13 @@ export default {
       iconUrl,
       profileUrl,
     };
+  },
+  async addComment(photoId, commentText) {
+    await repository.post(
+      `${resource}/photos/add-comment`,
+      { 'oauth-token': vueAuth.getToken(), 'comment-text': commentText },
+      { params: { 'photo-id': photoId } },
+    );
   },
   getPhotoUrl(imageOwner, imageId) {
     return `https://www.flickr.com/photos/${imageOwner}/${imageId}`;

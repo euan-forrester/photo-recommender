@@ -149,7 +149,7 @@ class FlickrAuthWrapper():
         })
 
     @staticmethod
-    def get_flickr_access_token_no_secret_as_string(token):
+    def get_flickr_access_token_as_string_no_secret(token):
         return json.dumps({
             'token': token.token,
             'fullname': token.fullname,
@@ -183,3 +183,7 @@ class FlickrAuthWrapper():
     @staticmethod
     def get_user_id_from_token(token):
         return token.user_nsid
+
+    @staticmethod
+    def tokens_are_equal(token_a, token_b):
+        return token_a.token == token_b.token
