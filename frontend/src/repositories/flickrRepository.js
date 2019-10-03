@@ -57,6 +57,19 @@ export default {
       { params: { 'photo-id': photoId } },
     );
   },
+  async getCurrentlyLoggedInUser() {
+    const response = await repository.post(
+      `${resource}/test/login`,
+      { 'oauth-token': vueAuth.getToken() },
+    );
+
+    console.log("Got back response", response);
+
+    return {
+      id: response.data.user.id,
+      name: response.data.user.username._content, // eslint-disable-line no-underscore-dangle
+    }
+  },
   getPhotoUrl(imageOwner, imageId) {
     return `https://www.flickr.com/photos/${imageOwner}/${imageId}`;
   },

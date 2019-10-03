@@ -117,7 +117,13 @@ export default {
 
       await this.$store.dispatch('login');
 
-      await FlickrRepository.addComment('48675081878', 'Test comment');
+      await this.$store.dispatch('getUserIdCurrentlyLoggedIn');
+
+      this.$router.push({
+        name: 'recommendations',
+        params: { userId: this.$store.state.welcome.user.id },
+        query: { 'num-photos': this.numPhotos, 'num-users': this.numUsers },
+      });
     },
     onReset(evt) {
       evt.preventDefault();

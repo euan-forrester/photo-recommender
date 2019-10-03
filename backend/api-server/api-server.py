@@ -187,15 +187,37 @@ def flickr_add_comment():
 
     request_data = request.get_json()
 
-    photo_id                            = request.args.get('photo-id')
-    comment_text                        = request_data['comment-text']
-    partial_token_from_caller_string    = request_data['oauth-token']
+    photo_id        = request.args.get('photo-id')
+    comment_text    = request_data['comment-text']
 
     if not photo_id:
         return parameter_not_specified("photo-id")
 
     if not comment_text:
         return parameter_not_specified("comment-text")
+
+    full_token = _get_and_test_full_user_oauth_token(request)
+
+    resp = jsonify(flickrapi.add_comment(photo_id, comment_text, full_token))
+    resp.status_code = status.HTTP_200_OK
+
+    return resp  
+
+@application.route("/api/flickr/test/login", methods = ['POST'])
+def flickr_get_logged_in_user():
+    
+    full_token = _get_and_test_full_user_oauth_token(request)
+
+    resp = jsonify(flickrapi.login_test(full_token))
+    resp.status_code = status.HTTP_200_OK
+
+    return resp  
+
+def _get_and_test_full_user_oauth_token(request):
+
+    request_data = request.get_json()
+
+    partial_token_from_caller_string = request_data['oauth-token']
 
     if not partial_token_from_caller_string:
         return parameter_not_specified("oauth-token")
@@ -209,10 +231,7 @@ def flickr_add_comment():
     if not flickr_auth_wrapper.tokens_are_equal(partial_token_from_caller, full_token):
         return auth_token_incorrect()
 
-    resp = jsonify(flickrapi.add_comment(photo_id, comment_text, full_token))
-    resp.status_code = status.HTTP_200_OK
-
-    return resp  
+    return full_token
 
 # Create a new user
 @application.route("/api/users/<user_id>", methods = ['POST'])
