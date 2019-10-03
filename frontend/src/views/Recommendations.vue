@@ -20,7 +20,8 @@
         v-bind:userId="userId"
         v-bind:imageId="photo.image_id"
         v-bind:imageOwner="photo.image_owner"
-        v-bind:imageUrl="photo.image_url">
+        v-bind:imageUrl="photo.image_url"
+        v-bind:userAuthenticated="userAuthenticated">
       </PhotoRecommendation>
     </b-container>
     <b-alert variant="danger" :show="this.encounteredError">

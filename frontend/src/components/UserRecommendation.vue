@@ -16,8 +16,8 @@
               </div>
             </b-row>
           </b-link>
-          <DismissButton @click="onDismiss()" class="dismissbutton"></DismissButton>
           <div v-if="this.userAuthenticated">
+            <DismissButton @click="onDismiss()" class="dismissbutton"></DismissButton>
             <AddButton 
               class="addbutton" 
               tooltip="To add a new contact please visit their page and add them from there. The Flickr API unfortunately doesn't support adding contacts so we can't add them from here."

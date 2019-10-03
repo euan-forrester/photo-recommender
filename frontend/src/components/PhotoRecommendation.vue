@@ -4,7 +4,9 @@
       <b-link :href="this.photoUrl">
         <b-img left fluid :src="imageUrl"></b-img>
       </b-link>
-      <DismissButton @click="onDismiss()"></DismissButton>
+      <div v-if="this.userAuthenticated">
+        <DismissButton @click="onDismiss()"></DismissButton>
+      </div>
     </div>
   </b-collapse>
 </template>
@@ -24,6 +26,7 @@ export default {
     imageId: String,
     imageOwner: String,
     imageUrl: String,
+    userAuthenticated: Boolean,
   },
   data() {
     return {
