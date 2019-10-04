@@ -1,7 +1,10 @@
 <template>
   <div>
     <b-container>
-      <h2 align="left" id="user-recommendations-header">People you might want to follow</h2>
+      <h2 align="left" id="user-recommendations-header">
+        <div v-if="userAuthenticated">People you might want to follow</div>
+        <div v-if="!userAuthenticated">People they might want to follow</div>
+      </h2>
       <b-row>
         <UserRecommendation
           v-for="user in recommendations.users"
@@ -13,7 +16,10 @@
       </b-row>
     </b-container>
     <b-container>
-      <h2 align="left" id="photo-recommendations-header">Photos you might like</h2>
+      <h2 align="left" id="photo-recommendations-header">
+        <div v-if="userAuthenticated">Photos you might like</div>
+        <div v-if="!userAuthenticated">Photos they might like</div>
+      </h2>
       <PhotoRecommendation
         v-for="photo in recommendations.photos"
         v-bind:key="photo.image_id"
