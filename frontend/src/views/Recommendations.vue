@@ -20,15 +20,17 @@
         <div v-if="userAuthenticated">Photos you might like</div>
         <div v-if="!userAuthenticated">Photos they might like</div>
       </h2>
-      <PhotoRecommendation
-        v-for="photo in recommendations.photos"
-        v-bind:key="photo.image_id"
-        v-bind:userId="userId"
-        v-bind:imageId="photo.image_id"
-        v-bind:imageOwner="photo.image_owner"
-        v-bind:imageUrl="photo.image_url"
-        v-bind:userAuthenticated="userAuthenticated">
-      </PhotoRecommendation>
+      <b-row align-h="center">
+        <PhotoRecommendation
+          v-for="photo in recommendations.photos"
+          v-bind:key="photo.image_id"
+          v-bind:userId="userId"
+          v-bind:imageId="photo.image_id"
+          v-bind:imageOwner="photo.image_owner"
+          v-bind:imageUrl="photo.image_url"
+          v-bind:userAuthenticated="userAuthenticated">
+        </PhotoRecommendation>
+      </b-row>
     </b-container>
     <b-alert variant="danger" :show="this.encounteredError">
       Could not get the information requested. Please try again later
@@ -56,7 +58,7 @@ export default {
   },
   async mounted() {
     this.userId = this.$route.params.userId;
-    this.userAuthenticated = (this.$store.getters.isAuthenticated() && (this.userId === this.$store.state.welcome.user.id)); // Make sure that our route matches the user we authenticated with. Otherwise, if someone cheeky entered a different user into the URL bar just show the unauthenticated view
+    this.userAuthenticated = (this.$store.getters.isAuthenticated());// && (this.userId === this.$store.state.welcome.user.id)); // Make sure that our route matches the user we authenticated with. Otherwise, if someone cheeky entered a different user into the URL bar just show the unauthenticated view
     const numPhotos = this.$route.query && this.$route.query['num-photos'] ? this.$route.query['num-photos'] : 50;
     const numUsers = this.$route.query && this.$route.query['num-users'] ? this.$route.query['num-users'] : 5;
 

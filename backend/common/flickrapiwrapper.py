@@ -59,6 +59,16 @@ class FlickrApiWrapper:
 
         return comment_id
 
+    def add_favorite(self, photo_id, user_authentication_token):
+
+        auth_flickr = self._get_auth_flickr(user_authentication_token)
+
+        lambda_to_call = lambda: auth_flickr.favorites.add(photo_id=photo_id)
+
+        resp = self._call_with_retries(lambda_to_call)
+
+        return resp
+
     def lookup_user(self, user_url):
         
         lambda_to_call = lambda: self.unauth_flickr.urls.lookupUser(url=user_url)

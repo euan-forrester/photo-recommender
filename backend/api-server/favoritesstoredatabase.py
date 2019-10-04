@@ -245,6 +245,32 @@ class FavoritesStoreDatabase:
             cursor.close()
             cnx.close()
 
+    def add_favorite(self, image_id, image_owner, image_url, favorited_by):
+        cnx = self.cnxpool.get_connection()
+
+        cursor = cnx.cursor() 
+
+        try:
+            cursor.execute("""
+                INSERT IGNORE INTO 
+                    favorites
+                SET 
+                    image_id=%s,
+                    image_owner=%s,
+                    image_url=%s,
+                    favorited_by=%s;
+            """, (image_id, image_owner, image_url, favorited_by))
+
+            cnx.commit()
+
+        except Exception as e:
+            cnx.rollback()
+            raise FavoritesStoreException from e
+
+        finally:
+            cursor.close()
+            cnx.close()        
+
     def get_photo_recommendations(self, user_id, num_photos):
 
         cnx = self.cnxpool.get_connection()

@@ -57,6 +57,17 @@ export default {
       { params: { 'photo-id': photoId } },
     );
   },
+  async addFavorite(imageId, imageOwner, imageUrl) {
+    await repository.post(
+      `${resource}/favorites/add`,
+      {
+        'oauth-token': vueAuth.getToken(),
+        'image-id': imageId,
+        'image-owner': imageOwner,
+        'image-url': imageUrl,
+      },
+    );
+  },
   async getCurrentlyLoggedInUser() {
     const response = await repository.post(
       `${resource}/test/login`,

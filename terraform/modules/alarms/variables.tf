@@ -27,7 +27,7 @@ variable "process_names_that_read_from_queues" {
 }
 variable "process_names_that_write_to_queues" { 
     type = "list" 
-    default = ["scheduler", "puller-flickr", "puller-response-reader"]
+    default = ["scheduler", "puller-flickr", "puller-response-reader", "api-server"]
 }
 variable "process_names_that_use_api_server" {
     type = "list"

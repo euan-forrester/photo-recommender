@@ -9,6 +9,8 @@ ADD common/flickrapiwrapper.py /common/
 ADD common/confighelper.py /common/
 ADD common/metricshelper.py /common/
 ADD common/unhandledexceptionhelper.py /common/
+ADD common/pullerqueueitem.py /common/
+ADD common/queuewriter.py /common/
 # Our OAuth lib needs the C compiler to install itself
 # https://stackoverflow.com/a/58028091
 # Cleanup taken from: https://spectrum.chat/zeit/now/best-dockerfile-for-building-a-python-container-with-compiled-dependencies~308b60c7-77fc-43de-b42a-8d14f9956ccd

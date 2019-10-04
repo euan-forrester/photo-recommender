@@ -179,7 +179,6 @@ TODO:
 - Look into how to lock versions of python dependencies of our dependencies (rather than just the packages we explicitly reference)
 - Have the prod load balancer only listen on https
 - Encrypt SQS messages in prod
-- Use templating lib for outputting HTML from API server
 - Centralize logging and make it searchable. Maybe like this: https://aws.amazon.com/solutions/centralized-logging/
 - Make puller-flickr only get incremental updates since the last time it ran, rather than pulling all data every time
 - Make puller-flickr look for deletions of favorites
@@ -197,3 +196,5 @@ TODO:
 - Need to have the browser authenticate with the API server to prevent API abuse of users whose tokens we have 
   - Same as CSRF prevention or different?
   - AWS API Gateway?
+- Consider normalizing the `favorites` table by splitting it into a table that just has the photos, and another table of who's favorited them
+  - What is the impact on write throughput of this change?

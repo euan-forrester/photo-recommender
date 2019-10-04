@@ -22,6 +22,8 @@ from flickrapiwrapper import FlickrApiNotFoundException
 from flickrauthwrapper import FlickrAuthWrapper
 from flickrauthwrapper import AuthTokenIncorrectException
 from flickrauthwrapper import NoAuthTokenProvidedException
+from queuewriter import SQSQueueWriter
+from pullerqueueitem import PullerQueueItem
 
 #
 # Read in commandline arguments
@@ -66,6 +68,9 @@ flickr_api_retries          = config_helper.getInt("flickr-api-retries")
 flickr_api_memcached_location   = config_helper.get("flickr-api-memcached-location")
 flickr_api_memcached_ttl        = config_helper.getInt("flickr-api-memcached-ttl")
 
+puller_queue_url            = config_helper.get("puller-queue-url")
+puller_queue_batch_size     = config_helper.getInt("puller-queue-batchsize")
+
 # We have a separate memcached instance for storing this info that isn't on a public subnet because it's storing potentially-sensitive user tokens (even though they're just the temporary tokens given during the auth process)
 flickr_auth_cache_type      = config_helper.get("flickr-auth-cache-type")
 flickr_auth_memcached_location = config_helper.get("flickr-auth-memcached-location")
@@ -107,6 +112,12 @@ def cleanup_data_store():
     favorites_store.shutdown()
 
 atexit.register(cleanup_data_store)
+
+#
+# And our queue. We write to this when a user favorites a recommendation, so that we can update our recommendations by pulling all of the favorite's favorites
+#
+
+flickr_puller_queue = SQSQueueWriter(puller_queue_url, puller_queue_batch_size, metrics_helper)
 
 #
 # Run our API server
@@ -220,6 +231,62 @@ def flickr_add_comment():
     resp.status_code = status.HTTP_200_OK
 
     return resp  
+
+@application.route("/api/flickr/favorites/add", methods = ['POST'])
+def flickr_add_favorite():
+
+    request_data = request.get_json()
+
+    image_id    = request_data['image-id']
+    image_owner = request_data['image-owner']
+    image_url   = request_data['image-url']
+
+    if not image_id:
+        return parameter_not_specified("image-id")
+
+    if not image_owner:
+        return parameter_not_specified("image-owner")
+
+    if not image_url:
+        return parameter_not_specified("image-url")
+
+    full_token = _get_and_test_full_user_oauth_token(request)
+
+    favorited_by = flickr_auth_wrapper.get_user_id_from_token(full_token)
+
+    # First, tell Flickr that it was favorited because if this fails we don't want our database
+    # to be out of sync with theirs
+
+    logging.info("Beginning adding new favorite. About to tell Flickr that a new favorite has been added")
+
+    flickrapi.add_favorite(image_id, full_token)
+
+    # Then, add this favorite to our database so that we know about it. No need to wait
+    # until the next time this user's data is scheduled to be pulled
+
+    logging.info("About to write to our database that a new favorite has been added")
+
+    favorites_store.add_favorite(image_id, image_owner, image_url, favorited_by)
+
+    # Request that all of the image owner's favorites be pulled (if they haven't been already).
+    # Because this is just one pull request, it'll be fulfilled quite quickly and so will offer
+    # near-realtime new results to the user if they refresh their recommendations
+
+    logging.info(f"About to make a puller request to {puller_queue_url} to get the favorites of the favorited image {image_owner}")
+
+    flickr_pull_request = PullerQueueItem(user_id=image_owner, initial_requesting_user_id=favorited_by, request_favorites=True, request_contacts=False, request_neighbor_list=False)
+
+    flickr_puller_queue.send_messages(objects=[flickr_pull_request], to_string=lambda queue_item : queue_item.to_json())
+
+    # Update our database to say that there's an outstanding puller request for this user
+
+    logging.info(f"About to update our database that there's an outstanding puller request for the user who made the favorite {favorited_by}")
+
+    favorites_store.more_puller_requests(favorited_by, 1)
+
+    logging.info("Finished adding new favorite")
+
+    return "OK", status.HTTP_200_OK
 
 @application.route("/api/flickr/test/login", methods = ['POST'])
 def flickr_get_logged_in_user():
