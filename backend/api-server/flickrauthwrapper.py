@@ -9,6 +9,12 @@ import uuid
 import json
 from flask import session
 
+class AuthTokenIncorrectException(Exception):
+    pass
+
+class NoAuthTokenProvidedException(Exception):
+    pass
+
 # authlib has some slightly different names for parameters, so we can't just pass a disc cache or memcached client directly to them
 
 class DiscCacheWrapper():

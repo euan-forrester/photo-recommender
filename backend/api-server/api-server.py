@@ -20,6 +20,8 @@ from unhandledexceptionhelper import UnhandledExceptionHelper
 from flickrapiwrapper import FlickrApiWrapper
 from flickrapiwrapper import FlickrApiNotFoundException
 from flickrauthwrapper import FlickrAuthWrapper
+from flickrauthwrapper import AuthTokenIncorrectException
+from flickrauthwrapper import NoAuthTokenProvidedException
 
 #
 # Read in commandline arguments
@@ -182,6 +184,22 @@ def flickr_auth():
 
         return jsonify(return_value)
 
+@application.route("/api/flickr/auth/logout", methods = ["POST"])
+def flickr_logout():
+
+    try:
+        full_token  = _get_and_test_full_user_oauth_token(request)
+        user_id     = flickr_auth_wrapper.get_user_id_from_token(full_token)
+
+        logging.info(f"Requested logout for user {user_id}")
+
+        favorites_store.delete_user_auth_token(user_id)
+
+    except NoAuthTokenProvidedException as e:
+        logging.info("No auth token provided while attempting to log out. Assuming user is already logged out, and ignoring.")
+
+    return "OK", status.HTTP_200_OK
+
 @application.route("/api/flickr/photos/add-comment", methods = ['POST'])
 def flickr_add_comment():
 
@@ -220,7 +238,7 @@ def _get_and_test_full_user_oauth_token(request):
     partial_token_from_caller_string = request_data['oauth-token']
 
     if not partial_token_from_caller_string:
-        return parameter_not_specified("oauth-token")
+        raise NoAuthTokenProvidedException()
 
     partial_token_from_caller = flickr_auth_wrapper.get_flickr_access_token_from_string(partial_token_from_caller_string)
 
@@ -229,7 +247,7 @@ def _get_and_test_full_user_oauth_token(request):
     full_token = flickr_auth_wrapper.get_flickr_access_token_from_string(favorites_store.get_user_auth_token(user_id))
 
     if not flickr_auth_wrapper.tokens_are_equal(partial_token_from_caller, full_token):
-        return auth_token_incorrect()
+        raise AuthTokenIncorrectException()
 
     return full_token
 
@@ -535,8 +553,12 @@ def user_not_specified(error=None):
 def parameter_not_specified(param_name, error=None):
     return f"Parameter {param_name} not specified", status.HTTP_400_BAD_REQUEST
 
-@application.errorhandler(status.HTTP_400_BAD_REQUEST)
-def auth_token_incorrect(error=None):
+@application.errorhandler(NoAuthTokenProvidedException)
+def no_auth_token_provided(e):
+    return "No OAuth token found in request", status.HTTP_400_BAD_REQUEST
+
+@application.errorhandler(AuthTokenIncorrectException)
+def auth_token_incorrect(e):
     return "OAuth token provided did not match our records for this user", status.HTTP_400_BAD_REQUEST
 
 @application.errorhandler(FavoritesStoreException)

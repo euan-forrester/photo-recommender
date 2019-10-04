@@ -81,10 +81,6 @@
 import { validationMixin } from 'vuelidate';
 import { required, numeric } from 'vuelidate/lib/validators';
 
-import RepositoryFactory from '../repositories/repositoryFactory';
-
-const FlickrRepository = RepositoryFactory.get('flickr');
-
 export default {
   mixins: [validationMixin],
   data() {

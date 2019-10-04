@@ -63,12 +63,16 @@ export default {
       { 'oauth-token': vueAuth.getToken() },
     );
 
-    console.log("Got back response", response);
-
     return {
       id: response.data.user.id,
       name: response.data.user.username._content, // eslint-disable-line no-underscore-dangle
-    }
+    };
+  },
+  async logoutUser() {
+    await repository.post(
+      `${resource}/auth/logout`,
+      { 'oauth-token': vueAuth.getToken() },
+    );
   },
   getPhotoUrl(imageOwner, imageId) {
     return `https://www.flickr.com/photos/${imageOwner}/${imageId}`;

@@ -220,6 +220,31 @@ class FavoritesStoreDatabase:
         else:
             raise FavoritesStoreUserNotFoundException(f"User {user_id} was not found")
 
+    def delete_user_auth_token(self, user_id):
+        cnx = self.cnxpool.get_connection()
+
+        cursor = cnx.cursor() 
+
+        try:
+            cursor.execute("""
+                UPDATE 
+                    registered_users 
+                SET 
+                    flickr_access_token=NULL 
+                WHERE 
+                    user_id=%s;
+            """, (user_id,))
+
+            cnx.commit()
+
+        except Exception as e:
+            cnx.rollback()
+            raise FavoritesStoreException from e
+
+        finally:
+            cursor.close()
+            cnx.close()
+
     def get_photo_recommendations(self, user_id, num_photos):
 
         cnx = self.cnxpool.get_connection()
