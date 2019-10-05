@@ -22,7 +22,7 @@
               class="addbutton"
               tooltip="To add a new contact please visit their page and add them from there.
               The Flickr API unfortunately doesn't support adding contacts so we can't add them from here."
-              v-bind:checked="false"
+              currentState="unchecked"
             ></AddButton>
           </div>
         </div>

@@ -11,8 +11,8 @@
             @click="onAdd()"
             class="addbutton"
             tooltip="Fave this photo"
-            :disabled="this.photoFaved"
-            :checked="this.photoFaved"
+            :disabled="this.photoFavedState !== 'unchecked'"
+            :currentState="this.photoFavedState"
           ></AddButton>
         </div>
       </div>
@@ -61,7 +61,7 @@ export default {
     return {
       photoUrl: '',
       visible: true,
-      photoFaved: false,
+      photoFavedState: 'unchecked',
     };
   },
   async mounted() {
@@ -74,8 +74,9 @@ export default {
       await this.$store.dispatch('dismissPhotoRecommendation', { userId: this.userId, dismissedImageId: this.imageId });
     },
     async onAdd() {
+      this.photoFavedState = 'loading';
       await FlickrRepository.addFavorite(this.imageId, this.imageOwner, this.imageUrl);
-      this.photoFaved = true;
+      this.photoFavedState = 'checked';
     },
   },
 };

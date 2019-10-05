@@ -3,13 +3,16 @@
     variant="outline-secondary"
     v-b-popover.hover.top="this.tooltip"
     v-on="$listeners"
-    :class="this.checked ? 'checked' : 'unchecked'"
+    :class="this.currentState"
   >
-    <div v-if="this.checked">
-      <font-awesome-icon icon="check-circle" class="checked"/>
+    <div v-if="this.currentState === 'unchecked'">
+      <font-awesome-icon icon="plus-circle"/>
     </div>
-    <div v-if="!this.checked">
-      <font-awesome-icon icon="plus-circle" class="unchecked"/>
+    <div v-if="this.currentState === 'loading'">
+      <b-spinner small/>
+    </div>
+    <div v-if="this.currentState === 'checked'">
+      <font-awesome-icon icon="check-circle"/>
     </div>
   </b-button>
 </template>
@@ -18,20 +21,24 @@
 export default {
   props: {
     tooltip: String,
-    checked: Boolean,
+    currentState: String,
   },
 };
 </script>
 
 <style scoped>
 
+.unchecked {
+  color: grey;
+}
+
+.loading {
+  color: grey;
+}
+
 .checked {
   color: white;
   background-color: green;
-}
-
-.unchecked {
-  color: grey;
 }
 
 </style>
