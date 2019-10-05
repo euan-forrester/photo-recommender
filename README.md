@@ -198,3 +198,4 @@ TODO:
   - AWS API Gateway?
 - Consider normalizing the `favorites` table by splitting it into a table that just has the photos, and another table of who's favorited them
   - What is the impact on write throughput of this change?
+- Add a message to the recommendations screen if the user doesn't have enough favorites to generate good recommendations. Suggest some groups to look at.
