@@ -7,7 +7,13 @@
         </b-link>
         <div v-if="this.userAuthenticated">
           <DismissButton @click="onDismiss()" class="dismissbutton"></DismissButton>
-          <AddButton @click="onAdd()" class="addbutton" tooltip="Fave this photo"></AddButton>
+          <AddButton
+            @click="onAdd()"
+            class="addbutton"
+            tooltip="Fave this photo"
+            :disabled="this.photoFaved"
+            :checked="this.photoFaved"
+          ></AddButton>
         </div>
       </div>
     </b-collapse>
@@ -55,6 +61,7 @@ export default {
     return {
       photoUrl: '',
       visible: true,
+      photoFaved: false,
     };
   },
   async mounted() {
@@ -68,6 +75,7 @@ export default {
     },
     async onAdd() {
       await FlickrRepository.addFavorite(this.imageId, this.imageOwner, this.imageUrl);
+      this.photoFaved = true;
     },
   },
 };
