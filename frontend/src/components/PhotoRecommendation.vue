@@ -75,10 +75,10 @@ export default {
     },
     async onAdd() {
       this.photoFavedState = 'loading';
-      // When we disable the button it won't receive mouse events anymore and so its popover will stay forever. 
+      // When we disable the button it won't receive mouse events anymore and so its popover will stay forever.
       // This call hides all popovers: there should be only one, just at the mouse cursor
       // https://github.com/bootstrap-vue/bootstrap-vue/issues/1161
-      this.$root.$emit('bv::hide::popover'); 
+      this.$root.$emit('bv::hide::popover');
       await FlickrRepository.addFavorite(this.imageId, this.imageOwner, this.imageUrl);
       this.photoFavedState = 'checked';
     },
