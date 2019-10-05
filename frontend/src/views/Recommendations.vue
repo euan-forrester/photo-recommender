@@ -2,8 +2,7 @@
   <div>
     <b-container>
       <h2 align="left" id="user-recommendations-header">
-        <div v-if="userAuthenticated">People you might want to follow</div>
-        <div v-if="!userAuthenticated">People they might want to follow</div>
+        People {{ userAuthenticated ? "you" : "they" }} might want to follow
       </h2>
       <b-row>
         <UserRecommendation
@@ -17,8 +16,7 @@
     </b-container>
     <b-container>
       <h2 align="left" id="photo-recommendations-header">
-        <div v-if="userAuthenticated">Photos you might like</div>
-        <div v-if="!userAuthenticated">Photos they might like</div>
+        Photos {{ userAuthenticated ? "you" : "they" }} might like
       </h2>
       <b-row align-h="center">
         <PhotoRecommendation
