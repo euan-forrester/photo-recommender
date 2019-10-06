@@ -71,7 +71,10 @@
             variant="primary"
             :disabled="$v.$anyError || (this.currentState === 'waitingForInitiallyProcessedData')"
             @click="onSubmit()"
-            v-b-popover.hover.top="'If you view someone else\'s recommendations you won\'t be able to interact with them directly in this app. But you can still follow links to the users and photos recommended to follow, fave, and comment.'"
+            v-b-popover.hover.top=
+            "'If you view someone else\'s recommendations you won\'t be able to ' +
+             'interact with them directly in this app. But you can still follow links ' +
+             'to the users and photos recommended to follow, fave, and comment.'"
           >
             Submit
           </b-button>
@@ -84,7 +87,9 @@
             variant="primary"
             @click="onLogin()"
             block
-            v-b-popover.hover.top="'If you log into Flickr you can interact with your recommendations: faving them, commenting on them, or dismissing them.'"
+            v-b-popover.hover.top=
+            "'If you log into Flickr you can interact with your recommendations: ' +
+             'faving them, commenting on them, or dismissing them.'"
           >
             Login to Flickr to get your own recommendations
           </b-button>
