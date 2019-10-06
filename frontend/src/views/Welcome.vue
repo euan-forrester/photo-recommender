@@ -27,7 +27,7 @@
           </b-form-group>
           <b-form-group
             id="num-users-group"
-            label="Number of recommendations for users to follow you would like"
+            label="Number of recommendations of users to follow you would like"
             label-for="num-users"
             label-align="left"
             label-cols=10
@@ -44,6 +44,19 @@
               You must enter a number
             </b-form-invalid-feedback>
           </b-form-group>
+        </b-col>
+      </b-row>
+      <b-row no-gutters align-h="center" class="calculatinginitialrecommendations">
+        <b-col sm=12 md=10 lg=8 xl=6>
+          <div v-if="this.currentState === 'waitingForInitiallyProcessedData'">
+            <b-alert variant="info" :show="true">
+              Calculating initial recommendations for user {{this.userName}}
+            </b-alert>
+            <b-spinner label="Waiting to receive initial recommendations for user"></b-spinner>
+          </div>
+          <b-alert variant="danger" :show="this.currentState === 'apiError'">
+            Could not get the requested information. Please try again later.
+          </b-alert>
         </b-col>
       </b-row>
       <b-row align-h="center" class="urlorlogin">
@@ -63,9 +76,6 @@
           <b-alert variant="info" :show="this.currentState === 'userNotFound'">
             User not found - maybe there's a typo?
           </b-alert>
-          <b-alert variant="danger" :show="this.currentState === 'apiError'">
-            Could not get the requested information. Please try again later
-          </b-alert>
           <b-button
             type="submit"
             variant="primary"
@@ -83,6 +93,9 @@
           or
         </b-col>
         <b-col cols="4" align-self="end">
+          <b-alert variant="danger" :show="this.currentState === 'loginFailed'">
+            Encountered problem logging in. Please try again later.
+          </b-alert>
           <b-button
             variant="primary"
             @click="onLogin()"
@@ -95,22 +108,12 @@
           </b-button>
         </b-col>
       </b-row>
-      <b-row no-gutters align-h="center">
-        <b-col sm=12 md=10 lg=8 xl=6>
-          <div v-if="this.currentState === 'waitingForInitiallyProcessedData'">
-            <b-alert variant="info" :show="true" id="calculating-initial-recommendations">
-              Calculating initial recommendations for user {{this.userName}}
-            </b-alert>
-            <b-spinner label="Waiting to receive initial recommendations for user"></b-spinner>
-          </div>
-        </b-col>
-      </b-row>
     </b-container>
   </div>
 </template>
 
 <style scoped>
-#calculating-initial-recommendations {
+.calculatinginitialrecommendations {
   margin-top: 20px;
 }
 
@@ -122,6 +125,7 @@
 <script>
 import { validationMixin } from 'vuelidate';
 import { required, url, numeric } from 'vuelidate/lib/validators';
+import vueAuth from '../auth';
 
 export default {
   mixins: [validationMixin],
@@ -150,6 +154,21 @@ export default {
     },
   },
   methods: {
+    async onLogin() {
+      this.currentState = 'none';
+
+      if (!vueAuth.isAuthenticated()) {
+        try {
+          await this.$store.dispatch('login');
+          await this.$store.dispatch('getUserIdCurrentlyLoggedIn'); // The login action just gets a token back that we want to treat as opaque and so doesn't actually know who was logged in. So there's a separate API call to get the ID of the currently-logged-in user
+        } catch (error) {
+          this.currentState = 'loginFailed';
+          return;
+        }
+      }
+
+      await this.maybeAddNewUserThenViewRecommendations();
+    },
     async onSubmit() {
       this.$v.$touch();
       if (this.$v.$anyError) {
@@ -167,14 +186,10 @@ export default {
 
       // Turn the Flickr URL into a Flickr user ID
 
+      this.currentState = 'none';
+
       try {
-        this.currentState = 'none';
-
         await this.$store.dispatch('getUserIdFromUrl', this.userUrl);
-
-        this.userName = this.$store.state.welcome.user.name;
-        this.userId = this.$store.state.welcome.user.id;
-        this.currentState = 'userFound';
       } catch (error) {
         if (error.response && error.response.status === 404) {
           this.currentState = 'userNotFound';
@@ -185,7 +200,14 @@ export default {
         return;
       }
 
-      // Then check our system to see if we have that user. Add that user if necessary
+      await this.maybeAddNewUserThenViewRecommendations();
+    },
+    async maybeAddNewUserThenViewRecommendations() {
+      this.userName = this.$store.state.welcome.user.name;
+      this.userId = this.$store.state.welcome.user.id;
+      this.currentState = 'userFound';
+
+      // Check our system to see if we have that user. Add that user if necessary
 
       let needToAddUser = false;
 
