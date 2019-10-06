@@ -184,14 +184,14 @@ TODO:
 - Make puller-flickr look for deletions of favorites
 - Investigate transaction usage in the batch database writer: what batch size should we use? is there a better transaction isolation level to use to help concurrency?
 - Add CSRF token
-- Make frontend vendor file smaller (it's mostly bootstrap): https://bootstrap-vue.js.org/docs/#tree-shaking-with-module-bundlers
-  - See also https://medium.com/js-dojo/how-to-reduce-your-vue-js-bundle-size-with-webpack-3145bf5019b7
 - Add versioning to the front end, so that old versions of file (with different hashes) don't live in S3 forever: https://stackoverflow.com/questions/46166337/how-can-i-deploy-a-new-cloudfront-s3-version-without-a-small-period-of-unavailab?rq=1
 - Get domain name + add hooks for google analytics
 - Make batch messages for both types of response readers, rather than sending each message individually
 - Have dismissed photos + users feed back into recommendations with negative scores
 - Make visualization of how many instances of each process are doing work at a given time - send task ID to metics and get a count of distinct IDs?
 - Have Scheduler ask for the number of seconds until the next user needs updating, then sleep for that long
+  - Note that would miss new users that get added in the meantime
+  - We can have the API server request data for a new user when it is created
 - Need to have the browser authenticate with the API server to prevent API abuse of users whose tokens we have 
   - Same as CSRF prevention or different?
   - AWS API Gateway?
@@ -199,4 +199,3 @@ TODO:
   - What is the impact on write throughput of this change?
 - Add a message to the recommendations screen if the user doesn't have enough favorites to generate good recommendations. Suggest some groups to look at.
 - Highlight new recommendations by moving them to the top of the list. Maybe have a "first recommended on" field per user, and use that to boost score?
-
