@@ -37,3 +37,6 @@ variable "flickr_api_retries" {}
 variable "flickr_api_memcached_location" {}
 variable "flickr_api_memcached_ttl" {}
 variable "flickr_auth_memcached_location" {}
+variable "puller_queue_batch_size" {}
+variable "puller_queue_url" {}
+variable "puller_queue_arn" {}

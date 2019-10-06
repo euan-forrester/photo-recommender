@@ -37,6 +37,19 @@ export default {
 
       commit('setUser', user);
     },
+    async getUserIdCurrentlyLoggedIn({ commit }) {
+      const userResponse = await FlickrRepository.getCurrentlyLoggedInUser();
+
+      const user = {
+        id: userResponse.id,
+        name: userResponse.name,
+        recommendations: [],
+        currentlyProcessingData: false,
+        haveInitiallyProcessedData: false,
+      };
+
+      commit('setUser', user);
+    },
     async addNewUser({ commit }, userId) {
       const userInfo = await UsersRepository.addUser(userId);
 

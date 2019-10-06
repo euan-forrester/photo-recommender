@@ -20,6 +20,10 @@ from unhandledexceptionhelper import UnhandledExceptionHelper
 from flickrapiwrapper import FlickrApiWrapper
 from flickrapiwrapper import FlickrApiNotFoundException
 from flickrauthwrapper import FlickrAuthWrapper
+from flickrauthwrapper import AuthTokenIncorrectException
+from flickrauthwrapper import NoAuthTokenProvidedException
+from queuewriter import SQSQueueWriter
+from pullerqueueitem import PullerQueueItem
 
 #
 # Read in commandline arguments
@@ -64,6 +68,9 @@ flickr_api_retries          = config_helper.getInt("flickr-api-retries")
 flickr_api_memcached_location   = config_helper.get("flickr-api-memcached-location")
 flickr_api_memcached_ttl        = config_helper.getInt("flickr-api-memcached-ttl")
 
+puller_queue_url            = config_helper.get("puller-queue-url")
+puller_queue_batch_size     = config_helper.getInt("puller-queue-batchsize")
+
 # We have a separate memcached instance for storing this info that isn't on a public subnet because it's storing potentially-sensitive user tokens (even though they're just the temporary tokens given during the auth process)
 flickr_auth_cache_type      = config_helper.get("flickr-auth-cache-type")
 flickr_auth_memcached_location = config_helper.get("flickr-auth-memcached-location")
@@ -107,6 +114,12 @@ def cleanup_data_store():
 atexit.register(cleanup_data_store)
 
 #
+# And our queue. We write to this when a user favorites a recommendation, so that we can update our recommendations by pulling all of the favorite's favorites
+#
+
+flickr_puller_queue = SQSQueueWriter(puller_queue_url, puller_queue_batch_size, metrics_helper)
+
+#
 # Run our API server
 #
 # Note that the Flask built-in server is not sufficient for production. In production we run under gunicorn instead, and
@@ -131,7 +144,7 @@ def health_check():
 
 # vue-authenticate has a bit of a seemingly-nonstandard way of
 # interacting with our API: it does it all with one method that
-# is passed various combinations of parameters.
+# is called twice and passed different parameters.
 # This is modelled on the example here: https://github.com/dgrubelic/vue-authenticate/blob/739c7fc894089c67b7a2badeb7a5fb97720ca0cd/example/server.js#L275 
 @application.route('/api/flickr/auth', methods = ['POST'])
 def flickr_auth():
@@ -172,13 +185,138 @@ def flickr_auth():
         oauth_session       = flickr_auth_wrapper.get_oauth_session(token=oauth_token, token_secret=oauth_token_secret)
         access_token        = flickr_auth_wrapper.fetch_access_token(oauth_session, verifier)
 
+        favorites_store.save_user_auth_token(flickr_auth_wrapper.get_user_id_from_token(access_token), flickr_auth_wrapper.get_flickr_access_token_as_string(access_token))
+
         return_value = {
-            'access_token': access_token.token
+            'access_token': flickr_auth_wrapper.get_flickr_access_token_as_string_no_secret(access_token) # Return a version of the token that doesn't include the secret. We'll fill it in from the database on subsequent calls
             # The example shows passing back the secret as well, but it's ignored
             # by the vue-authenticate library
         }
 
         return jsonify(return_value)
+
+@application.route("/api/flickr/auth/logout", methods = ["POST"])
+def flickr_logout():
+
+    try:
+        full_token  = _get_and_test_full_user_oauth_token(request)
+        user_id     = flickr_auth_wrapper.get_user_id_from_token(full_token)
+
+        logging.info(f"Requested logout for user {user_id}")
+
+        favorites_store.delete_user_auth_token(user_id)
+
+    except NoAuthTokenProvidedException as e:
+        logging.info("No auth token provided while attempting to log out. Assuming user is already logged out, and ignoring.")
+
+    return "OK", status.HTTP_200_OK
+
+@application.route("/api/flickr/photos/add-comment", methods = ['POST'])
+def flickr_add_comment():
+
+    request_data = request.get_json()
+
+    photo_id        = request.args.get('photo-id')
+    comment_text    = request_data['comment-text']
+
+    if not photo_id:
+        return parameter_not_specified("photo-id")
+
+    if not comment_text:
+        return parameter_not_specified("comment-text")
+
+    full_token = _get_and_test_full_user_oauth_token(request)
+
+    resp = jsonify(flickrapi.add_comment(photo_id, comment_text, full_token))
+    resp.status_code = status.HTTP_200_OK
+
+    return resp  
+
+@application.route("/api/flickr/favorites/add", methods = ['POST'])
+def flickr_add_favorite():
+
+    request_data = request.get_json()
+
+    image_id    = request_data['image-id']
+    image_owner = request_data['image-owner']
+    image_url   = request_data['image-url']
+
+    if not image_id:
+        return parameter_not_specified("image-id")
+
+    if not image_owner:
+        return parameter_not_specified("image-owner")
+
+    if not image_url:
+        return parameter_not_specified("image-url")
+
+    full_token = _get_and_test_full_user_oauth_token(request)
+
+    favorited_by = flickr_auth_wrapper.get_user_id_from_token(full_token)
+
+    # First, tell Flickr that it was favorited because if this fails we don't want our database
+    # to be out of sync with theirs
+
+    logging.info("Beginning adding new favorite. About to tell Flickr that a new favorite has been added")
+
+    flickrapi.add_favorite(image_id, full_token)
+
+    # Then, add this favorite to our database so that we know about it. No need to wait
+    # until the next time this user's data is scheduled to be pulled
+
+    logging.info("About to write to our database that a new favorite has been added")
+
+    favorites_store.add_favorite(image_id, image_owner, image_url, favorited_by)
+
+    # Request that all of the image owner's favorites be pulled (if they haven't been already).
+    # Because this is just one pull request, it'll be fulfilled quite quickly and so will offer
+    # near-realtime new results to the user if they refresh their recommendations
+
+    logging.info(f"About to make a puller request to {puller_queue_url} to get the favorites of the favorited image {image_owner}")
+
+    flickr_pull_request = PullerQueueItem(user_id=image_owner, initial_requesting_user_id=favorited_by, request_favorites=True, request_contacts=False, request_neighbor_list=False)
+
+    flickr_puller_queue.send_messages(objects=[flickr_pull_request], to_string=lambda queue_item : queue_item.to_json())
+
+    # Update our database to say that there's an outstanding puller request for this user
+
+    logging.info(f"About to update our database that there's an outstanding puller request for the user who made the favorite {favorited_by}")
+
+    favorites_store.more_puller_requests(favorited_by, 1)
+
+    logging.info("Finished adding new favorite")
+
+    return "OK", status.HTTP_200_OK
+
+@application.route("/api/flickr/test/login", methods = ['POST'])
+def flickr_get_logged_in_user():
+    
+    full_token = _get_and_test_full_user_oauth_token(request)
+
+    resp = jsonify(flickrapi.login_test(full_token))
+    resp.status_code = status.HTTP_200_OK
+
+    return resp  
+
+def _get_and_test_full_user_oauth_token(request):
+
+    request_data = request.get_json()
+
+    partial_token_from_caller_string = request_data['oauth-token']
+
+    if not partial_token_from_caller_string:
+        raise NoAuthTokenProvidedException()
+
+    partial_token_from_caller = flickr_auth_wrapper.get_flickr_access_token_from_string(partial_token_from_caller_string)
+
+    user_id = flickr_auth_wrapper.get_user_id_from_token(partial_token_from_caller)
+
+    full_token = flickr_auth_wrapper.get_flickr_access_token_from_string(favorites_store.get_user_auth_token(user_id))
+
+    if not flickr_auth_wrapper.tokens_are_equal(partial_token_from_caller, full_token):
+        raise AuthTokenIncorrectException()
+
+    return full_token
 
 # Create a new user
 @application.route("/api/users/<user_id>", methods = ['POST'])
@@ -481,6 +619,14 @@ def user_not_specified(error=None):
 @application.errorhandler(status.HTTP_400_BAD_REQUEST)
 def parameter_not_specified(param_name, error=None):
     return f"Parameter {param_name} not specified", status.HTTP_400_BAD_REQUEST
+
+@application.errorhandler(NoAuthTokenProvidedException)
+def no_auth_token_provided(e):
+    return "No OAuth token found in request", status.HTTP_400_BAD_REQUEST
+
+@application.errorhandler(AuthTokenIncorrectException)
+def auth_token_incorrect(e):
+    return "OAuth token provided did not match our records for this user", status.HTTP_400_BAD_REQUEST
 
 @application.errorhandler(FavoritesStoreException)
 def encountered_favorites_store_exception(e):

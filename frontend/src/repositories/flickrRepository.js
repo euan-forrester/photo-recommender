@@ -1,4 +1,5 @@
 import repository from './repository';
+import vueAuth from '../auth';
 
 // Our API server proxies certain requests to Flickr, and returns results in whatever format that Flickr defines.
 // The only exception is that our API server will return a 404 if the item isn't found, rather than how
@@ -48,6 +49,41 @@ export default {
       iconUrl,
       profileUrl,
     };
+  },
+  async addComment(photoId, commentText) {
+    await repository.post(
+      `${resource}/photos/add-comment`,
+      { 'oauth-token': vueAuth.getToken(), 'comment-text': commentText },
+      { params: { 'photo-id': photoId } },
+    );
+  },
+  async addFavorite(imageId, imageOwner, imageUrl) {
+    await repository.post(
+      `${resource}/favorites/add`,
+      {
+        'oauth-token': vueAuth.getToken(),
+        'image-id': imageId,
+        'image-owner': imageOwner,
+        'image-url': imageUrl,
+      },
+    );
+  },
+  async getCurrentlyLoggedInUser() {
+    const response = await repository.post(
+      `${resource}/test/login`,
+      { 'oauth-token': vueAuth.getToken() },
+    );
+
+    return {
+      id: response.data.user.id,
+      name: response.data.user.username._content, // eslint-disable-line no-underscore-dangle
+    };
+  },
+  async logoutUser() {
+    await repository.post(
+      `${resource}/auth/logout`,
+      { 'oauth-token': vueAuth.getToken() },
+    );
   },
   getPhotoUrl(imageOwner, imageId) {
     return `https://www.flickr.com/photos/${imageOwner}/${imageId}`;

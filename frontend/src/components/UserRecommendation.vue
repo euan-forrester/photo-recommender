@@ -16,7 +16,15 @@
               </div>
             </b-row>
           </b-link>
-          <DismissButton @click="onDismiss()" class="dismissbutton"></DismissButton>
+          <div v-if="this.userAuthenticated">
+            <DismissButton @click="onDismiss()" class="dismissbutton"></DismissButton>
+            <AddButton
+              class="addbutton"
+              tooltip="To add a new contact please visit their page and add them from there.
+              The Flickr API unfortunately doesn't support adding contacts so we can't add them from here."
+              currentState="unchecked"
+            ></AddButton>
+          </div>
         </div>
       </transition>
     </div>
@@ -24,13 +32,15 @@
 </template>
 
 <style scoped>
-/*.recommendation {
-    clear: both;
-}*/
 .dismissbutton {
   position: absolute;
   top: 0px;
   right: 4px;
+}
+.addbutton {
+  position: absolute;
+  top: 4px;
+  left: 4px;
 }
 .recommendation {
   background-color: Gainsboro;
@@ -57,14 +67,17 @@
 
 <script>
 import DismissButton from './DismissButton.vue';
+import AddButton from './AddButton.vue';
 
 export default {
   components: {
     DismissButton,
+    AddButton,
   },
   props: {
     userId: String,
     recommendationUserId: String,
+    userAuthenticated: Boolean,
   },
   data() {
     return {

@@ -6,7 +6,14 @@ from pymemcache import serde
 import logging
 import flickrapi
 import uuid
+import json
 from flask import session
+
+class AuthTokenIncorrectException(Exception):
+    pass
+
+class NoAuthTokenProvidedException(Exception):
+    pass
 
 # authlib has some slightly different names for parameters, so we can't just pass a disc cache or memcached client directly to them
 
@@ -136,3 +143,53 @@ class FlickrAuthWrapper():
             fullname=token['fullname'], 
             username=token['username'], 
             user_nsid=token['user_nsid'])
+
+    @staticmethod
+    def get_flickr_access_token_as_string(token):
+        return json.dumps({
+            'token': token.token,
+            'token_secret': token.token_secret,
+            'fullname': token.fullname,
+            'username': token.username,
+            'user_nsid': token.user_nsid
+        })
+
+    @staticmethod
+    def get_flickr_access_token_as_string_no_secret(token):
+        return json.dumps({
+            'token': token.token,
+            'fullname': token.fullname,
+            'username': token.username,
+            'user_nsid': token.user_nsid
+        })
+
+    @staticmethod
+    def get_flickr_access_token_from_string(string):
+        partial_token = json.loads(string)
+
+        return flickrapi.auth.FlickrAccessToken(
+            token=partial_token['token'], 
+            token_secret=partial_token['token_secret'] if 'token_secret' in partial_token else "", 
+            access_level=FlickrAuthWrapper.ACCESS_LEVEL,
+            fullname=partial_token['fullname'], 
+            username=partial_token['username'], 
+            user_nsid=partial_token['user_nsid'])
+
+    @staticmethod
+    def fill_in_secret_in_access_token(token, secret):
+
+        return flickrapi.auth.FlickrAccessToken(
+            token=token.token, 
+            token_secret=secret, 
+            access_level=FlickrAuthWrapper.ACCESS_LEVEL,
+            fullname=token.fullname, 
+            username=token.username, 
+            user_nsid=token.user_nsid)
+
+    @staticmethod
+    def get_user_id_from_token(token):
+        return token.user_nsid
+
+    @staticmethod
+    def tokens_are_equal(token_a, token_b):
+        return token_a.token == token_b.token

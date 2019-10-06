@@ -179,13 +179,10 @@ TODO:
 - Look into how to lock versions of python dependencies of our dependencies (rather than just the packages we explicitly reference)
 - Have the prod load balancer only listen on https
 - Encrypt SQS messages in prod
-- Use templating lib for outputting HTML from API server
 - Centralize logging and make it searchable. Maybe like this: https://aws.amazon.com/solutions/centralized-logging/
 - Make puller-flickr only get incremental updates since the last time it ran, rather than pulling all data every time
 - Make puller-flickr look for deletions of favorites
 - Investigate transaction usage in the batch database writer: what batch size should we use? is there a better transaction isolation level to use to help concurrency?
-- Add auth to API server - use AWS API gateway?
-- Audit for XSS attacks
 - Add CSRF token
 - Make frontend vendor file smaller (it's mostly bootstrap): https://bootstrap-vue.js.org/docs/#tree-shaking-with-module-bundlers
   - See also https://medium.com/js-dojo/how-to-reduce-your-vue-js-bundle-size-with-webpack-3145bf5019b7
@@ -195,3 +192,11 @@ TODO:
 - Have dismissed photos + users feed back into recommendations with negative scores
 - Make visualization of how many instances of each process are doing work at a given time - send task ID to metics and get a count of distinct IDs?
 - Have Scheduler ask for the number of seconds until the next user needs updating, then sleep for that long
+- Need to have the browser authenticate with the API server to prevent API abuse of users whose tokens we have 
+  - Same as CSRF prevention or different?
+  - AWS API Gateway?
+- Consider normalizing the `favorites` table by splitting it into a table that just has the photos, and another table of who's favorited them
+  - What is the impact on write throughput of this change?
+- Add a message to the recommendations screen if the user doesn't have enough favorites to generate good recommendations. Suggest some groups to look at.
+- Highlight new recommendations by moving them to the top of the list. Maybe have a "first recommended on" field per user, and use that to boost score?
+

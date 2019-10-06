@@ -33,9 +33,9 @@ module "elastic_container_service" {
     extra_security_groups = ["${module.api_server.security_group_id}"]
 
     instance_type = "t2.micro"#"c5.large"#"t2.micro"
-    cluster_desired_size = 0#2#20
+    cluster_desired_size = 2#0#2#20
     cluster_min_size = 0
-    cluster_max_size = 0#2#20
+    cluster_max_size = 2#0#2#20
     instances_log_retention_days = 1
 }
 
@@ -127,7 +127,7 @@ module "puller-response-reader" {
 
     ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 0#1#20
+    ecs_instances_desired_count = 1#0#1#20
     ecs_instances_memory = 64
     ecs_instances_cpu = 200
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
@@ -158,7 +158,7 @@ module "ingester_response_reader" {
 
     ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 0#1#20
+    ecs_instances_desired_count = 1#0#1#20
     ecs_instances_memory = 64
     ecs_instances_cpu = 200
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
@@ -188,7 +188,7 @@ module "puller_flickr" {
 
     ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 0#1#150
+    ecs_instances_desired_count = 1#0#1#150
     ecs_instances_memory = 64
     ecs_instances_cpu = 100
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
@@ -227,7 +227,7 @@ module "ingester_database" {
 
     ecs_cluster_id          = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 0#1#100
+    ecs_instances_desired_count = 1#0#1#100
     ecs_instances_memory    = 64
     ecs_instances_cpu       = 100
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
@@ -290,6 +290,10 @@ module "api_server" {
     mysql_database_fetch_batch_size = 10000
     mysql_database_connection_pool_size = 20
     mysql_database_user_data_encryption_key = "${var.database_user_data_encryption_key}"
+
+    puller_queue_url = "${module.scheduler.puller_queue_url}"
+    puller_queue_arn = "${module.scheduler.puller_queue_arn}"
+    puller_queue_batch_size = 1 # We're always going to make requests one at a time as users add their favorites
 
     ecs_cluster_id          = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
