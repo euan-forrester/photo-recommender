@@ -6,7 +6,12 @@
     :class="this.currentState"
   >
     <div v-if="this.currentState === 'unchecked'">
-      <font-awesome-icon icon="plus-circle"/>
+      <div v-if="typeof(this.overrideUncheckedText) === 'undefined'">
+        <font-awesome-icon icon="plus-circle"/>
+      </div>
+      <div v-else>
+        {{ this.overrideUncheckedText }}
+      </div>
     </div>
     <div v-if="this.currentState === 'loading'">
       <b-spinner small/>
@@ -21,6 +26,7 @@
 export default {
   props: {
     tooltip: String,
+    overrideUncheckedText: String,
     currentState: String,
   },
 };

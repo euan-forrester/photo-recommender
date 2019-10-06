@@ -183,7 +183,6 @@ TODO:
 - Make puller-flickr only get incremental updates since the last time it ran, rather than pulling all data every time
 - Make puller-flickr look for deletions of favorites
 - Investigate transaction usage in the batch database writer: what batch size should we use? is there a better transaction isolation level to use to help concurrency?
-- Audit for XSS attacks
 - Add CSRF token
 - Make frontend vendor file smaller (it's mostly bootstrap): https://bootstrap-vue.js.org/docs/#tree-shaking-with-module-bundlers
   - See also https://medium.com/js-dojo/how-to-reduce-your-vue-js-bundle-size-with-webpack-3145bf5019b7
@@ -199,3 +198,5 @@ TODO:
 - Consider normalizing the `favorites` table by splitting it into a table that just has the photos, and another table of who's favorited them
   - What is the impact on write throughput of this change?
 - Add a message to the recommendations screen if the user doesn't have enough favorites to generate good recommendations. Suggest some groups to look at.
+- Highlight new recommendations by moving them to the top of the list. Maybe have a "first recommended on" field per user, and use that to boost score?
+

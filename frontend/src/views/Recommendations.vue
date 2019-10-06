@@ -2,7 +2,7 @@
   <div>
     <b-container>
       <h2 align="left" id="user-recommendations-header">
-        People {{ userAuthenticated ? "you" : "they" }} might want to follow
+        People {{ userAuthenticated ? "you" : "they" }} might like to follow
       </h2>
       <b-row>
         <UserRecommendation
@@ -18,17 +18,17 @@
       <h2 align="left" id="photo-recommendations-header">
         Photos {{ userAuthenticated ? "you" : "they" }} might like
       </h2>
-      <b-row align-h="center">
-        <PhotoRecommendation
-          v-for="photo in recommendations.photos"
-          v-bind:key="photo.image_id"
-          v-bind:userId="userId"
-          v-bind:imageId="photo.image_id"
-          v-bind:imageOwner="photo.image_owner"
-          v-bind:imageUrl="photo.image_url"
-          v-bind:userAuthenticated="userAuthenticated">
-        </PhotoRecommendation>
-      </b-row>
+      <PhotoRecommendation
+        v-for="photo in recommendations.photos"
+        v-bind:key="photo.image_id"
+        v-bind:userId="userId"
+        v-bind:imageId="photo.image_id"
+        v-bind:imageOwner="photo.image_owner"
+        v-bind:imageUrl="photo.image_url"
+        v-bind:userAuthenticated="userAuthenticated"
+        class="photorecommendation"
+      >
+      </PhotoRecommendation>
     </b-container>
     <b-alert variant="danger" :show="this.encounteredError">
       Could not get the information requested. Please try again later
@@ -75,4 +75,9 @@ export default {
 #photo-recommendations-header {
   margin-top: 20px;
 }
+
+.photorecommendation {
+  margin-bottom: 30px;
+}
+
 </style>
