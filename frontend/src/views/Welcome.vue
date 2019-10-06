@@ -6,77 +6,92 @@
           <b-jumbotron>
             <template v-slot:header>Photo Recommender</template>
           </b-jumbotron>
-          <b-form @submit.stop.prevent="onSubmit" @reset="onReset">
-            <b-form-group id="user-url-group" label="Enter the URL of your Flickr photos" label-for="user-url">
-              <b-form-input
-                v-model="userUrl"
-                @input="$v.userUrl.$touch()"
-                :state="$v.userUrl.$dirty && $v.userUrl.$error ? false : null"
-                id="user-url"
-                placeholder="e.g. https://www.flickr.com/photos/my_user/"
-              ></b-form-input>
-              <b-form-invalid-feedback :state="$v.userUrl.$dirty ? !$v.userUrl.$error : null">
-                Your photos URL must look like https://www.flickr.com/photos/my_user/
-              </b-form-invalid-feedback>
-            </b-form-group>
-            <b-alert variant="info" :show="this.currentState === 'userNotFound'">
-              User not found - maybe there's a typo?
-            </b-alert>
-            <b-alert variant="danger" :show="this.currentState === 'apiError'">
-              Could not get the requested information. Please try again later
-            </b-alert>
-            <b-form-group
-              id="num-photos-group"
-              label="Number of photo recommendations you would like"
-              label-for="num-photos"
-              label-align="left"
-              label-cols=10
-            >
-              <b-form-input
-                v-model="numPhotos"
-                type="number"
-                @input="$v.numPhotos.$touch()"
-                :state="$v.numPhotos.$dirty && $v.numPhotos.$error ? false : null"
-                id="num-photos"
-                placeholder="e.g. 50"
-              ></b-form-input>
-              <b-form-invalid-feedback :state="$v.numPhotos.$dirty ? !$v.numPhotos.$error : null">
-                You must enter a number
-              </b-form-invalid-feedback>
-            </b-form-group>
-            <b-form-group
-              id="num-users-group"
-              label="Number of recommendations for users to follow you would like"
-              label-for="num-users"
-              label-align="left"
-              label-cols=10
-            >
-              <b-form-input
-                v-model="numUsers"
-                type="number"
-                @input="$v.numUsers.$touch()"
-                :state="$v.numUsers.$dirty && $v.numUsers.$error ? false : null"
-                id="num-users"
-                placeholder="e.g. 5"
-              ></b-form-input>
-              <b-form-invalid-feedback :state="$v.numUsers.$dirty ? !$v.numUsers.$error : null">
-                You must enter a number
-              </b-form-invalid-feedback>
-            </b-form-group>
-            <b-button
-              type="submit"
-              variant="primary"
-              :disabled="$v.$anyError || (this.currentState === 'waitingForInitiallyProcessedData')"
-            >
-              Submit
-            </b-button>
-            <b-button
-              type="reset"
-              variant="danger"
-            >
-              Reset
-            </b-button>
-          </b-form>
+          <b-form-group
+            id="num-photos-group"
+            label="Number of photo recommendations you would like"
+            label-for="num-photos"
+            label-align="left"
+            label-cols=10
+          >
+            <b-form-input
+              v-model="numPhotos"
+              type="number"
+              @input="$v.numPhotos.$touch()"
+              :state="$v.numPhotos.$dirty && $v.numPhotos.$error ? false : null"
+              id="num-photos"
+              placeholder="e.g. 50"
+            ></b-form-input>
+            <b-form-invalid-feedback :state="$v.numPhotos.$dirty ? !$v.numPhotos.$error : null">
+              You must enter a number
+            </b-form-invalid-feedback>
+          </b-form-group>
+          <b-form-group
+            id="num-users-group"
+            label="Number of recommendations for users to follow you would like"
+            label-for="num-users"
+            label-align="left"
+            label-cols=10
+          >
+            <b-form-input
+              v-model="numUsers"
+              type="number"
+              @input="$v.numUsers.$touch()"
+              :state="$v.numUsers.$dirty && $v.numUsers.$error ? false : null"
+              id="num-users"
+              placeholder="e.g. 5"
+            ></b-form-input>
+            <b-form-invalid-feedback :state="$v.numUsers.$dirty ? !$v.numUsers.$error : null">
+              You must enter a number
+            </b-form-invalid-feedback>
+          </b-form-group>
+        </b-col>
+      </b-row>
+      <b-row align-h="center" class="urlorlogin">
+        <b-col cols="4">
+          <b-form-group id="user-url-group" label="View someone's recommendations by entering their Flickr URL" label-for="user-url">
+            <b-form-input
+              v-model="userUrl"
+              @input="$v.userUrl.$touch()"
+              :state="$v.userUrl.$dirty && $v.userUrl.$error ? false : null"
+              id="user-url"
+              placeholder="e.g. https://www.flickr.com/photos/user/"
+            ></b-form-input>
+            <b-form-invalid-feedback :state="$v.userUrl.$dirty ? !$v.userUrl.$error : null">
+              Your photos URL must look like https://www.flickr.com/photos/user/
+            </b-form-invalid-feedback>
+          </b-form-group>
+          <b-alert variant="info" :show="this.currentState === 'userNotFound'">
+            User not found - maybe there's a typo?
+          </b-alert>
+          <b-alert variant="danger" :show="this.currentState === 'apiError'">
+            Could not get the requested information. Please try again later
+          </b-alert>
+          <b-button
+            type="submit"
+            variant="primary"
+            :disabled="$v.$anyError || (this.currentState === 'waitingForInitiallyProcessedData')"
+            @click="onSubmit()"
+            v-b-popover.hover.top="'If you view someone else\'s recommendations you won\'t be able to interact with them directly in this app. But you can still follow links to the users and photos recommended to follow, fave, and comment.'"
+          >
+            Submit
+          </b-button>
+        </b-col>
+        <b-col cols="2" align-self="center">
+          or
+        </b-col>
+        <b-col cols="4" align-self="end">
+          <b-button
+            variant="primary"
+            @click="onLogin()"
+            block
+            v-b-popover.hover.top="'If you log into Flickr you can interact with your recommendations: faving them, commenting on them, or dismissing them.'"
+          >
+            Login to Flickr to get your own recommendations
+          </b-button>
+        </b-col>
+      </b-row>
+      <b-row no-gutters align-h="center">
+        <b-col sm=12 md=10 lg=8 xl=6>
           <div v-if="this.currentState === 'waitingForInitiallyProcessedData'">
             <b-alert variant="info" :show="true" id="calculating-initial-recommendations">
               Calculating initial recommendations for user {{this.userName}}
@@ -92,6 +107,10 @@
 <style scoped>
 #calculating-initial-recommendations {
   margin-top: 20px;
+}
+
+.urlorlogin {
+  margin-top: 30px;
 }
 </style>
 
@@ -126,13 +145,11 @@ export default {
     },
   },
   methods: {
-    async onSubmit(evt) {
+    async onSubmit() {
       this.$v.$touch();
       if (this.$v.$anyError) {
         return;
       }
-
-      evt.preventDefault();
 
       // Before do anything, log out our current user (if any) because we want to be in
       // unauthenticated mode to display our results
@@ -215,22 +232,6 @@ export default {
         name: 'recommendations',
         params: { userId: this.$store.state.welcome.user.id },
         query: { 'num-photos': this.numPhotos, 'num-users': this.numUsers },
-      });
-    },
-    onReset(evt) {
-      evt.preventDefault();
-      // Reset our form values
-      this.userUrl = '';
-      this.userId = '';
-      this.userName = '';
-      this.numPhotos = 50;
-      this.numUsers = 5;
-      this.currentState = 'none';
-      this.$v.$reset();
-      // Trick to reset/clear native browser form validation state
-      this.show = false;
-      this.$nextTick(() => {
-        this.show = true;
       });
     },
   },
