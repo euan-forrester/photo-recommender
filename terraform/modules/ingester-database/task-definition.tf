@@ -23,7 +23,7 @@ data "aws_caller_identity" "ingester_database" {
 }
 
 resource "aws_iam_policy" "ecs-instance-ingester-database-extra-policy" {
-  name        = "ingester-database-extra-policy"
+  name        = "ingester-database-extra-policy-${var.environment}"
   description = "Allows ingester-database to read parameters, read from the ingestion queue, and talk to the favorites database"
 
   policy = <<EOF

@@ -23,7 +23,7 @@ data "aws_caller_identity" "puller-response-reader" {
 }
 
 resource "aws_iam_policy" "ecs-instance-puller-response-reader-extra-policy" {
-  name        = "puller-response-reader-extra-policy"
+  name        = "puller-response-reader-extra-policy-${var.environment}"
   description = "Allows the puller-response-reader to read parameters, write to the puller queue, read from the puller response queue"
 
   policy = <<EOF

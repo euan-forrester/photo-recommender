@@ -23,7 +23,7 @@ data "aws_caller_identity" "ingester-response-reader" {
 }
 
 resource "aws_iam_policy" "ecs-instance-ingester-response-reader-extra-policy" {
-  name        = "ingester-response-reader-extra-policy"
+  name        = "ingester-response-reader-extra-policy-${var.environment}"
   description = "Allows the ingester-response-reader to read parameters and read from the ingester response queue"
 
   policy = <<EOF

@@ -8,6 +8,7 @@ flickr_api_key = ""
 flickr_secret_key = "" 
 
 database_password_dev = ""
+database_password_prod = ""
 
 # Email address where you'll receive alarms about problems with the system. 
 # After running terraform for the first time, you'll receive an email that you need to acknowledge an to allow this
@@ -22,6 +23,8 @@ bucketname_user_string = ""
 
 # A 256-bit AES encryption key, used for encrypting user access tokens stored in the database. Can be obtained from https://www.allkeysgenerator.com/Random/Security-Encryption-Key-Generator.aspx for example
 database_user_data_encryption_key_dev = ""
+database_user_data_encryption_key_prod = ""
 
 # Similar to the above, used for signing session information returned to the user
 api_server_session_encryption_key_dev = ""
+api_server_session_encryption_key_prod = ""

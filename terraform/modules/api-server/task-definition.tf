@@ -23,7 +23,7 @@ data "aws_caller_identity" "api-server" {
 }
 
 resource "aws_iam_policy" "ecs-instance-api-server-extra-policy" {
-  name        = "api-server-extra-policy"
+  name        = "api-server-extra-policy-${var.environment}"
   description = "Allows api-server to read parameters and talk to the favorites database"
 
   policy = <<EOF
