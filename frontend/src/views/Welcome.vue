@@ -157,16 +157,22 @@ export default {
     async onLogin() {
       this.currentState = 'none';
 
-      if (!vueAuth.isAuthenticated()) {
-        try {
+      try {
+        
+        // Refreshing can empty our store but leave our local storage with the token, so we still need to refresh our
+        // store by calling getUserIdCurrentlyLoggedIn, even if we've already authenticated
+        
+        if (!vueAuth.isAuthenticated()) {
           await this.$store.dispatch('login');
-          await this.$store.dispatch('getUserIdCurrentlyLoggedIn'); // The login action just gets a token back that we want to treat as opaque and so doesn't actually know who was logged in. So there's a separate API call to get the ID of the currently-logged-in user
-        } catch (error) {
-          this.currentState = 'loginFailed';
-          return;
         }
+        
+        await this.$store.dispatch('getUserIdCurrentlyLoggedIn'); // The login action just gets a token back that we want to treat as opaque and so doesn't actually know who was logged in. So there's a separate API call to get the ID of the currently-logged-in user
+      
+      } catch (error) {
+        this.currentState = 'loginFailed';
+        return;
       }
-
+      
       await this.maybeAddNewUserThenViewRecommendations();
     },
     async onSubmit() {
