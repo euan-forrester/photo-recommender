@@ -21,7 +21,7 @@ dns_address = "abc123.com"
 bucketname_user_string = ""
 
 # A 256-bit AES encryption key, used for encrypting user access tokens stored in the database. Can be obtained from https://www.allkeysgenerator.com/Random/Security-Encryption-Key-Generator.aspx for example
-database-user-data-encryption-key = ""
+database_user_data_encryption_key_dev = ""
 
 # Similar to the above, used for signing session information returned to the user
-api_server_session_encryption_key = ""
+api_server_session_encryption_key_dev = ""

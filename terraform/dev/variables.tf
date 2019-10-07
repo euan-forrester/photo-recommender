@@ -8,5 +8,5 @@ variable "flickr_secret_key" {}
 variable "database_password_dev" {}
 variable "dns_address" {}
 variable "bucketname_user_string" {}
-variable "database_user_data_encryption_key" {}
-variable "api_server_session_encryption_key" {}
+variable "database_user_data_encryption_key_dev" {}
+variable "api_server_session_encryption_key_dev" {}
