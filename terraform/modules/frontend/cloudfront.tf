@@ -53,7 +53,7 @@ resource "aws_cloudfront_distribution" "application" {
         custom_origin_config {
             http_port = "${var.load_balancer_port}"
             https_port = "${var.load_balancer_port}"
-            origin_protocol_policy = "match-viewer"
+            origin_protocol_policy = "http-only"
             origin_ssl_protocols = ["SSLv3", "TLSv1", "TLSv1.1", "TLSv1.2"]
             origin_keepalive_timeout = 30 # Max is 60
             origin_read_timeout = 10 # Max is 60
@@ -78,7 +78,7 @@ resource "aws_cloudfront_distribution" "application" {
             }
         }
 
-        viewer_protocol_policy = "allow-all"
+        viewer_protocol_policy = "${var.use_https == "true" ? "redirect-to-https" : "allow-all"}"
         min_ttl                = 0
         default_ttl            = 0
         max_ttl                = 0
@@ -98,7 +98,7 @@ resource "aws_cloudfront_distribution" "application" {
             }
         }
 
-        viewer_protocol_policy = "allow-all"
+        viewer_protocol_policy = "${var.use_https == "true" ? "redirect-to-https" : "allow-all"}"
         min_ttl                = 0
         default_ttl            = 3600
         max_ttl                = 86400
