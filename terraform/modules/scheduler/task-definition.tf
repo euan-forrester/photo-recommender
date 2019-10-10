@@ -23,7 +23,7 @@ data "aws_caller_identity" "scheduler" {
 }
 
 resource "aws_iam_policy" "ecs-instance-scheduler-extra-policy" {
-  name        = "scheduler-extra-policy"
+  name        = "scheduler-extra-policy-${var.environment}"
   description = "Allows the scheduler to read parameters and write to the puller queue"
 
   policy = <<EOF

@@ -59,7 +59,7 @@ module "database" {
     mysql_backup_retention_period_days = 3
     mysql_deletion_protection = false # No need for deletion protection in dev
 
-    mysql_database_password = "${var.database_password_dev}"
+    mysql_database_password = "${var.database_password_prod}"
 }
 
 module "memcached" {
@@ -236,7 +236,7 @@ module "ingester_database" {
     mysql_database_host     = "${module.database.database_host}"
     mysql_database_port     = "${module.database.database_port}"
     mysql_database_username = "${module.database.database_username}"
-    mysql_database_password = "${var.database_password_dev}"
+    mysql_database_password = "${var.database_password_prod}"
     mysql_database_name     = "${module.database.database_name}"
     mysql_database_min_batch_size = 10000
     mysql_database_maxretries = 3
@@ -265,7 +265,7 @@ module "api_server" {
     load_balancer_port      = 4444
     api_server_port         = 4445
 
-    session_encryption_key     = "${var.api_server_session_encryption_key_dev}"
+    session_encryption_key     = "${var.api_server_session_encryption_key_prod}"
 
     flickr_api_key = "${var.flickr_api_key}"
     flickr_secret_key = "${var.flickr_secret_key}"
@@ -285,11 +285,11 @@ module "api_server" {
     mysql_database_host     = "${module.database.database_host}"
     mysql_database_port     = "${module.database.database_port}"
     mysql_database_username = "${module.database.database_username}"
-    mysql_database_password = "${var.database_password_dev}"
+    mysql_database_password = "${var.database_password_prod}"
     mysql_database_name     = "${module.database.database_name}"
     mysql_database_fetch_batch_size = 10000
     mysql_database_connection_pool_size = 20
-    mysql_database_user_data_encryption_key = "${var.database_user_data_encryption_key_dev}"
+    mysql_database_user_data_encryption_key = "${var.database_user_data_encryption_key_prod}"
 
     puller_queue_url = "${module.scheduler.puller_queue_url}"
     puller_queue_arn = "${module.scheduler.puller_queue_arn}"
@@ -315,7 +315,7 @@ module "frontend" {
 
     bucketname_user_string  = "${var.bucketname_user_string}"
 
-    application_domain      = "dev.${var.dns_address}"
+    application_domain      = "${var.dns_address}"
     application_name        = "photo-recommender"
 
     days_to_keep_old_versions = 1
@@ -329,7 +329,7 @@ module "frontend" {
     retain_frontend_access_logs_after_destroy = "false" # For dev, we don't care about retaining these logs after doing a terraform destroy
     days_to_keep_frontend_access_logs = 1
 
-    use_https                   = "false"
+    use_https                   = "true"
     ssl_certificate_body        = "${var.ssl_certificate_body}"
     ssl_certificate_private_key = "${var.ssl_certificate_private_key}"
     ssl_certificate_chain       = "${var.ssl_certificate_chain}"

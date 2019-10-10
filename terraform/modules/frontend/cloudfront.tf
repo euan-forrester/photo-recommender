@@ -11,12 +11,29 @@ resource "aws_cloudfront_origin_access_identity" "origin_access_identity" {
 locals {
     s3_origin_id = "static_files_origin"
     load_balancer_origin_id = "load_balancer_origin"
+    application_domains = ["${var.application_domain}"]
+}
+
+provider "aws" {
+  # Certificates need to be in us-east-1
+  # https://github.com/hashicorp/terraform/issues/10957
+  region = "us-east-1"
+  alias = "use1"
+}
+
+resource "aws_acm_certificate" "cert" {
+    provider            = "aws.use1"
+    count               = "${var.use_https == "true" ? 1 : 0}"
+    certificate_body    = "${var.ssl_certificate_body}"
+    private_key         = "${var.ssl_certificate_private_key}"
+    certificate_chain   = "${var.ssl_certificate_chain}"
 }
 
 resource "aws_cloudfront_distribution" "application" {
     
     enabled = true
     default_root_object = "index.html"
+    aliases = "${slice(local.application_domains, 0, var.use_https == "true" ? length(local.application_domains) : 0)}" # Needs to optionally be an empty list. Workaround from: https://github.com/hashicorp/terraform/issues/18259
 
     # Our S3 bucket
     origin {
@@ -102,9 +119,8 @@ resource "aws_cloudfront_distribution" "application" {
     }
 
     viewer_certificate {
-        # For https requests, this allows us to use the cloudfront domain name to access our application.
-        # TODO: Needs update when we have our own domain name
-        # https://www.terraform.io/docs/providers/aws/r/cloudfront_distribution.html#viewer-certificate-arguments
-        cloudfront_default_certificate = true
+        cloudfront_default_certificate = "${var.use_https != "true"}" # In dev, for now, we can just visit our site through cloudfront directly rather than through a domain
+        acm_certificate_arn = "${element(concat(aws_acm_certificate.cert.*.arn, list("")), 0)}" # There's either 1 or 0 certs, so the 0th element is either the cert or empty string
+        ssl_support_method = "${var.use_https == "true" ? "sni-only" : ""}" # If cloudfront_default_certificate is set then this won't be set. But terraform will try to set it everytime it runs, which takes a good 15 minutes each time
     }
 }

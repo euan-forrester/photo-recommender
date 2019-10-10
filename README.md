@@ -53,7 +53,9 @@ Copy the file `terraform/terraform.tfvars.example` to `terraform/terraform.tfvar
 - Fill in your Flickr API key and secret: https://www.flickr.com/services/apps/create/apply
 - Fill in your numerical Flickr user ID. You may need to get your numerical ID from: http://idgettr.com/
 - Fill in a master password for the various databases
-- Fill in a 256-bit AES encryption key, used to encrypt user access tokens in the database. Can be obtained from https://www.allkeysgenerator.com/Random/Security-Encryption-Key-Generator.aspx for example
+- If you're going to make a prod instance with a real domain, create an SSL certificate and fill in the details. There's good instructions here: https://itnext.io/using-letsencrypt-ssl-certificates-in-aws-certificate-manager-c2bc3c6ae10
+- Fill in a 256-bit AES encryption key, used to encrypt user session data. Can be obtained from https://www.allkeysgenerator.com/Random/Security-Encryption-Key-Generator.aspx for example
+- Fill in a 256-bit AES encryption key, used to encrypt user access tokens in the database. Can be obtained from the same place as the above
 
 We specially encrypt these tokens because in dev we may want to have a small RDS instance for billing purposes that doesn't support encrypting the whole database, but it will still be storing real user access tokens.
 
@@ -199,3 +201,4 @@ TODO:
   - What is the impact on write throughput of this change?
 - Add a message to the recommendations screen if the user doesn't have enough favorites to generate good recommendations. Suggest some groups to look at.
 - Highlight new recommendations by moving them to the top of the list. Maybe have a "first recommended on" field per user, and use that to boost score?
+- Move the domain into route53 and the SSL certificate into the AWS certificate manager

@@ -23,7 +23,7 @@ data "aws_caller_identity" "puller_flickr" {
 }
 
 resource "aws_iam_policy" "ecs-instance-puller-flickr-extra-policy" {
-  name        = "puller-flickr-extra-policy"
+  name        = "puller-flickr-extra-policy-${var.environment}"
   description = "Allows puller-flickr to read parameters and write to the ingestion queue"
 
   policy = <<EOF

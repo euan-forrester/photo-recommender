@@ -1,5 +1,5 @@
 resource "aws_key_pair" "local_machine" {
-    key_name   = "local_machine"
+    key_name   = "local_machine_${var.environment}"
     public_key = "${var.local_machine_public_key}"
 }
 
