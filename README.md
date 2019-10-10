@@ -4,13 +4,17 @@ A system that recommends photos based on previous photos you liked.
 
 Check it out at https://photorecommender.com
 
+![Welcome screen](https://raw.githubusercontent.com/euan-forrester/photo-recommender/master/images/Welcome%20screenshot.png)
+
+![Recommendations screen](https://raw.githubusercontent.com/euan-forrester/photo-recommender/master/images/Recommendations%20screenshot.png)
+
 The system works by looking at your favorites, and the favorites of the photographers who took those photos. The assumption is that your favorites represent the work that you aspire to, and theirs represent the work that they aspire to. Thus, if you like someone's work, you'll *really* like the work they aspire to.
 
 It scores each photographer who took one of your favorites (your "neighbors") by the number of favorites you have in common with them. The more favorites in common, the closer your tastes are assumed to be aligned. Then, it looks at the set of photos favorited by all of your neighbors, and scores them based on the scores of your neighbors who favorited them. If a photo was favorited by several of your neighbors with whom your tastes are closely aligned, maybe you'll like it too. 
 
 You begin by either logging into Flickr to see your own recommendations, or entering someone's Flickr URL to see theirs. If you log in, you'll be able to fave and comment (and dismiss recommendations you don't like) right from the app. If you view someone else's, you can just see their recommendations but you can't interact with them directly. You can always visit the photo or user pages linked from the app to follow, fave, and comment there.
 
-As you fave photos from within the app, it automatically pulls more data from Flickr based on your new favorites and updates your recommendations. Refresh at any time to see new photos!
+As you fave photos from within the app, it automatically pulls more data from Flickr based on your new favorites and updates your recommendations in near-realtime. Refresh at any time to see new photos!
 
 ## Technical details
 
@@ -31,13 +35,17 @@ It uses:
 
 ### The frontend
 
+![Frontend architecture](https://raw.githubusercontent.com/euan-forrester/photo-recommender/master/images/Frontend%20diagram.png)
+
 Requests are routed through Route53 to Cloudfront, which passes requests for static assets to S3 and API calls to an Application Load Balancer.
 
 ### The backend
 
-The Application Load Balancer fronts several instances of the API server. The API server talks to the database to do several tasks including create users, passing through calls to Flickr, and updating recommendations. The Scheduler talks to the API server to find out when users need their data updated, and when they do it puts requests on the Puller queue. The Puller processes talk to the Flickr API and retrieve favorites and contacts data for individual users, and put this onto the Ingester queue. The Ingester processes write this data to the database. There's also Puller Response Readers and Ingester Response Readers which read messages from the Puller and Ingester saying that they've completed a task, which updates the database via the API server so that the frontend can know when the data for a particular user has finished being retrieved from the API and written to the database.
+![Backend architecture](https://raw.githubusercontent.com/euan-forrester/photo-recommender/master/images/Backend%20diagram.png)
 
-This explanation is a bit simplified to try and make clear the central operation of the system. For example, when a user faves a photo in the front end, the API server will kick off a request to the Puller so that the new favorites data can be ingested into the database, but this line is omitted for clarity.
+The Application Load Balancer fronts several instances of the API server. The API server talks to the database to do several tasks including create users, passing through calls to Flickr, and updating recommendations. The Scheduler periodically talks to the API server to find out when users need their data updated, and when they do it puts requests on the Puller queue. The Puller processes talk to the Flickr API and retrieve favorites and contacts data for individual users, and put this onto the Ingester queue. The Ingester processes batch and write this data to the database. 
+
+This explanation is a bit simplified to try and make clear the central operation of the system. For example, when a user faves a photo in the front end, the API server will kick off a request to the Puller so that the new favorites data can be ingested into the database, but this line is omitted for clarity. There are also 2 additional processes, `puller-response-reader` and `ingester-response-reader` which read response messages from their namesake processes and update the API server so it can track how many messages have been successfully processed so that the frontend knows when processing is complete for a particular user.
 
 ### A note on Flickr
 
