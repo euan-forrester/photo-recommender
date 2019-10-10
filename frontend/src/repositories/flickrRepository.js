@@ -38,7 +38,7 @@ export default {
     let iconUrl = 'https://www.flickr.com/images/buddyicon.gif';
 
     if (iconServer > 0) {
-      iconUrl = `http://farm${iconFarm}.staticflickr.com/${iconServer}/buddyicons/${nsId}.jpg`;
+      iconUrl = `https://farm${iconFarm}.staticflickr.com/${iconServer}/buddyicons/${nsId}.jpg`;
     }
 
     const profileUrl = `https://www.flickr.com/photos/${nsId}/`;
