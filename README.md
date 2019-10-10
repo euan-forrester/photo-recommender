@@ -16,6 +16,8 @@ You begin by either logging into Flickr to see your own recommendations, or ente
 
 As you fave photos from within the app, it automatically pulls more data from Flickr based on your new favorites and updates your recommendations in near-realtime. Refresh at any time to see new photos!
 
+The central concept behind these recommendations is based on a system called Flexplore written by Lars Pohlmann back around 2008: https://www.flickr.com/groups/flexplore/
+
 ## Technical details
 
 The system is designed to be horizontally-scalable and handle many users simultaneously. 
@@ -43,9 +45,11 @@ Requests are routed through Route53 to Cloudfront, which passes requests for sta
 
 ![Backend architecture](https://raw.githubusercontent.com/euan-forrester/photo-recommender/master/images/Backend%20diagram.png)
 
-The Application Load Balancer fronts several instances of the API server. The API server talks to the database to do several tasks including create users, passing through calls to Flickr, and updating recommendations. The Scheduler periodically talks to the API server to find out when users need their data updated, and when they do it puts requests on the Puller queue. The Puller processes talk to the Flickr API and retrieve favorites and contacts data for individual users, and put this onto the Ingester queue. The Ingester processes batch and write this data to the database. 
+The Application Load Balancer fronts the API server. The API server talks to the database to do several tasks including create users, passing through calls to Flickr, and updating recommendations. The Scheduler periodically talks to the API server to find out when users need their data updated, and when they do it puts requests on the Puller queue. The Puller processes talk to the Flickr API and retrieve favorites and contacts data for individual users, and put this onto the Ingester queue. The Ingester processes batch and write this data to the database. 
 
 This explanation is a bit simplified to try and make clear the central operation of the system. For example, when a user faves a photo in the front end, the API server will kick off a request to the Puller so that the new favorites data can be ingested into the database, but this line is omitted for clarity. There are also 2 additional processes, `puller-response-reader` and `ingester-response-reader` which read response messages from their namesake processes and update the API server so it can track how many messages have been successfully processed so that the frontend knows when processing is complete for a particular user.
+
+Each process shown here (except the load balancer and database) represents many instances of the same process in different availability zones. We have to make a lot of separate API calls to Flickr for each user who requests their recommendations, so the more we can do in parallel the faster the system will perform.
 
 ### A note on Flickr
 
