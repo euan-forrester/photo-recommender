@@ -1,18 +1,22 @@
 # photo-recommender
-A system that recommends photos based on previous photos you liked
 
-This will be a horizontally-scalable version of https://github.com/euan-forrester/photo-recommender-poc, built to handle many users simultaneously.
+A system that recommends photos based on previous photos you liked. 
 
-Initially this will use the Flickr API, since it's the only one I know of where the API exposes lists of images that users favorited.
+Check it out at https://photorecommender.com
 
-- imgur: looks like it has a similar API, but you have to be logged in as each user in order to see their favorites: https://api.imgur.com/endpoints/account
-- Instagram: deprecated their API that allowed access to users' likes on Apr 4 2018: https://www.instagram.com/developer/changelog/
-- Smugmug: I don't see any facility for adding favorites or getting them from the API: https://api.smugmug.com/api/v2/doc
-- 500px: Their API is no longer free: https://support.500px.com/hc/en-us/articles/360002435653-API- Their API did appear to have the concept of "votes" which might be similar: https://github.com/500px/legacy-api-documentation/tree/master/endpoints/photo 
-- Spotify: Is it possible to do something here with playlists? https://developer.spotify.com/documentation/web-api/
-- YouPic: Seems to have a similar idea with favorites, and a somewhat similar idea with stars, although no public API that I see: https://youpic.com/faq
+The system works by looking at your favorites, and the favorites of the photographers who took those photos. The assumption is that your favorites represent the work that you aspire to, and theirs represent the work that they aspire to. Thus, if you like someone's work, you'll *really* like the work they aspire to.
 
-This project uses:
+It scores each photographer who took one of your favorites (your "neighbors") by the number of favorites you have in common with them. The more favorites in common, the closer your tastes are assumed to be aligned. Then, it looks at the set of photos favorited by all of your neighbors, and scores them based on the scores of your neighbors who favorited them. If a photo was favorited by several of your neighbors with whom your tastes are closely aligned, maybe you'll like it too. 
+
+You begin by either logging into Flickr to see your own recommendations, or entering someone's Flickr URL to see theirs. If you log in, you'll be able to fave and comment (and dismiss recommendations you don't like) right from the app. If you view someone else's, you can just see their recommendations but you can't interact with them directly. You can always visit the photo or user pages linked from the app to follow, fave, and comment there.
+
+As you fave photos from within the app, it automatically pulls more data from Flickr based on your new favorites and updates your recommendations. Refresh at any time to see new photos!
+
+## Technical details
+
+The system is designed to be horizontally-scalable and handle many users simultaneously. 
+
+It uses:
 
 - Terraform: https://www.terraform.io/
 - Elastic Container Service: https://aws.amazon.com/ecs/ and Elastic Container Registry: https://aws.amazon.com/ecr/
@@ -25,20 +29,41 @@ This project uses:
 - Random other parts of AWS like ElastiCache, Parameter Store, and Key Management Service
 - Vue.js and friends for the frontend: https://vuejs.org/. The frontend project based on the Vue CLI: https://cli.vuejs.org/
 
-# Instructions
+### The frontend
 
-## AWS and terraform
+Requests are routed through Route53 to Cloudfront, which passes requests for static assets to S3 and API calls to an Application Load Balancer.
+
+### The backend
+
+The Application Load Balancer fronts several instances of the API server. The API server talks to the database to do several tasks including create users, passing through calls to Flickr, and updating recommendations. The Scheduler talks to the API server to find out when users need their data updated, and when they do it puts requests on the Puller queue. The Puller processes talk to the Flickr API and retrieve favorites and contacts data for individual users, and put this onto the Ingester queue. The Ingester processes write this data to the database. There's also Puller Response Readers and Ingester Response Readers which read messages from the Puller and Ingester saying that they've completed a task, which updates the database via the API server so that the frontend can know when the data for a particular user has finished being retrieved from the API and written to the database.
+
+This explanation is a bit simplified to try and make clear the central operation of the system. For example, when a user faves a photo in the front end, the API server will kick off a request to the Puller so that the new favorites data can be ingested into the database, but this line is omitted for clarity.
+
+### A note on Flickr
+
+Flickr is the only photo-sharing service I know of where the API exposes lists of images that users favorited. It's the power of this user-created data that makes the recommendations work well, rather than any special magic in the scoring system.
+
+- imgur: looks like it has a similar API, but you have to be logged in as each user in order to see their favorites: https://api.imgur.com/endpoints/account
+- Instagram: deprecated their API that allowed access to users' likes on Apr 4 2018: https://www.instagram.com/developer/changelog/
+- Smugmug: I don't see any facility for adding favorites or getting them from the API: https://api.smugmug.com/api/v2/doc
+- 500px: Their API is no longer free: https://support.500px.com/hc/en-us/articles/360002435653-API- Their API did appear to have the concept of "votes" which might be similar: https://github.com/500px/legacy-api-documentation/tree/master/endpoints/photo 
+- Spotify: Is it possible to do something here with playlists? https://developer.spotify.com/documentation/web-api/
+- YouPic: Seems to have a similar idea with favorites, and a somewhat similar idea with stars, although no public API that I see: https://youpic.com/faq
+
+## Instructions
+
+### Backend setup: AWS and terraform
 
 First we need to create the infrastructure that the various parts of the system will run on
 
-### Install packages
+#### Install packages
 
 ```
 brew install terraform
 brew install mysql
 ```
 
-### Create an AWS account
+#### Create an AWS account
 
 Go to https://aws.amazon.com/ and click on "Create an AWS Account"
 
@@ -63,7 +88,7 @@ You'll be able to ssh into any EC2 instances created with `ssh ec2-user@<public 
 
 To kick the ECS service, ssh onto the instance you want to kick then type `sudo systemctl restart ecs`
 
-### Run terraform
+#### Run terraform
 
 Note that this will create infrastructure within your AWS account and could result in billing charges from AWS
 
@@ -79,7 +104,7 @@ terraform plan
 terraform apply
 ```
 
-## Manual steps to push our docker images to ECR
+#### Manual steps to push our docker images to ECR
 
 Install docker: https://docs.docker.com/install/
 
@@ -139,9 +164,9 @@ docker tag <ID of image you just built> <URI of scheduler-dev repository in ECR:
 docker push <URI of scheduler-dev repository in ECR>
 ```
 
-## Frontend setup
+### Frontend setup
 
-### Install packages
+#### Install packages
 
 ```
 cd ../../frontend
@@ -149,7 +174,7 @@ brew install yarn
 yarn install
 ```
 
-### Optional project dashboard
+#### Optional project dashboard
 
 ```
 yarn global add @vue/cli
@@ -158,7 +183,7 @@ vue ui
 
 Then go to: http://localhost:8000/dashboard
 
-### Deploy the frontend
+#### Deploy the frontend
 
 Edit the bucket names in `frontend/vue.config.js` and `frontend/.env.production` to be the website s3 bucket(s) created by terraform if necessary. Similarly for the CloudFront IDs.
 
@@ -172,7 +197,7 @@ If you don't, then go into CloudFront to get the domain for our distribution.
 
 Point your browser there and enjoy!
 
-TODO:
+## To do
 
 - Upgrade to terraform v0.12
 - Make a build pipeline
@@ -187,7 +212,6 @@ TODO:
 - Investigate transaction usage in the batch database writer: what batch size should we use? is there a better transaction isolation level to use to help concurrency?
 - Add CSRF token
 - Add versioning to the front end, so that old versions of file (with different hashes) don't live in S3 forever: https://stackoverflow.com/questions/46166337/how-can-i-deploy-a-new-cloudfront-s3-version-without-a-small-period-of-unavailab?rq=1
-- Get domain name + add hooks for google analytics
 - Make batch messages for both types of response readers, rather than sending each message individually
 - Have dismissed photos + users feed back into recommendations with negative scores
 - Make visualization of how many instances of each process are doing work at a given time - send task ID to metics and get a count of distinct IDs?
