@@ -14,9 +14,6 @@ database_password_prod = ""
 # After running terraform for the first time, you'll receive an email that you need to acknowledge an to allow this
 alarms_email = ""
 
-# The domain under which instances (dev, prod) of the application will run as subdomains
-dns_address = "abc123.com"
-
 # This is added to the various bucket names so that they don't conflict with other instances of this project
 # e.g. if it's set to "-dave-" then the bucket "photo-recommender-dev" will become "photo-recommender-dave-dev"
 bucketname_user_string = ""
@@ -28,3 +25,16 @@ database_user_data_encryption_key_prod = ""
 # Similar to the above, used for signing session information returned to the user
 api_server_session_encryption_key_dev = ""
 api_server_session_encryption_key_prod = ""
+
+# The domain under which instances (dev, prod) of the application will run as subdomains
+dns_address = "abc123.com"
+
+# ssl certificate. Good instructions on getting one from LetsEncrypt here: https://itnext.io/using-letsencrypt-ssl-certificates-in-aws-certificate-manager-c2bc3c6ae10
+ssl_certificate_body = <<EOF
+EOF
+
+ssl_certificate_private_key = <<EOF
+EOF
+
+ssl_certificate_chain = <<EOF
+EOF

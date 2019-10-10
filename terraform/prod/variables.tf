@@ -11,3 +11,6 @@ variable "dns_address" {}
 variable "bucketname_user_string" {}
 variable "database_user_data_encryption_key_prod" {}
 variable "api_server_session_encryption_key_prod" {}
+variable "ssl_certificate_body" {}
+variable "ssl_certificate_private_key" {}
+variable "ssl_certificate_chain" {}
