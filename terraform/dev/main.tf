@@ -238,7 +238,7 @@ module "ingester_database" {
     mysql_database_username = "${module.database.database_username}"
     mysql_database_password = "${var.database_password_dev}"
     mysql_database_name     = "${module.database.database_name}"
-    mysql_database_min_batch_size = 10000
+    mysql_database_min_batch_size = 100 # Counter-intuitively, the best overall system performance is gained by batching these the least. It's so that the process can flush as quickly as possible rather than storing up and flushing while everything else is waiting around
     mysql_database_maxretries = 3
 
     input_queue_batch_size  = 1 # Each message takes a while to process because it contains many individual items, so only get one at a time so that we're not blocking other instances from picking them up

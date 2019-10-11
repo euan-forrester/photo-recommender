@@ -28,17 +28,8 @@ class DatabaseBatchWriter:
         # The 4 types of transactions are 'READ UNCOMMITTED', 'READ COMMITTED', 'REPEATABLE READ', and 'SERIALIZABLE'
         # https://dev.mysql.com/doc/connector-python/en/connector-python-api-mysqlconnection-start-transaction.html
 
-        # Curiously, our lowest time for an individual process to write to the database is slightly lower
-        # with READ COMMITTED, with an overall average of 2.31s with our test dataset.
-        # However, READ UNCOMMITTED comes in with an overall average of 2.63s with the same dataset.
-        #
-        # But, our overall system run time is significantly faster with READ UNCOMMITTED.
-        # With READ COMMITTED, the average overall system runtime was 13.7s.
-        # However, with READ UNCOMMITTED, the average overall system runtime was 6.7s.
-        # I assume that READ UNCOMMITTED allows for more concurrency.
-
-        # I've also tried experimenting with committing after every batch, rather than at the end, and large and small batch sizes.
-        # No conclusive results yet due to imprecise measurements I think.
+        # We're just trying to get data into the database as fast as possible and don't care about ACID compliance
+        # for these transactions, so pick the lowest isolation level.
 
         self.cnx.start_transaction(isolation_level="READ UNCOMMITTED")
 
