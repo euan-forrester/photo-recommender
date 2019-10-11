@@ -29,8 +29,11 @@ export default {
       // lib is intended to operate.
       //
       // So, let's just call the logout URL manually from our Flickr repository
-      await FlickrRepository.logoutUser();
-      await vueAuth.logout();
+      try {
+        await FlickrRepository.logoutUser();
+      } finally {
+        await vueAuth.logout();
+      }
     },
   },
 };

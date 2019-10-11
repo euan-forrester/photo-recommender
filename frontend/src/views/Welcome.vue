@@ -79,7 +79,7 @@
           <b-button
             type="submit"
             variant="primary"
-            :disabled="$v.$anyError || (this.currentState === 'waitingForInitiallyProcessedData')"
+            :disabled="$v.$anyError || currentlyProcessing"
             @click="onSubmit()"
             v-b-popover.hover.top=
             "'If you view someone else\'s recommendations you won\'t be able to ' +
@@ -99,7 +99,7 @@
           <b-button
             variant="primary"
             @click="onLogin()"
-            :disabled="this.currentState === 'waitingForInitiallyProcessedData'"
+            :disabled="currentlyProcessing"
             block
             v-b-popover.hover.top=
             "'If you log into Flickr you can interact with your recommendations: ' +
@@ -140,6 +140,13 @@ export default {
       currentState: 'none',
     };
   },
+  computed: {
+    currentlyProcessing() {
+      return (this.currentState !== 'apiError')
+        && (this.currentState !== 'userNotFound')
+        && (this.currentState !== 'none');
+    },
+  },
   validations: {
     userUrl: {
       required,
@@ -157,7 +164,7 @@ export default {
   methods: {
     async onLogin() {
       this.dismissPopovers();
-      this.currentState = 'none';
+      this.currentState = 'attemptingToLogin';
 
       try {
         // Refreshing can empty our store but leave our local storage with the token, so we still need to refresh our
@@ -182,6 +189,7 @@ export default {
       }
 
       this.dismissPopovers();
+      this.currentState = 'attemptingToFindUser';
 
       // Before do anything, log out our current user (if any) because we want to be in
       // unauthenticated mode to display our results
@@ -193,8 +201,6 @@ export default {
       }
 
       // Turn the Flickr URL into a Flickr user ID
-
-      this.currentState = 'none';
 
       try {
         await this.$store.dispatch('getUserIdFromUrl', this.userUrl);
