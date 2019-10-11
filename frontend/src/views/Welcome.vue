@@ -99,6 +99,7 @@
           <b-button
             variant="primary"
             @click="onLogin()"
+            :disabled="this.currentState === 'waitingForInitiallyProcessedData'"
             block
             v-b-popover.hover.top=
             "'If you log into Flickr you can interact with your recommendations: ' +
@@ -155,24 +156,23 @@ export default {
   },
   methods: {
     async onLogin() {
+      this.dismissPopovers();
       this.currentState = 'none';
 
       try {
-        
         // Refreshing can empty our store but leave our local storage with the token, so we still need to refresh our
         // store by calling getUserIdCurrentlyLoggedIn, even if we've already authenticated
-        
+
         if (!vueAuth.isAuthenticated()) {
           await this.$store.dispatch('login');
         }
-        
+
         await this.$store.dispatch('getUserIdCurrentlyLoggedIn'); // The login action just gets a token back that we want to treat as opaque and so doesn't actually know who was logged in. So there's a separate API call to get the ID of the currently-logged-in user
-      
       } catch (error) {
         this.currentState = 'loginFailed';
         return;
       }
-      
+
       await this.maybeAddNewUserThenViewRecommendations();
     },
     async onSubmit() {
@@ -180,6 +180,8 @@ export default {
       if (this.$v.$anyError) {
         return;
       }
+
+      this.dismissPopovers();
 
       // Before do anything, log out our current user (if any) because we want to be in
       // unauthenticated mode to display our results
@@ -266,6 +268,12 @@ export default {
         params: { userId: this.$store.state.welcome.user.id },
         query: { 'num-photos': this.numPhotos, 'num-users': this.numUsers },
       });
+    },
+    dismissPopovers() {
+      // When we disable the button it won't receive mouse events anymore and so its popover will stay forever.
+      // This call hides all popovers: there should be only one, just at the mouse cursor
+      // https://github.com/bootstrap-vue/bootstrap-vue/issues/1161
+      this.$root.$emit('bv::hide::popover');
     },
   },
 };
