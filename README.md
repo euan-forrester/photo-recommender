@@ -221,7 +221,6 @@ Point your browser there and enjoy!
 - Centralize logging and make it searchable. Maybe like this: https://aws.amazon.com/solutions/centralized-logging/
 - Make puller-flickr only get incremental updates since the last time it ran, rather than pulling all data every time
 - Make puller-flickr look for deletions of favorites
-- Investigate transaction usage in the batch database writer: what batch size should we use? is there a better transaction isolation level to use to help concurrency?
 - Add CSRF token
 - Add versioning to the front end, so that old versions of file (with different hashes) don't live in S3 forever: https://stackoverflow.com/questions/46166337/how-can-i-deploy-a-new-cloudfront-s3-version-without-a-small-period-of-unavailab?rq=1
 - Make batch messages for both types of response readers, rather than sending each message individually
@@ -238,3 +237,4 @@ Point your browser there and enjoy!
 - Add a message to the recommendations screen if the user doesn't have enough favorites to generate good recommendations. Suggest some groups to look at.
 - Highlight new recommendations by moving them to the top of the list. Maybe have a "first recommended on" field per user, and use that to boost score?
 - Move the domain into route53 and the SSL certificate into the AWS certificate manager
+- Investigate why puller-flickr often has such a long max time to process a single user
