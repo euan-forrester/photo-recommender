@@ -177,6 +177,7 @@ for queue_message in queue:
         favorites_batch = []
         contacts_batch = []
         read_message_batch = []
+        response_message_batch = []
 
     end_process_batch_message = time.perf_counter()
 
