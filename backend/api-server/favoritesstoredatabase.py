@@ -122,7 +122,11 @@ class FavoritesStoreDatabase:
                     UNIX_TIMESTAMP(created_at),
                     (all_data_last_successfully_processed_at IS NOT NULL) AS have_initially_processed_data,
                     ((data_last_requested_at IS NOT NULL) AND 
-                        (IFNULL(all_data_last_successfully_processed_at, TIMESTAMP('1970-01-01')) < data_last_requested_at)) AS currently_processing_data
+                        (IFNULL(all_data_last_successfully_processed_at, TIMESTAMP('1970-01-01')) < data_last_requested_at)) AS currently_processing_data,
+                    num_puller_requests_made,
+                    num_puller_requests_finished,
+                    num_ingester_requests_made,
+                    num_ingester_requests_finished
                 FROM 
                     registered_users
                 WHERE
@@ -136,7 +140,11 @@ class FavoritesStoreDatabase:
                 user_info = {
                     'created_at':                       row[0],
                     'have_initially_processed_data':    bool(row[1]),
-                    'currently_processing_data':        bool(row[2])
+                    'currently_processing_data':        bool(row[2]),
+                    'num_puller_requests_made':         row[3],
+                    'num_puller_requests_finished':     row[4],
+                    'num_ingester_requests_made':       row[5],
+                    'num_ingester_requests_finished':   row[6]
                 }
 
         except Exception as e:
