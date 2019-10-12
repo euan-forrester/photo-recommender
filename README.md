@@ -39,7 +39,7 @@ It uses:
 
 ![Frontend architecture](https://raw.githubusercontent.com/euan-forrester/photo-recommender/master/images/Frontend%20diagram.png)
 
-Requests are routed through Route53 to Cloudfront, which passes requests for static assets to S3 and API calls to an Application Load Balancer.
+Requests are routed through Route53 to CloudFront, which passes requests for static assets to S3 and API calls to an Application Load Balancer.
 
 ### The backend
 
@@ -88,7 +88,6 @@ Copy the file `terraform/terraform.tfvars.example` to `terraform/terraform.tfvar
 - Enter the CIDR of your local machine/network
 - Copy your ssh public key (contained in `~/.ssh/id_rsa.pub`. If that file doesn't exist, run `ssh-keygen -t rsa` to generate it)
 - Fill in your Flickr API key and secret: https://www.flickr.com/services/apps/create/apply
-- Fill in your numerical Flickr user ID. You may need to get your numerical ID from: http://idgettr.com/
 - Fill in a master password for the various databases
 - If you're going to make a prod instance with a real domain, create an SSL certificate and fill in the details. There's good instructions here: https://itnext.io/using-letsencrypt-ssl-certificates-in-aws-certificate-manager-c2bc3c6ae10
 - Fill in a 256-bit AES encryption key, used to encrypt user session data. Can be obtained from https://www.allkeysgenerator.com/Random/Security-Encryption-Key-Generator.aspx for example
