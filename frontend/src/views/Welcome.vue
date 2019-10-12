@@ -53,6 +53,14 @@
               Calculating initial recommendations for user {{this.userName}}
             </b-alert>
             <b-spinner label="Waiting to receive initial recommendations for user"></b-spinner>
+            <b-progress
+              variant="info"
+              striped
+              animated
+              :value="processingInitialDataProgressCurrentValue"
+              :max="processingInitialDataProgressMaxValue"
+              class="progressbar"
+            ></b-progress>
           </div>
           <b-alert variant="danger" :show="this.currentState === 'apiError'">
             Could not get the requested information. Please try again later.
@@ -121,6 +129,10 @@
 .urlorlogin {
   margin-top: 30px;
 }
+
+.progressbar {
+  margin-top: 15px;
+}
 </style>
 
 <script>
@@ -145,6 +157,34 @@ export default {
       return (this.currentState !== 'apiError')
         && (this.currentState !== 'userNotFound')
         && (this.currentState !== 'none');
+    },
+    processingInitialDataProgressCurrentValue() {
+      // A request isn't completely finished until it's both been pulled from the external API and
+      // ingested into our database, so pick the minimum here.      
+      const numRequestsCompleted = Math.min(
+        this.$store.state.welcome.user.numPullerRequestsFinished,
+        this.$store.state.welcome.user.numIngesterRequestsFinished,
+      );
+
+      if (this.processingInitialDataProgressMaxValue <= 2) {
+        // We initially make 2 requests for a given user: for their favorites and for their contacts.
+        // Once the initial request for their favorites comes back, we know how many neighbors they
+        // have, and we make more requests for those neighbors.
+        // So, if we just visualized the raw values coming back, we'd see the progress bar quickly
+        // jump up to 100% and then back down to almost nothing, which would be confusing to the user.
+        // Better to just show 0 progress until we get back that first request and know how many further requests there are.
+        return 0;
+      }
+
+      return numRequestsCompleted;
+    },
+    processingInitialDataProgressMaxValue() {
+      // These 2 numbers should be the same (we have a one-to-one mapping of puller requests to
+      // ingester requests), but pick the max just to be safe.
+      return Math.max(
+        this.$store.state.welcome.user.numPullerRequestsMade,
+        this.$store.state.welcome.user.numIngesterRequestsMade,
+      );
     },
   },
   validations: {

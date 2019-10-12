@@ -29,6 +29,7 @@ import {
   LinkPlugin,
   PopoverPlugin,
   CollapsePlugin,
+  ProgressPlugin,
 } from 'bootstrap-vue';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -47,3 +48,4 @@ Vue.use(SpinnerPlugin);
 Vue.use(LinkPlugin);
 Vue.use(PopoverPlugin);
 Vue.use(CollapsePlugin);
+Vue.use(ProgressPlugin);

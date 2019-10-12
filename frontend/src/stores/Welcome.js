@@ -12,15 +12,27 @@ export default {
       name: '',
       currentlyProcessingData: false,
       haveInitiallyProcessedData: false,
+      numPullerRequestsMade: 0,
+      numPullerRequestsFinished: 0,
+      numIngesterRequestsMade: 0,
+      numIngesterRequestsFinished: 0,
     },
   },
   mutations: {
     setUser(state, user) {
       state.user = user;
     },
-    setProcessingStatus(state, { currentlyProcessingData, haveInitiallyProcessedData }) {
+    setProcessingStatus(state,
+      {
+        currentlyProcessingData, haveInitiallyProcessedData, numPullerRequestsMade,
+        numPullerRequestsFinished, numIngesterRequestsMade, numIngesterRequestsFinished,
+      }) {
       state.user.currentlyProcessingData = currentlyProcessingData;
       state.user.haveInitiallyProcessedData = haveInitiallyProcessedData;
+      state.user.numPullerRequestsMade = numPullerRequestsMade;
+      state.user.numPullerRequestsFinished = numPullerRequestsFinished;
+      state.user.numIngesterRequestsMade = numIngesterRequestsMade;
+      state.user.numIngesterRequestsFinished = numIngesterRequestsFinished;
     },
   },
   actions: {
@@ -33,6 +45,10 @@ export default {
         recommendations: [],
         currentlyProcessingData: false,
         haveInitiallyProcessedData: false,
+        numPullerRequestsMade: 0,
+        numPullerRequestsFinished: 0,
+        numIngesterRequestsMade: 0,
+        numIngesterRequestsFinished: 0,
       };
 
       commit('setUser', user);
@@ -46,6 +62,10 @@ export default {
         recommendations: [],
         currentlyProcessingData: false,
         haveInitiallyProcessedData: false,
+        numPullerRequestsMade: 0,
+        numPullerRequestsFinished: 0,
+        numIngesterRequestsMade: 0,
+        numIngesterRequestsFinished: 0,
       };
 
       commit('setUser', user);
@@ -56,6 +76,10 @@ export default {
       commit('setProcessingStatus', {
         currentlyProcessingData: userInfo.data.currently_processing_data,
         haveInitiallyProcessedData: userInfo.data.have_initially_processed_data,
+        numPullerRequestsMade: userInfo.data.num_puller_requests_made,
+        numPullerRequestsFinished: userInfo.data.num_puller_requests_finished,
+        numIngesterRequestsMade: userInfo.data.num_ingester_requests_made,
+        numIngesterRequestsFinished: userInfo.data.num_ingester_requests_finished,
       });
     },
     async getUserInfo({ commit }, userId) {
@@ -64,6 +88,10 @@ export default {
       commit('setProcessingStatus', {
         currentlyProcessingData: userInfo.data.currently_processing_data,
         haveInitiallyProcessedData: userInfo.data.have_initially_processed_data,
+        numPullerRequestsMade: userInfo.data.num_puller_requests_made,
+        numPullerRequestsFinished: userInfo.data.num_puller_requests_finished,
+        numIngesterRequestsMade: userInfo.data.num_ingester_requests_made,
+        numIngesterRequestsFinished: userInfo.data.num_ingester_requests_finished,
       });
     },
   },
