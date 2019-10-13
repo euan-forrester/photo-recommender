@@ -93,6 +93,7 @@
             "'If you view someone else\'s recommendations you won\'t be able to ' +
              'interact with them directly in this app. But you can still follow links ' +
              'to the users and photos recommended to follow, fave, and comment.'"
+            class="bottombutton"
           >
             Submit
           </b-button>
@@ -112,6 +113,7 @@
             v-b-popover.hover.top=
             "'If you log into Flickr you can interact with your recommendations: ' +
              'faving them, commenting on them, or dismissing them.'"
+            class="bottombutton"
           >
             Login to Flickr to get your own recommendations
           </b-button>
@@ -132,6 +134,10 @@
 
 .middleor {
   margin-top: 30px;
+  margin-bottom: 30px;
+}
+
+.bottombutton {
   margin-bottom: 30px;
 }
 
