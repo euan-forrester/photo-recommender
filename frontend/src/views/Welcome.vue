@@ -3,7 +3,7 @@
     <b-container>
       <b-row no-gutters align-h="center">
         <b-col sm=12 md=10 lg=8 xl=6>
-          <b-jumbotron>
+          <b-jumbotron :header-level="$mq | mq({ xs: 5, sm: 4, md: 3 })">
             <template v-slot:header>Photo Recommender</template>
           </b-jumbotron>
           <b-form-group
@@ -160,7 +160,7 @@ export default {
     },
     processingInitialDataProgressCurrentValue() {
       // A request isn't completely finished until it's both been pulled from the external API and
-      // ingested into our database, so pick the minimum here.      
+      // ingested into our database, so pick the minimum here.
       const numRequestsCompleted = Math.min(
         this.$store.state.welcome.user.numPullerRequestsFinished,
         this.$store.state.welcome.user.numIngesterRequestsFinished,
