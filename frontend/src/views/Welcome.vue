@@ -68,7 +68,7 @@
         </b-col>
       </b-row>
       <b-row align-h="center" class="urlorlogin">
-        <b-col cols="4">
+        <b-col sm="12" md="4" order="3" order-sm="3" order-md="1">
           <b-form-group id="user-url-group" label="View someone's recommendations by entering their Flickr URL" label-for="user-url">
             <b-form-input
               v-model="userUrl"
@@ -97,10 +97,10 @@
             Submit
           </b-button>
         </b-col>
-        <b-col cols="2" align-self="center">
+        <b-col sm="12" md="2" order="2" align-self="center" class="middleor">
           or
         </b-col>
-        <b-col cols="4" align-self="end">
+        <b-col sm="12" md="4" order="1" order-sm="1" order-md="3" align-self="end">
           <b-alert variant="danger" :show="this.currentState === 'loginFailed'">
             Encountered problem logging in. Please try again later.
           </b-alert>
@@ -128,6 +128,11 @@
 
 .urlorlogin {
   margin-top: 30px;
+}
+
+.middleor {
+  margin-top: 30px;
+  margin-bottom: 30px;
 }
 
 .progressbar {
