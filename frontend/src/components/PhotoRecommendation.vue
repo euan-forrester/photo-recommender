@@ -1,7 +1,7 @@
 <template>
   <b-collapse v-model="visible" id="recommendation-collapse">
     <b-row class="photo">
-      <b-col cols=10>
+      <b-col cols=10 lg=9>
         <b-link :href="this.photoUrl">
           <b-img left fluid-grow :src="imageUrl"></b-img>
         </b-link>
