@@ -6156,11 +6156,6 @@ lodash.memoize@^4.1.2:
   resolved "https://registry.yarnpkg.com/lodash.memoize/-/lodash.memoize-4.1.2.tgz#bcc6c49a42a2840ed997f323eada5ecd182e0bfe"
   integrity sha1-vMbEmkKihA7Zl/Mj6tpezRguC/4=
 
-lodash.merge@^4.6.0:
-  version "4.6.2"
-  resolved "https://registry.yarnpkg.com/lodash.merge/-/lodash.merge-4.6.2.tgz#558aa53b43b661e1925a0afdfa36a9a1085fe57a"
-  integrity sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==
-
 lodash.sortby@^4.7.0:
   version "4.7.0"
   resolved "https://registry.yarnpkg.com/lodash.sortby/-/lodash.sortby-4.7.0.tgz#edd14c824e2cc9c1e0b0a1b42bb5210516a42438"
@@ -10345,13 +10340,6 @@ vue-axios@^2.1.4:
   version "2.1.4"
   resolved "https://registry.yarnpkg.com/vue-axios/-/vue-axios-2.1.4.tgz#a9d298f7e876f9a87feb336b37adcbce34ff9f9f"
   integrity sha512-DS8Q+WFT3i7nS0aZ/NMmTPf2yhbtlXhj4QEZmY69au/BshsGzGjC6dXaniZaPQlErP3J3Sv1HtQ4RVrXaUTkxA==
-
-vue-breakpoints@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/vue-breakpoints/-/vue-breakpoints-1.1.0.tgz#e57c2f129184460ae3b64f28d7112650a7364db0"
-  integrity sha512-kbUiGpxW5WzOwOT5t2MjtH3mDwUwlHUM71D3KK+6ssh/XPURc7wp/iWeHrJRI9hGmqTzwDhr65VPde7QxCo+PQ==
-  dependencies:
-    lodash.merge "^4.6.0"
 
 vue-cli-plugin-bootstrap-vue@^0.4.0:
   version "0.4.0"
