@@ -3,7 +3,7 @@
     <b-container>
       <b-row no-gutters align-h="center">
         <b-col sm=12 md=10 lg=8 xl=6>
-          <b-jumbotron>
+          <b-jumbotron :header-level="$mq | mq({ xs: 5, sm: 4, md: 3 })">
             <template v-slot:header>Photo Recommender</template>
           </b-jumbotron>
           <b-form-group
@@ -68,7 +68,7 @@
         </b-col>
       </b-row>
       <b-row align-h="center" class="urlorlogin">
-        <b-col cols="4">
+        <b-col sm="12" md="4" order="3" order-sm="3" order-md="1">
           <b-form-group id="user-url-group" label="View someone's recommendations by entering their Flickr URL" label-for="user-url">
             <b-form-input
               v-model="userUrl"
@@ -93,14 +93,15 @@
             "'If you view someone else\'s recommendations you won\'t be able to ' +
              'interact with them directly in this app. But you can still follow links ' +
              'to the users and photos recommended to follow, fave, and comment.'"
+            class="bottombutton"
           >
             Submit
           </b-button>
         </b-col>
-        <b-col cols="2" align-self="center">
+        <b-col sm="12" md="2" order="2" align-self="center" class="middleor">
           or
         </b-col>
-        <b-col cols="4" align-self="end">
+        <b-col sm="12" md="4" order="1" order-sm="1" order-md="3" align-self="end">
           <b-alert variant="danger" :show="this.currentState === 'loginFailed'">
             Encountered problem logging in. Please try again later.
           </b-alert>
@@ -112,6 +113,7 @@
             v-b-popover.hover.top=
             "'If you log into Flickr you can interact with your recommendations: ' +
              'faving them, commenting on them, or dismissing them.'"
+            class="bottombutton"
           >
             Login to Flickr to get your own recommendations
           </b-button>
@@ -128,6 +130,15 @@
 
 .urlorlogin {
   margin-top: 30px;
+}
+
+.middleor {
+  margin-top: 30px;
+  margin-bottom: 30px;
+}
+
+.bottombutton {
+  margin-bottom: 30px;
 }
 
 .progressbar {
@@ -160,7 +171,7 @@ export default {
     },
     processingInitialDataProgressCurrentValue() {
       // A request isn't completely finished until it's both been pulled from the external API and
-      // ingested into our database, so pick the minimum here.      
+      // ingested into our database, so pick the minimum here.
       const numRequestsCompleted = Math.min(
         this.$store.state.welcome.user.numPullerRequestsFinished,
         this.$store.state.welcome.user.numIngesterRequestsFinished,
