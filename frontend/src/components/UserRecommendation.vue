@@ -1,5 +1,5 @@
 <template>
-  <b-col cols=2 class="mb-3, recommendation">
+  <b-col cols=8 sm=6 md=4 lg=2 align-self="center" class="mb-3, recommendation">
     <b-alert variant="danger" :show="this.encounteredError">
       Could not get information about this user. Please try again later
     </b-alert>
