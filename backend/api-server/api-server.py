@@ -191,7 +191,7 @@ def flickr_auth():
 
         try:
             favorites_store.create_user(user_id)
-        except:
+        except FavoritesStoreDuplicateUserException as e:
             logging.info(f"User {user_id} already exists. Continuing")
 
         favorites_store.save_user_auth_token(user_id, flickr_auth_wrapper.get_flickr_access_token_as_string(access_token))
