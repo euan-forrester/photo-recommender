@@ -57,7 +57,7 @@ module "database" {
     mysql_database_size_gb  = 5
     mysql_multi_az          = false # Disable database multi-AZ in dev to save billing charges
     mysql_backup_retention_period_days = 3
-    mysql_deletion_protection = false # No need for deletion protection in dev
+    mysql_deletion_protection = true
 
     mysql_database_password = "${var.database_password_prod}"
 }
@@ -275,7 +275,7 @@ module "api_server" {
     flickr_auth_memcached_location = "${module.memcached.location}"
 
     retain_load_balancer_access_logs_after_destroy = "false" # For dev, we don't care about retaining these logs after doing a terraform destroy
-    load_balancer_days_to_keep_access_logs = 1
+    load_balancer_days_to_keep_access_logs = 30
     load_balancer_access_logs_bucket = "load-balancer-access-logs"
     load_balancer_access_logs_prefix = "api-server-lb"
     bucketname_user_string  = "${var.bucketname_user_string}"
@@ -327,7 +327,7 @@ module "frontend" {
 
     frontend_access_logs_bucket = "frontend-access-logs"
     retain_frontend_access_logs_after_destroy = "false" # For dev, we don't care about retaining these logs after doing a terraform destroy
-    days_to_keep_frontend_access_logs = 1
+    days_to_keep_frontend_access_logs = 30
 
     use_https                   = "true"
     ssl_certificate_body        = "${var.ssl_certificate_body}"
