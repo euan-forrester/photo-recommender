@@ -166,6 +166,7 @@ export default {
   computed: {
     currentlyProcessing() {
       return (this.currentState !== 'apiError')
+        && (this.currentState !== 'loginFailed')
         && (this.currentState !== 'userNotFound')
         && (this.currentState !== 'none');
     },
@@ -228,6 +229,11 @@ export default {
         await this.$store.dispatch('getUserIdCurrentlyLoggedIn'); // The login action just gets a token back that we want to treat as opaque and so doesn't actually know who was logged in. So there's a separate API call to get the ID of the currently-logged-in user
       } catch (error) {
         this.currentState = 'loginFailed';
+        try {
+          await this.$store.dispatch('logout');
+        } catch (error2) {
+          // Just keep going even if we can't log out: the goal here is just to be not logged in
+        }
         return;
       }
 

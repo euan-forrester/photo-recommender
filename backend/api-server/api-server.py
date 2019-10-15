@@ -185,7 +185,16 @@ def flickr_auth():
         oauth_session       = flickr_auth_wrapper.get_oauth_session(token=oauth_token, token_secret=oauth_token_secret)
         access_token        = flickr_auth_wrapper.fetch_access_token(oauth_session, verifier)
 
-        favorites_store.save_user_auth_token(flickr_auth_wrapper.get_user_id_from_token(access_token), flickr_auth_wrapper.get_flickr_access_token_as_string(access_token))
+        user_id             = flickr_auth_wrapper.get_user_id_from_token(access_token)
+
+        logging.info(f"Attempting to create new user {user_id}")
+
+        try:
+            favorites_store.create_user(user_id)
+        except:
+            logging.info(f"User {user_id} already exists. Continuing")
+
+        favorites_store.save_user_auth_token(user_id, flickr_auth_wrapper.get_flickr_access_token_as_string(access_token))
 
         return_value = {
             'access_token': flickr_auth_wrapper.get_flickr_access_token_as_string_no_secret(access_token) # Return a version of the token that doesn't include the secret. We'll fill it in from the database on subsequent calls
