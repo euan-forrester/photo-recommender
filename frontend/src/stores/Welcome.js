@@ -12,6 +12,8 @@ export default {
       name: '',
       currentlyProcessingData: false,
       haveInitiallyProcessedData: false,
+      numNeighbors: 0,
+      numFavorites: 0,
       numPullerRequestsMade: 0,
       numPullerRequestsFinished: 0,
       numIngesterRequestsMade: 0,
@@ -24,11 +26,13 @@ export default {
     },
     setProcessingStatus(state,
       {
-        currentlyProcessingData, haveInitiallyProcessedData, numPullerRequestsMade,
-        numPullerRequestsFinished, numIngesterRequestsMade, numIngesterRequestsFinished,
+        currentlyProcessingData, haveInitiallyProcessedData, numNeighbors, numFavorites,
+        numPullerRequestsMade, numPullerRequestsFinished, numIngesterRequestsMade, numIngesterRequestsFinished,
       }) {
       state.user.currentlyProcessingData = currentlyProcessingData;
       state.user.haveInitiallyProcessedData = haveInitiallyProcessedData;
+      state.user.numNeighbors = numNeighbors;
+      state.user.numFavorites = numFavorites;
       state.user.numPullerRequestsMade = numPullerRequestsMade;
       state.user.numPullerRequestsFinished = numPullerRequestsFinished;
       state.user.numIngesterRequestsMade = numIngesterRequestsMade;
@@ -45,6 +49,8 @@ export default {
         recommendations: [],
         currentlyProcessingData: false,
         haveInitiallyProcessedData: false,
+        numNeighbors: 0,
+        numFavorites: 0,
         numPullerRequestsMade: 0,
         numPullerRequestsFinished: 0,
         numIngesterRequestsMade: 0,
@@ -62,6 +68,8 @@ export default {
         recommendations: [],
         currentlyProcessingData: false,
         haveInitiallyProcessedData: false,
+        numNeighbors: 0,
+        numFavorites: 0,
         numPullerRequestsMade: 0,
         numPullerRequestsFinished: 0,
         numIngesterRequestsMade: 0,
@@ -76,6 +84,8 @@ export default {
       commit('setProcessingStatus', {
         currentlyProcessingData: userInfo.data.currently_processing_data,
         haveInitiallyProcessedData: userInfo.data.have_initially_processed_data,
+        numNeighbors: userInfo.data.num_neighbors,
+        numFavorites: userInfo.data.num_favorites,
         numPullerRequestsMade: userInfo.data.num_puller_requests_made,
         numPullerRequestsFinished: userInfo.data.num_puller_requests_finished,
         numIngesterRequestsMade: userInfo.data.num_ingester_requests_made,
@@ -88,6 +98,8 @@ export default {
       commit('setProcessingStatus', {
         currentlyProcessingData: userInfo.data.currently_processing_data,
         haveInitiallyProcessedData: userInfo.data.have_initially_processed_data,
+        numNeighbors: userInfo.data.num_neighbors,
+        numFavorites: userInfo.data.num_favorites,
         numPullerRequestsMade: userInfo.data.num_puller_requests_made,
         numPullerRequestsFinished: userInfo.data.num_puller_requests_finished,
         numIngesterRequestsMade: userInfo.data.num_ingester_requests_made,
