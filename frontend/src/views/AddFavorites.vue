@@ -16,10 +16,10 @@ export default {
     };
   },
   async mounted() {
-    console.log('Hello from add favorites');
+    // console.log('Hello from add favorites');
     // this.userId = this.$route.params.userId;
     // this.userAuthenticated = (this.$store.getters.isAuthenticated());
-    console.log('Finished mounting add favorites');
+    // console.log('Finished mounting add favorites');
   },
 };
 </script>
