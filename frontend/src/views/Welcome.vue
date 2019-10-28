@@ -250,7 +250,6 @@ export default {
 
       // Before do anything, log out our current user (if any) because we want to be in
       // unauthenticated mode to display our results
-
       try {
         await this.$store.dispatch('logout');
       } catch (error) {
@@ -324,13 +323,17 @@ export default {
         }
       }
 
-      // We have their data, so display their recommendations
+      // We have their data, so display their recommendations.
+      // If the router takes us to the add-favorites screen instead, the navigation will "fail" 
+      // and so this promise returned here will reject. We don't care in this case, so 
+      // just ignore the exception. 
+      // See https://github.com/vuejs/vue-router/issues/2881#issuecomment-520554378
 
       this.$router.push({
         name: 'recommendations',
         params: { userId: this.$store.state.welcome.user.id },
         query: { 'num-photos': this.numPhotos, 'num-users': this.numUsers },
-      });
+      }).catch(err => {}); 
     },
     dismissPopovers() {
       // When we disable the button it won't receive mouse events anymore and so its popover will stay forever.
