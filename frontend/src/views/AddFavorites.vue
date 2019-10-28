@@ -4,7 +4,7 @@
       <b-row align-h="center">
         <b-col xs=12 sm=8 md=6 class="notenoughfavorites">
           <h3>
-            Sorry, {{ userName }} doesn't have enough favorites to generate any recommendations.
+            Sorry, <b-link :href="profileUrl">{{ userName }}</b-link> doesn't have enough favorites to generate any recommendations.
           </h3>
         </b-col>
       </b-row>
@@ -45,10 +45,15 @@
 
 <script>
 
+import RepositoryFactory from '../repositories/repositoryFactory';
+
+const FlickrRepository = RepositoryFactory.get('flickr');
+
 export default {
   data() {
     return {
       userName: '',
+      profileUrl: '',
       userAuthenticated: false,
       numFavorites: 0,
       numNeighbors: 0,
@@ -56,6 +61,7 @@ export default {
   },
   async mounted() {
     this.userName = this.$store.state.welcome.user.name;
+    this.profileUrl = FlickrRepository.getProfileUrl(this.$route.params.userId);
     this.userAuthenticated = this.$store.getters.isAuthenticated();
     this.numFavorites = this.$store.state.welcome.user.numFavorites;
     this.numNeighbors = this.$store.state.welcome.user.numNeighbors;

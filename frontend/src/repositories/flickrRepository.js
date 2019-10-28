@@ -9,6 +9,8 @@ import vueAuth from '../auth';
 
 const resource = '/flickr';
 
+const getProfileUrl = (userId) => `https://www.flickr.com/photos/${userId}/`;
+
 export default {
   async getUserIdFromUrl(userUrl) {
     const response = await repository.get(`${resource}/urls/lookup-user`, { params: { url: userUrl } });
@@ -41,7 +43,7 @@ export default {
       iconUrl = `https://farm${iconFarm}.staticflickr.com/${iconServer}/buddyicons/${nsId}.jpg`;
     }
 
-    const profileUrl = `https://www.flickr.com/photos/${nsId}/`;
+    const profileUrl = getProfileUrl(nsId);
 
     return {
       userId,
@@ -87,5 +89,8 @@ export default {
   },
   getPhotoUrl(imageOwner, imageId) {
     return `https://www.flickr.com/photos/${imageOwner}/${imageId}`;
+  },
+  getProfileUrl(userId) {
+    return getProfileUrl(userId);
   },
 };
