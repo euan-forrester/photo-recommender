@@ -2,8 +2,6 @@
 
 A system that recommends photos based on previous photos you liked. 
 
-Check it out at https://photorecommender.com
-
 ![Welcome screen](https://raw.githubusercontent.com/euan-forrester/photo-recommender/master/images/Welcome%20screenshot.png)
 
 ![Recommendations screen](https://raw.githubusercontent.com/euan-forrester/photo-recommender/master/images/Recommendations%20screenshot.png)
