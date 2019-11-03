@@ -11,7 +11,9 @@
       <b-row align-h="center">
         <b-col xs=12 sm=8 md=6 class="minnumfavorites">
           <h4>
-            They have {{ numFavorites }} favorites from {{ numNeighbors }} different users, but need at least {{ appConfig.minNumFavoritesForRecommendations }} favorites from at least {{ appConfig.minNumNeighborsForRecommendations }} different users.
+            They have {{ numFavorites }} favorites from {{ numNeighbors }} different users, but need at least
+            {{ appConfig.minNumFavoritesForRecommendations }} favorites from at least
+            {{ appConfig.minNumNeighborsForRecommendations }} different users.
           </h4>
         </b-col>
       </b-row>

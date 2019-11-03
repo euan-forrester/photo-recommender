@@ -89,6 +89,26 @@ class FlickrApiWrapper:
 
         return person_info
 
+    def get_group_info(self, group_id):
+        
+        lambda_to_call = lambda: self.unauth_flickr.groups.getInfo(group_id=group_id)
+
+        group_info = self._call_with_retries(lambda_to_call)
+
+        logging.info(f"Just called get_group_info for group {group_id}")
+
+        return group_info
+
+    def get_group_photos(self, group_id, num_photos):
+        
+        lambda_to_call = lambda: self.unauth_flickr.groups.pools.getPhotos(group_id=group_id, extras='url_l,url_m', per_page=num_photos, page=1) # Max per page is 500, and we'll always want way less than that
+
+        group_photos = self._call_with_retries(lambda_to_call)
+
+        logging.info(f"Just called get_group_photos for group {group_id}, with num photos {num_photos}")
+
+        return group_photos
+
     def get_favorites(self, user_id, max_favorites_per_call, max_favorites_to_get, max_calls_to_make):
 
         # We may want to put a limit on the number of pages that we request, because the Flickr API acts a bit weird.

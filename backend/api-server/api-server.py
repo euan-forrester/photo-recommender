@@ -61,6 +61,7 @@ server_port                 = config_helper.getInt("server-port")
 session_encryption_key      = config_helper.get("session-encryption-key", is_secret=True)
 default_num_photo_recommendations = config_helper.getInt('default-num-photo-recommendations')
 default_num_user_recommendations = config_helper.getInt('default-num-user-recommendations')
+default_num_photos_from_group = config_helper.getInt('default-num-photos-from-group')
 
 flickr_api_key              = config_helper.get("flickr-api-key")
 flickr_api_secret           = config_helper.get("flickr-api-secret", is_secret=True)
@@ -612,6 +613,33 @@ def get_flickr_get_contacts():
         return parameter_not_specified("user-id")
 
     resp = jsonify(flickrapi.get_contacts(user_id=user_id, max_contacts_per_call=1000))
+    resp.status_code = status.HTTP_200_OK
+
+    return resp
+
+@application.route("/api/flickr/groups/get-info", methods = ['GET'])
+def get_flickr_get_group_info():
+
+    group_id = request.args.get("group-id")
+
+    if not group_id:
+        return parameter_not_specified("group-id")
+
+    resp = jsonify(flickrapi.get_group_info(group_id=group_id))
+    resp.status_code = status.HTTP_200_OK
+
+    return resp
+
+@application.route("/api/flickr/groups/pools/get-photos", methods = ['GET'])
+def get_flickr_get_group_photos():
+
+    group_id    = request.args.get("group-id")
+    num_photos  = int(request.args.get('num-photos', default_num_photos_from_group))
+
+    if not group_id:
+        return parameter_not_specified("group-id")
+
+    resp = jsonify(flickrapi.get_group_photos(group_id=group_id, num_photos=num_photos))
     resp.status_code = status.HTTP_200_OK
 
     return resp

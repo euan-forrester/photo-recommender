@@ -9,7 +9,7 @@ import vueAuth from '../auth';
 
 const resource = '/flickr';
 
-const getProfileUrl = (userId) => `https://www.flickr.com/photos/${userId}/`;
+const getProfileUrl = userId => `https://www.flickr.com/photos/${userId}/`;
 
 export default {
   async getUserIdFromUrl(userUrl) {
@@ -51,6 +51,31 @@ export default {
       iconUrl,
       profileUrl,
     };
+  },
+  async getGroupInfo(groupId) {
+    const response = await repository.get(`${resource}/groups/get-info`, { params: { 'group-id': groupId } });
+
+    const groupName = response.data.group.name._content; // eslint-disable-line no-underscore-dangle
+    const pathAlias = response.data.group.path_alias;
+    const groupUrl = `https://www.flickr.com/groups/${typeof pathAlias !== 'undefined' ? pathAlias : groupId}/`;
+
+    return {
+      groupName,
+      groupUrl,
+    };
+  },
+  async getGroupPhotos(groupId, numPhotos) {
+    const response = await repository.get(`${resource}/groups/pools/get-photos`, { params: { 'group-id': groupId, 'num-photos': numPhotos } });
+
+    const photos = response.data.photos.photo.map(
+      photo => ({
+        imageId: photo.id,
+        imageOwner: photo.owner,
+        imageUrl: photo.get('url_l', photo.get('url_m', '')),
+      }),
+    );
+
+    return photos;
   },
   async addComment(photoId, commentText) {
     await repository.post(

@@ -163,6 +163,13 @@ resource "aws_ssm_parameter" "default_num_user_recommendations" {
     value       = "${var.default_num_user_recommendations}"
 }
 
+resource "aws_ssm_parameter" "default_num_photos_from_group" {
+    name        = "/${var.environment}/api-server/default-num-photos-from-group"
+    description = "Number of photos from a group we return if the caller doesn't specify"
+    type        = "String"
+    value       = "${var.default_num_photos_from_group}"
+}
+
 resource "aws_ssm_parameter" "puller_queue_url" {
     name        = "/${var.environment}/api-server/puller-queue-url"
     description = "URL of the queue to put requests for data to be pulled"

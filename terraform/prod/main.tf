@@ -305,6 +305,7 @@ module "api_server" {
 
     default_num_photo_recommendations = 10
     default_num_user_recommendations = 5
+    default_num_photos_from_group = 20
 }
 
 module "frontend" {
