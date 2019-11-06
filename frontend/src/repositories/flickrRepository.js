@@ -71,7 +71,7 @@ export default {
       photo => ({
         imageId: photo.id,
         imageOwner: photo.owner,
-        imageUrl: photo.get('url_l', photo.get('url_m', '')),
+        imageUrl: 'url_l' in photo ? photo.url_l : ('url_m' in photo ? photo.url_m : ''),
       }),
     );
 

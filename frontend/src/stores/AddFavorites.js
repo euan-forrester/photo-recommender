@@ -12,18 +12,18 @@ export default {
     },
   },
   actions: {
-    async getGroupInfo({ commit }, groupId) {
+    async getGroupInfo({ commit }, { groupId, numPhotos } ) {
       const results = await Promise.all([FlickrRepository.getGroupInfo(groupId), FlickrRepository.getGroupPhotos(groupId, numPhotos)]);
 
-      const groupInfo = results[0];
+      const partialGroupInfo = results[0];
       const groupPhotos = results[1];
 
-      const combinedGroupInfo = {
-        ...groupInfo,
-        photos: groupPhotos,
+      const groupInfo = {
+        ...partialGroupInfo,
+        groupPhotos,
       };
 
-      commit('setGroupInfo', { userId, combinedGroupInfo });
+      commit('setGroupInfo', { groupId, groupInfo });
     },
   },
 };

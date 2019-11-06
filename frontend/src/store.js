@@ -4,6 +4,7 @@ import Vuex from 'vuex';
 import AuthModule from './stores/Auth';
 import WelcomeModule from './stores/Welcome';
 import RecommendationsModule from './stores/Recommendations';
+import AddFavoritesModule from './stores/AddFavorites';
 
 Vue.use(Vuex);
 
@@ -14,5 +15,6 @@ export default new Vuex.Store({
     auth: AuthModule,
     welcome: WelcomeModule,
     recommendations: RecommendationsModule,
+    addfavorites: AddFavoritesModule,
   },
 });
