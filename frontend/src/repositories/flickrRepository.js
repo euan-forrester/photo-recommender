@@ -71,7 +71,7 @@ export default {
       photo => ({
         imageId: photo.id,
         imageOwner: photo.owner,
-        imageUrl: 'url_l' in photo ? photo.url_l : ('url_m' in photo ? photo.url_m : ''),
+        imageUrl: 'url_l' in photo ? photo.url_l : ('url_m' in photo ? photo.url_m : ''), // eslint-disable-line no-nested-ternary
       }),
     );
 

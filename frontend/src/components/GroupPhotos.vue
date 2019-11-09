@@ -31,10 +31,6 @@
 
 <style scoped>
 
-.groupname {
-
-}
-
 .photorecommendation {
   margin-bottom: 30px;
 }
