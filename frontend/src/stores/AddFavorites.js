@@ -12,7 +12,7 @@ export default {
     },
   },
   actions: {
-    async getGroupInfo({ commit }, { groupId, numPhotos } ) {
+    async getGroupInfo({ commit }, { groupId, numPhotos }) {
       const results = await Promise.all([FlickrRepository.getGroupInfo(groupId), FlickrRepository.getGroupPhotos(groupId, numPhotos)]);
 
       const partialGroupInfo = results[0];

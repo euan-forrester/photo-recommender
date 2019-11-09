@@ -30,6 +30,7 @@ import {
   PopoverPlugin,
   CollapsePlugin,
   ProgressPlugin,
+  CardPlugin,
 } from 'bootstrap-vue';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -49,3 +50,4 @@ Vue.use(LinkPlugin);
 Vue.use(PopoverPlugin);
 Vue.use(CollapsePlugin);
 Vue.use(ProgressPlugin);
+Vue.use(CardPlugin);
