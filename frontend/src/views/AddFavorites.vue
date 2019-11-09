@@ -38,7 +38,7 @@
       <div v-else>
         <b-row align-h="center">
           <b-col cols=8>
-            <b-button block variant='primary' class="torecommendations" @click="torecommendations()">
+            <b-button block variant='primary' class="torecommendations" @click="toRecommendations()">
                 Take me to my recommendations
             </b-button>
           </b-col>
@@ -137,11 +137,13 @@ export default {
     this.groupIds = this.appConfig.recommendedGroupsToFindFavorites;
     this.numPhotosPerGroup = this.appConfig.recommendedGroupsNumPhotosToShow;
   },
-  torecommendations() {
-    this.$router.push({
-      name: 'recommendations',
-      params: { userId: this.$store.state.welcome.user.id },
-    }).catch(() => {});
+  methods: {
+    toRecommendations() {
+      this.$router.push({
+        name: 'recommendations',
+        params: { userId: this.$store.state.welcome.user.id },
+      }).catch(() => {}); // This might throw an error if the navigation "fails" because a router guard intercepts it
+    },
   },
 };
 </script>

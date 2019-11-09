@@ -19,6 +19,7 @@
                 v-bind:imageUrl="photo.imageUrl"
                 v-bind:userAuthenticated="userAuthenticated"
                 v-bind:dismissButton="false"
+                v-on:added-favorite="onAddedFavorite()"
                 class="photorecommendation"
               >
               </PhotoRecommendation>
@@ -64,6 +65,30 @@ export default {
   async mounted() {
     await this.$store.dispatch('getGroupInfo', { groupId: this.groupId, numPhotos: this.numPhotos });
     this.groupInfo = this.$store.state.addfavorites.groupInfo[this.groupId];
+  },
+  methods: {
+    async onAddedFavorite() {
+      // Keep calling getUserInfo until the data for this latest favorite has been pulled, and thus our
+      // counts of how many faves & neighbors they have are updated
+
+      // TODO: Had to disble a lint error to get this to work, which seems to indicate that this is not the best approach.
+      // Need to do more googling.
+      // The lint error is intended to encourage better performance by having people await multiple things rather than one at a time.
+
+      async function delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+      }
+
+      while (this.$store.state.welcome.user.numRequestsCompleted < this.$store.state.welcome.user.numRequestsMade) {
+        await delay(1000); // eslint-disable-line no-await-in-loop
+
+        try {
+          await this.$store.dispatch('getUserInfo', this.userId); // eslint-disable-line no-await-in-loop
+        } catch (error) {
+          // TODO: Display an error message to the user saying the API server is unavailable
+        }
+      }
+    },
   },
 };
 </script>

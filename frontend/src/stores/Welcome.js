@@ -20,6 +20,20 @@ export default {
       numIngesterRequestsFinished: 0,
     },
   },
+  getters: {
+    // A request isn't completely finished until it's both been pulled from the external API and
+    // ingested into our database, so pick the minimum here.
+    numRequestsCompleted: state => Math.min(
+      state.user.numPullerRequestsFinished,
+      state.user.numIngesterRequestsFinished,
+    ),
+    // These 2 numbers should be the same (we have a one-to-one mapping of puller requests to
+    // ingester requests), but pick the max just to be safe.
+    numRequestsMade: state => Math.max(
+      state.user.numPullerRequestsMade,
+      state.user.numIngesterRequestsMade,
+    ),
+  },
   mutations: {
     setUser(state, user) {
       state.user = user;

@@ -171,13 +171,6 @@ export default {
         && (this.currentState !== 'none');
     },
     processingInitialDataProgressCurrentValue() {
-      // A request isn't completely finished until it's both been pulled from the external API and
-      // ingested into our database, so pick the minimum here.
-      const numRequestsCompleted = Math.min(
-        this.$store.state.welcome.user.numPullerRequestsFinished,
-        this.$store.state.welcome.user.numIngesterRequestsFinished,
-      );
-
       if (this.processingInitialDataProgressMaxValue <= 2) {
         // We initially make 2 requests for a given user: for their favorites and for their contacts.
         // Once the initial request for their favorites comes back, we know how many neighbors they
@@ -188,15 +181,10 @@ export default {
         return 0;
       }
 
-      return numRequestsCompleted;
+      return this.$store.state.welcome.numRequestsCompleted;
     },
     processingInitialDataProgressMaxValue() {
-      // These 2 numbers should be the same (we have a one-to-one mapping of puller requests to
-      // ingester requests), but pick the max just to be safe.
-      return Math.max(
-        this.$store.state.welcome.user.numPullerRequestsMade,
-        this.$store.state.welcome.user.numIngesterRequestsMade,
-      );
+      return this.$store.state.welcome.numRequestsMade;
     },
   },
   validations: {

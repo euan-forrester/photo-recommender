@@ -184,8 +184,13 @@ export default {
       // This call hides all popovers: there should be only one, just at the mouse cursor
       // https://github.com/bootstrap-vue/bootstrap-vue/issues/1161
       this.$root.$emit('bv::hide::popover');
-      await FlickrRepository.addFavorite(this.imageId, this.imageOwner, this.imageUrl);
+      try {
+        await FlickrRepository.addFavorite(this.imageId, this.imageOwner, this.imageUrl);
+      } catch (e) {
+        // TODO: Display a nice message saying we can't talk to the server
+      }
       this.photoFavedState = 'checked';
+      this.$emit('added-favorite');
     },
     async onAddComment() {
       this.commentAddedState = 'loading';
