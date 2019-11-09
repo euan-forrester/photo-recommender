@@ -18,6 +18,7 @@
                 v-bind:imageOwner="photo.imageOwner"
                 v-bind:imageUrl="photo.imageUrl"
                 v-bind:userAuthenticated="userAuthenticated"
+                v-bind:dismissButton="false"
                 class="photorecommendation"
               >
               </PhotoRecommendation>

@@ -8,16 +8,18 @@
       </b-col>
       <b-col cols=1>
         <div v-if="this.userAuthenticated">
-          <DismissButton
-            @click="onDismiss()"
-            :class="$mq | mq({
-              xs: 'dismissbutton-sm',
-              sm: 'dismissbutton-sm',
-              md: 'dismissbutton-sm',
-              lg: 'dismissbutton-lg',
-              xl: 'dismissbutton-lg',
-            })"
-          ></DismissButton>
+          <div v-if="this.dismissButton">
+            <DismissButton
+              @click="onDismiss()"
+              :class="$mq | mq({
+                xs: 'dismissbutton-sm',
+                sm: 'dismissbutton-sm',
+                md: 'dismissbutton-sm',
+                lg: 'dismissbutton-lg',
+                xl: 'dismissbutton-lg',
+              })"
+            ></DismissButton>
+          </div>
           <AddButton
             @click="onAddFavorite()"
             :class="$mq | mq({
@@ -152,6 +154,10 @@ export default {
     imageOwner: String,
     imageUrl: String,
     userAuthenticated: Boolean,
+    dismissButton: {
+      type: Boolean,
+      default: true,
+    },
   },
   data() {
     return {

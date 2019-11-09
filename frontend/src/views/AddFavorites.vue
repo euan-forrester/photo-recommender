@@ -26,25 +26,63 @@
       </b-row>
     </div>
     <div v-else>
-      <b-container>
-        <GroupPhotos
-          v-for="groupId in this.groupIds"
-          v-bind:key="groupId"
-          v-bind:userId="userId"
-          v-bind:groupId="groupId"
-          v-bind:numPhotos="numPhotosPerGroup"
-          v-bind:userAuthenticated="userAuthenticated"
-          class="groupphoto"
-        >
-        </GroupPhotos>
-      </b-container>
+      <div v-if="!hasEnoughRecommendations">
+        <b-row align-h="center">
+          <b-col xs=12 sm=8 md=6 class="notenoughfavorites">
+            <h3>
+              Sorry, you don't have enough favorites to generate any recommendations.
+            </h3>
+          </b-col>
+        </b-row>
+      </div>
+      <div v-else>
+        <b-row align-h="center">
+          <b-col cols=8>
+            <b-button block variant='primary' class="torecommendations" @click="torecommendations()">
+                Take me to my recommendations
+            </b-button>
+          </b-col>
+        </b-row>
+      </div>
+      <b-row align-h="center">
+        <b-col xs=12 sm=8 md=6 class="minnumfavorites">
+          <h4>
+            You have {{ numFavorites }} favorites from {{ numNeighbors }} different users, and need at least
+            {{ appConfig.minNumFavoritesForRecommendations }} favorites from at least
+            {{ appConfig.minNumNeighborsForRecommendations }} different users.
+          </h4>
+        </b-col>
+      </b-row>
+      <b-row align-h="center">
+        <b-col xs=12 sm=8 md=6 class="minnumfavorites">
+          <h4>
+            Open the groups below to find some photos you like and add them as favorites.
+          </h4>
+        </b-col>
+      </b-row>
+      <GroupPhotos
+        v-for="groupId in this.groupIds"
+        v-bind:key="groupId"
+        v-bind:userId="userId"
+        v-bind:groupId="groupId"
+        v-bind:numPhotos="numPhotosPerGroup"
+        v-bind:userAuthenticated="userAuthenticated"
+        class="groupphoto"
+      >
+      </GroupPhotos>
     </div>
   </div>
 </template>
 
 <style scoped>
+
 .notenoughfavorites {
 
+}
+
+.torecommendations {
+  height: 75px;
+  line-height: 60px;
 }
 
 .minnumfavorites {
@@ -83,6 +121,12 @@ export default {
       numPhotosPerGroup: 0,
     };
   },
+  computed: {
+    hasEnoughRecommendations() {
+      return (this.numFavorites >= this.appConfig.minNumFavoritesForRecommendations)
+        && (this.numNeighbors >= this.appConfig.minNumNeighborsForRecommendations);
+    },
+  },
   async mounted() {
     this.userName = this.$store.state.welcome.user.name;
     this.userId = this.$route.params.userId;
@@ -92,6 +136,12 @@ export default {
     this.numNeighbors = this.$store.state.welcome.user.numNeighbors;
     this.groupIds = this.appConfig.recommendedGroupsToFindFavorites;
     this.numPhotosPerGroup = this.appConfig.recommendedGroupsNumPhotosToShow;
+  },
+  torecommendations() {
+    this.$router.push({
+      name: 'recommendations',
+      params: { userId: this.$store.state.welcome.user.id },
+    }).catch(() => {});
   },
 };
 </script>
