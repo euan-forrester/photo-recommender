@@ -7,6 +7,7 @@ module.exports = {
         target: 'http://localhost:4445',
       },
     },
+    https: true, // vue-authenticate seems to always redirect us to https even when we explicitly specify http in the redirect url. So we need to serve https always, which will mean adding a security exception for localhost
   },
 
   pluginOptions: {
