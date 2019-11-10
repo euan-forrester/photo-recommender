@@ -131,7 +131,7 @@ export default {
     this.userName = this.$store.state.welcome.user.name;
     this.userId = this.$route.params.userId;
     this.profileUrl = FlickrRepository.getProfileUrl(this.$route.params.userId);
-    this.userAuthenticated = true; // this.$store.getters.isAuthenticated();
+    this.userAuthenticated = this.$store.getters.isAuthenticated();
     this.numFavorites = this.$store.state.welcome.user.numFavorites;
     this.numNeighbors = this.$store.state.welcome.user.numNeighbors;
     this.groupIds = this.appConfig.recommendedGroupsToFindFavorites;
