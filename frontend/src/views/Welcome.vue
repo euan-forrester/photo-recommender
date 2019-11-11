@@ -149,7 +149,6 @@
 <script>
 import { validationMixin } from 'vuelidate';
 import { required, url, numeric } from 'vuelidate/lib/validators';
-import vueAuth from '../auth';
 
 export default {
   mixins: [validationMixin],
@@ -210,7 +209,7 @@ export default {
         // Refreshing can empty our store but leave our local storage with the token, so we still need to refresh our
         // store by calling getUserIdCurrentlyLoggedIn, even if we've already authenticated
 
-        if (!vueAuth.isAuthenticated()) {
+        if (!this.$store.getters.isAuthenticated()) {
           await this.$store.dispatch('login');
         }
 
