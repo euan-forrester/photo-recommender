@@ -79,7 +79,9 @@ export default {
         return new Promise(resolve => setTimeout(resolve, ms));
       }
 
-      while (this.$store.state.welcome.user.numRequestsCompleted < this.$store.state.welcome.user.numRequestsMade) {
+      await this.$store.dispatch('getUserInfo', this.userId); // eslint-disable-line no-await-in-loop
+
+      while (this.$store.getters.numRequestsCompleted < this.$store.getters.numRequestsMade) {
         await delay(1000); // eslint-disable-line no-await-in-loop
 
         try {

@@ -180,10 +180,10 @@ export default {
         return 0;
       }
 
-      return this.$store.state.welcome.numRequestsCompleted;
+      return this.$store.getters.numRequestsCompleted;
     },
     processingInitialDataProgressMaxValue() {
-      return this.$store.state.welcome.numRequestsMade;
+      return this.$store.getters.numRequestsMade;
     },
   },
   validations: {
