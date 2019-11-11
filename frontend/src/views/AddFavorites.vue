@@ -11,7 +11,7 @@
       <b-row align-h="center">
         <b-col xs=12 sm=8 md=6 class="minnumfavorites">
           <h4>
-            They have {{ numFavorites }} favorites from {{ numNeighbors }} different users, but need at least
+            They have {{ this.numFavorites }} favorites from {{ this.numNeighbors }} different users, but need at least
             {{ appConfig.minNumFavoritesForRecommendations }} favorites from at least
             {{ appConfig.minNumNeighborsForRecommendations }} different users.
           </h4>
@@ -47,7 +47,7 @@
       <b-row align-h="center">
         <b-col xs=12 sm=8 md=6 class="minnumfavorites">
           <h4>
-            You have {{ numFavorites }} favorites from {{ numNeighbors }} different users, and need at least
+            You have {{ this.numFavorites }} favorites from {{ this.numNeighbors }} different users, and need at least
             {{ appConfig.minNumFavoritesForRecommendations }} favorites from at least
             {{ appConfig.minNumNeighborsForRecommendations }} different users.
           </h4>
@@ -115,13 +115,17 @@ export default {
       userId: '',
       profileUrl: '',
       userAuthenticated: false,
-      numFavorites: 0,
-      numNeighbors: 0,
       groupIds: [],
       numPhotosPerGroup: 0,
     };
   },
   computed: {
+    numFavorites() {
+      return this.$store.state.welcome.user.numFavorites;
+    },
+    numNeighbors() {
+      return this.$store.state.welcome.user.numNeighbors;
+    },
     hasEnoughRecommendations() {
       return (this.numFavorites >= this.appConfig.minNumFavoritesForRecommendations)
         && (this.numNeighbors >= this.appConfig.minNumNeighborsForRecommendations);
@@ -132,8 +136,6 @@ export default {
     this.userId = this.$route.params.userId;
     this.profileUrl = FlickrRepository.getProfileUrl(this.$route.params.userId);
     this.userAuthenticated = this.$store.getters.isAuthenticated();
-    this.numFavorites = this.$store.state.welcome.user.numFavorites;
-    this.numNeighbors = this.$store.state.welcome.user.numNeighbors;
     this.groupIds = this.appConfig.recommendedGroupsToFindFavorites;
     this.numPhotosPerGroup = this.appConfig.recommendedGroupsNumPhotosToShow;
   },
