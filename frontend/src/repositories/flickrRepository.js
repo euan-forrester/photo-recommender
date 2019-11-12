@@ -97,13 +97,13 @@ export default {
   },
   async getCurrentlyLoggedInUser() {
     const response = await repository.post(
-      `${resource}/test/login`,
+      `${resource}/get-logged-in-user`,
       { 'oauth-token': vueAuth.getToken() },
     );
 
     return {
-      id: response.data.user.id,
-      name: response.data.user.username._content, // eslint-disable-line no-underscore-dangle
+      id: response.data.user_nsid,
+      name: response.data.username,
     };
   },
   async logoutUser() {

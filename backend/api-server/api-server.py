@@ -299,11 +299,41 @@ def flickr_add_favorite():
     return "OK", status.HTTP_200_OK
 
 @application.route("/api/flickr/test/login", methods = ['POST'])
-def flickr_get_logged_in_user():
+def flickr_test_login():
     
+    # Note that this API function appears to be broken on the Flickr side: you can call it with
+    # the token from one user, and get back info about a different user. It seems to be related to
+    # having > 1 user account associated with each other, having been logged in from the same machine?
+
     full_token = _get_and_test_full_user_oauth_token(request)
 
     resp = jsonify(flickrapi.login_test(full_token))
+    resp.status_code = status.HTTP_200_OK
+
+    return resp  
+
+@application.route("/api/flickr/get-logged-in-user", methods = ['POST'])
+def flickr_get_logged_in_user():
+
+    # When the frontend calls our auth function, all they get back is a token. It's vue-authenticate
+    # doing the calling, so we can't return anything else in the response. We don't want the frontend
+    # to have to know how to parse the token to get the user's ID and name, so let's add a function
+    # here instead to do it so that all the knowledge of how the token is constructed is in one place.
+    #
+    # Note that we tried using the flickr/test/login API function to do this, which would give us
+    # a bit of extra feeling that we've done everything right because it would be testing the token for us.
+    # However, as you can see above, this function appears to be broken on the Flickr side and can return
+    # the wrong token for a given user in some circumstances.
+
+    full_token = _get_and_test_full_user_oauth_token(request)
+
+    response_object = {
+        'user_nsid': full_token.user_nsid,
+        'username': full_token.username, 
+        'fullname': full_token.fullname
+    }
+
+    resp = jsonify(response_object)
     resp.status_code = status.HTTP_200_OK
 
     return resp  
