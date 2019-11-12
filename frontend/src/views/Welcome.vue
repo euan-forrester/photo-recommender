@@ -149,6 +149,7 @@
 <script>
 import { validationMixin } from 'vuelidate';
 import { required, url, numeric } from 'vuelidate/lib/validators';
+import config from '../config';
 
 export default {
   mixins: [validationMixin],
@@ -310,17 +311,22 @@ export default {
         }
       }
 
-      // We have their data, so display their recommendations.
-      // If the router takes us to the add-favorites screen instead, the navigation will "fail"
-      // and so this promise returned here will reject. We don't care in this case, so
-      // just ignore the exception.
-      // See https://github.com/vuejs/vue-router/issues/2881#issuecomment-520554378
+      // Next check if they have enough favorites to generate a good set of recommendations.
+      // If not, take them to an onboarding screen where they can add some favorites first.
 
-      this.$router.push({
-        name: 'recommendations',
-        params: { userId: this.$store.state.welcome.user.id },
-        query: { 'num-photos': this.numPhotos, 'num-users': this.numUsers },
-      }).catch(() => {});
+      if ((this.$store.state.welcome.user.numFavorites >= config.minNumFavoritesForRecommendations)
+        && (this.$store.state.welcome.user.numNeighbors >= config.minNumNeighborsForRecommendations)) {
+        this.$router.push({
+          name: 'recommendations',
+          params: { userId: this.$store.state.welcome.user.id },
+          query: { 'num-photos': this.numPhotos, 'num-users': this.numUsers },
+        }); // Note that the navigation can "fail" if there's a router guard that redirects it elsewhere. May want to add .catch(() => {}) here. See https://github.com/vuejs/vue-router/issues/2881#issuecomment-520554378
+      } else {
+        this.$router.push({
+          name: 'add-favorites',
+          params: { userId: this.$store.state.welcome.user.id },
+        }); // Note that the navigation can "fail" if there's a router guard that redirects it elsewhere. May want to add .catch(() => {}) here. See https://github.com/vuejs/vue-router/issues/2881#issuecomment-520554378
+      }
     },
     dismissPopovers() {
       // When we disable the button it won't receive mouse events anymore and so its popover will stay forever.
