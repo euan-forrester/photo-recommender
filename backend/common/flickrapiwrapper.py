@@ -51,63 +51,110 @@ class FlickrApiWrapper:
 
     def add_comment(self, photo_id, comment_text, user_authentication_token):
 
-        auth_flickr = self._get_auth_flickr(user_authentication_token)
+        try:
 
-        lambda_to_call = lambda: auth_flickr.photos.comments.addComment(photo_id=photo_id, comment_text=comment_text)
+            auth_flickr = self._get_auth_flickr(user_authentication_token)
 
-        comment_id = self._call_with_retries(lambda_to_call)
+            lambda_to_call = lambda: auth_flickr.photos.comments.addComment(photo_id=photo_id, comment_text=comment_text)
 
-        return comment_id
+            comment_id = self._call_with_retries(lambda_to_call)
+
+            return comment_id
+
+        except flickrapi.exceptions.FlickrError as e:
+            if e.code == 1:
+                logging.info("The requested photo was not found. Throwing FlickrApiNotFoundException")
+                raise FlickrApiNotFoundException from e
 
     def add_favorite(self, photo_id, user_authentication_token):
 
-        auth_flickr = self._get_auth_flickr(user_authentication_token)
+        try:
 
-        lambda_to_call = lambda: auth_flickr.favorites.add(photo_id=photo_id)
+            auth_flickr = self._get_auth_flickr(user_authentication_token)
 
-        resp = self._call_with_retries(lambda_to_call)
+            lambda_to_call = lambda: auth_flickr.favorites.add(photo_id=photo_id)
 
-        return resp
+            resp = self._call_with_retries(lambda_to_call)
+
+            return resp
+
+        except flickrapi.exceptions.FlickrError as e:
+            if e.code == 1:
+                logging.info("The requested photo was not found. Throwing FlickrApiNotFoundException")
+                raise FlickrApiNotFoundException from e
+
+            elif e.code == 3:
+                logging.info("The requested photo is already a favorite of this user. Continuing.")
+                # This Flickr API function doesn't return anything in its response, and we ignore the response when calling this function. So it's okay to not return anything here
+                return {}
 
     def lookup_user(self, user_url):
         
-        lambda_to_call = lambda: self.unauth_flickr.urls.lookupUser(url=user_url)
+        try:
 
-        person_info = self._call_with_retries(lambda_to_call)
+            lambda_to_call = lambda: self.unauth_flickr.urls.lookupUser(url=user_url)
 
-        logging.info(f"Just called lookup_user for url {user_url}")
+            person_info = self._call_with_retries(lambda_to_call)
 
-        return person_info
+            logging.info(f"Just called lookup_user for url {user_url}")
+
+            return person_info
+
+        except flickrapi.exceptions.FlickrError as e:
+            if e.code == 1:
+                logging.info("The requested URL was not found. Throwing FlickrApiNotFoundException")
+                raise FlickrApiNotFoundException from e
 
     def get_person_info(self, user_id):
         
-        lambda_to_call = lambda: self.unauth_flickr.people.getInfo(user_id=user_id)
+        try:
 
-        person_info = self._call_with_retries(lambda_to_call)
+            lambda_to_call = lambda: self.unauth_flickr.people.getInfo(user_id=user_id)
 
-        logging.info(f"Just called get_person_info for user {user_id}")
+            person_info = self._call_with_retries(lambda_to_call)
 
-        return person_info
+            logging.info(f"Just called get_person_info for user {user_id}")
+
+            return person_info
+
+        except flickrapi.exceptions.FlickrError as e:
+            if e.code == 1:
+                logging.info("The requested user ID was not found. Throwing FlickrApiNotFoundException")
+                raise FlickrApiNotFoundException from e
 
     def get_group_info(self, group_id):
-        
-        lambda_to_call = lambda: self.unauth_flickr.groups.getInfo(group_id=group_id)
+    
+        try:
 
-        group_info = self._call_with_retries(lambda_to_call)
+            lambda_to_call = lambda: self.unauth_flickr.groups.getInfo(group_id=group_id)
 
-        logging.info(f"Just called get_group_info for group {group_id}")
+            group_info = self._call_with_retries(lambda_to_call)
 
-        return group_info
+            logging.info(f"Just called get_group_info for group {group_id}")
+
+            return group_info
+
+        except flickrapi.exceptions.FlickrError as e:
+            if e.code == 1:
+                logging.info("The requested group ID was not found. Throwing FlickrApiNotFoundException")
+                raise FlickrApiNotFoundException from e
 
     def get_group_photos(self, group_id, num_photos):
         
-        lambda_to_call = lambda: self.unauth_flickr.groups.pools.getPhotos(group_id=group_id, extras='url_l,url_m', per_page=num_photos, page=1) # Max per page is 500, and we'll always want way less than that
+        try:
 
-        group_photos = self._call_with_retries(lambda_to_call)
+            lambda_to_call = lambda: self.unauth_flickr.groups.pools.getPhotos(group_id=group_id, extras='url_l,url_m', per_page=num_photos, page=1) # Max per page is 500, and we'll always want way less than that
 
-        logging.info(f"Just called get_group_photos for group {group_id}, with num photos {num_photos}")
+            group_photos = self._call_with_retries(lambda_to_call)
 
-        return group_photos
+            logging.info(f"Just called get_group_photos for group {group_id}, with num photos {num_photos}")
+
+            return group_photos
+
+        except flickrapi.exceptions.FlickrError as e:
+            if e.code == 1:
+                logging.info("The requested group ID was not found. Throwing FlickrApiNotFoundException")
+                raise FlickrApiNotFoundException from e
 
     def get_favorites(self, user_id, max_favorites_per_call, max_favorites_to_get, max_calls_to_make):
 
@@ -137,16 +184,23 @@ class FlickrApiWrapper:
 
     def _get_favorites_page(self, user_id, page_number, max_favorites_per_call):
 
-        # There's also unauth_flickr.favorites.getList(), which gets all the faves that our current API key can see. While it would be nice to get
-        # more photos, some users might not be able to see the same things as this API key, so ultimately it'll result in broken links. 
-        # Also some users might be upset at having their semi-private photos surfaced.
-        lambda_to_call = lambda: self.unauth_flickr.favorites.getPublicList(user_id=user_id, extras='url_l,url_m', per_page=max_favorites_per_call, page=page_number)
+        try:
 
-        favorites = self._call_with_retries(lambda_to_call)
+            # There's also unauth_flickr.favorites.getList(), which gets all the faves that our current API key can see. While it would be nice to get
+            # more photos, some users might not be able to see the same things as this API key, so ultimately it'll result in broken links. 
+            # Also some users might be upset at having their semi-private photos surfaced.
+            lambda_to_call = lambda: self.unauth_flickr.favorites.getPublicList(user_id=user_id, extras='url_l,url_m', per_page=max_favorites_per_call, page=page_number)
 
-        logging.info(f"Just called get_favorites_page() for page {page_number} with max_favorites_per_call {max_favorites_per_call} and returning {len(favorites['photos']['photo'])} faves")
+            favorites = self._call_with_retries(lambda_to_call)
 
-        return favorites
+            logging.info(f"Just called get_favorites_page() for page {page_number} with max_favorites_per_call {max_favorites_per_call} and returning {len(favorites['photos']['photo'])} faves")
+
+            return favorites
+
+        except flickrapi.exceptions.FlickrError as e:
+            if e.code == 1:
+                logging.info("The requested user ID was not found. Throwing FlickrApiNotFoundException")
+                raise FlickrApiNotFoundException from e
 
     def get_contacts(self, user_id, max_contacts_per_call):
 
@@ -175,22 +229,29 @@ class FlickrApiWrapper:
 
     def _get_contacts_page(self, user_id, page_number, max_contacts_per_call):
 
-        # There's also unauth_flickr.contacts.getList(), but it requires authentication. 
-        # It would be nice to be more accurate by getting all of our contacts, but that would require doing this on the frontend side rather than
-        # in the database, which seems like a world of hurt. We'd have to get all of the user's contacts, then keep getting more an more recommendations
-        # of users until we'd filled the required number. Seems complicated and slow vs just doing it all in a single SQL statement.
-        lambda_to_call = lambda: self.unauth_flickr.contacts.getPublicList(user_id=user_id, per_page=max_contacts_per_call, page=page_number)
+        try:
 
-        response = self._call_with_retries(lambda_to_call)
+            # There's also unauth_flickr.contacts.getList(), but it requires authentication. 
+            # It would be nice to be more accurate by getting all of our contacts, but that would require doing this on the frontend side rather than
+            # in the database, which seems like a world of hurt. We'd have to get all of the user's contacts, then keep getting more an more recommendations
+            # of users until we'd filled the required number. Seems complicated and slow vs just doing it all in a single SQL statement.
+            lambda_to_call = lambda: self.unauth_flickr.contacts.getPublicList(user_id=user_id, per_page=max_contacts_per_call, page=page_number)
 
-        contacts = []
+            response = self._call_with_retries(lambda_to_call)
 
-        if 'contact' in response['contacts']:
-            contacts = response['contacts']['contact']
+            contacts = []
 
-        logging.info(f"Just called get_contacts_page() for page {page_number} with max_contacts_per_call {max_contacts_per_call} and returning {len(contacts)} contacts")
+            if 'contact' in response['contacts']:
+                contacts = response['contacts']['contact']
 
-        return contacts
+            logging.info(f"Just called get_contacts_page() for page {page_number} with max_contacts_per_call {max_contacts_per_call} and returning {len(contacts)} contacts")
+
+            return contacts
+
+        except flickrapi.exceptions.FlickrError as e:
+            if e.code == 1:
+                logging.info("The requested user ID was not found. Throwing FlickrApiNotFoundException")
+                raise FlickrApiNotFoundException from e
 
     def _get_auth_flickr(self, user_authentication_token):
         
@@ -226,9 +287,16 @@ class FlickrApiWrapper:
 
             except flickrapi.exceptions.FlickrError as e:
 
-                if e.code == 1:
-                    logging.info("The requested object was not found. Throwing FlickrApiNotFoundException")
-                    raise FlickrApiNotFoundException from e
+                # For known error numbers, the caller needs to deal with the exception because
+                # the same number can mean something different depending on what the original call was.
+                # 
+                # For example, error code 1 usually means "<user|grouop|photo|etc> ID not found", except
+                # for flickr.contacts.getList() where it means "Invalid sort parameter".
+                # Note that we instead call flickr.contacts.getPublicList() where it *does* in fact mean
+                # "user ID not found", but it seems like a frustrating gotcha to assume it always means
+                # that for every call. Better to force the programmer to check each time a new call is added.
+                if e.code <= 116:
+                    raise e
 
                 # You get random 502s when making lots of calls to this API, which apparently indicate rate limiting: 
                 # https://www.flickr.com/groups/51035612836@N01/discuss/72157646430151464/ 
