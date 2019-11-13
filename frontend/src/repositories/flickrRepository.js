@@ -9,6 +9,8 @@ import vueAuth from '../auth';
 
 const resource = '/flickr';
 
+const getProfileUrl = userId => `https://www.flickr.com/photos/${userId}/`;
+
 export default {
   async getUserIdFromUrl(userUrl) {
     const response = await repository.get(`${resource}/urls/lookup-user`, { params: { url: userUrl } });
@@ -41,7 +43,7 @@ export default {
       iconUrl = `https://farm${iconFarm}.staticflickr.com/${iconServer}/buddyicons/${nsId}.jpg`;
     }
 
-    const profileUrl = `https://www.flickr.com/photos/${nsId}/`;
+    const profileUrl = getProfileUrl(nsId);
 
     return {
       userId,
@@ -49,6 +51,31 @@ export default {
       iconUrl,
       profileUrl,
     };
+  },
+  async getGroupInfo(groupId) {
+    const response = await repository.get(`${resource}/groups/get-info`, { params: { 'group-id': groupId } });
+
+    const groupName = response.data.group.name._content; // eslint-disable-line no-underscore-dangle
+    const pathAlias = response.data.group.path_alias;
+    const groupUrl = `https://www.flickr.com/groups/${typeof pathAlias !== 'undefined' ? pathAlias : groupId}/`;
+
+    return {
+      groupName,
+      groupUrl,
+    };
+  },
+  async getGroupPhotos(groupId, numPhotos) {
+    const response = await repository.get(`${resource}/groups/pools/get-photos`, { params: { 'group-id': groupId, 'num-photos': numPhotos } });
+
+    const photos = response.data.photos.photo.map(
+      photo => ({
+        imageId: photo.id,
+        imageOwner: photo.owner,
+        imageUrl: 'url_l' in photo ? photo.url_l : ('url_m' in photo ? photo.url_m : ''), // eslint-disable-line no-nested-ternary
+      }),
+    );
+
+    return photos;
   },
   async addComment(photoId, commentText) {
     await repository.post(
@@ -70,13 +97,13 @@ export default {
   },
   async getCurrentlyLoggedInUser() {
     const response = await repository.post(
-      `${resource}/test/login`,
+      `${resource}/get-logged-in-user`,
       { 'oauth-token': vueAuth.getToken() },
     );
 
     return {
-      id: response.data.user.id,
-      name: response.data.user.username._content, // eslint-disable-line no-underscore-dangle
+      id: response.data.user_nsid,
+      name: response.data.username,
     };
   },
   async logoutUser() {
@@ -87,5 +114,8 @@ export default {
   },
   getPhotoUrl(imageOwner, imageId) {
     return `https://www.flickr.com/photos/${imageOwner}/${imageId}`;
+  },
+  getProfileUrl(userId) {
+    return getProfileUrl(userId);
   },
 };

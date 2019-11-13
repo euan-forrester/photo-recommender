@@ -120,6 +120,8 @@ class FavoritesStoreDatabase:
             cursor.execute("""
                 SELECT
                     UNIX_TIMESTAMP(created_at),
+                    (SELECT COUNT(*) FROM favorites WHERE favorited_by=%s) as num_favorites,
+                    (SELECT COUNT(DISTINCT image_owner) FROM favorites WHERE favorited_by=%s) as num_neighbors,
                     (all_data_last_successfully_processed_at IS NOT NULL) AS have_initially_processed_data,
                     ((data_last_requested_at IS NOT NULL) AND 
                         (IFNULL(all_data_last_successfully_processed_at, TIMESTAMP('1970-01-01')) < data_last_requested_at)) AS currently_processing_data,
@@ -132,19 +134,21 @@ class FavoritesStoreDatabase:
                 WHERE
                     user_id=%s
                 ;
-            """, (user_id,))
+            """, (user_id, user_id, user_id))
      
             row = self._get_first_row(cursor)
             
             if row is not None:
                 user_info = {
                     'created_at':                       row[0],
-                    'have_initially_processed_data':    bool(row[1]),
-                    'currently_processing_data':        bool(row[2]),
-                    'num_puller_requests_made':         row[3],
-                    'num_puller_requests_finished':     row[4],
-                    'num_ingester_requests_made':       row[5],
-                    'num_ingester_requests_finished':   row[6]
+                    'num_favorites':                    row[1],
+                    'num_neighbors':                    row[2],
+                    'have_initially_processed_data':    bool(row[3]),
+                    'currently_processing_data':        bool(row[4]),
+                    'num_puller_requests_made':         row[5],
+                    'num_puller_requests_finished':     row[6],
+                    'num_ingester_requests_made':       row[7],
+                    'num_ingester_requests_finished':   row[8]
                 }
 
         except Exception as e:

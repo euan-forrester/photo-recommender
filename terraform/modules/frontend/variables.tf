@@ -11,7 +11,7 @@ variable "frontend_access_logs_bucket" {}
 variable "retain_frontend_access_logs_after_destroy" {}
 variable "days_to_keep_frontend_access_logs" {}
 variable "bucketname_user_string" {}
-variable "use_https" {}
+variable "use_custom_domain" {}
 variable "ssl_certificate_body" {}
 variable "ssl_certificate_private_key" {}
 variable "ssl_certificate_chain" {}

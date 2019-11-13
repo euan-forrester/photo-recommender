@@ -231,7 +231,8 @@ Point your browser there and enjoy!
   - AWS API Gateway?
 - Consider normalizing the `favorites` table by splitting it into a table that just has the photos, and another table of who's favorited them
   - What is the impact on write throughput of this change?
-- Add a message to the recommendations screen if the user doesn't have enough favorites to generate good recommendations. Suggest some groups to look at.
 - Highlight new recommendations by moving them to the top of the list. Maybe have a "first recommended on" field per user, and use that to boost score?
 - Move the domain into route53 and the SSL certificate into the AWS certificate manager
 - Investigate why puller-flickr often has such a long max time to process a single user
+- Remove already-favorited images from the AddFavorites screen
+- Add logout to the navigation bar

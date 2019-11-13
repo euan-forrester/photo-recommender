@@ -61,6 +61,7 @@ server_port                 = config_helper.getInt("server-port")
 session_encryption_key      = config_helper.get("session-encryption-key", is_secret=True)
 default_num_photo_recommendations = config_helper.getInt('default-num-photo-recommendations')
 default_num_user_recommendations = config_helper.getInt('default-num-user-recommendations')
+default_num_photos_from_group = config_helper.getInt('default-num-photos-from-group')
 
 flickr_api_key              = config_helper.get("flickr-api-key")
 flickr_api_secret           = config_helper.get("flickr-api-secret", is_secret=True)
@@ -298,11 +299,41 @@ def flickr_add_favorite():
     return "OK", status.HTTP_200_OK
 
 @application.route("/api/flickr/test/login", methods = ['POST'])
-def flickr_get_logged_in_user():
+def flickr_test_login():
     
+    # Note that this API function appears to be broken on the Flickr side: you can call it with
+    # the token from one user, and get back info about a different user. It seems to be related to
+    # having > 1 user account associated with each other, having been logged in from the same machine?
+
     full_token = _get_and_test_full_user_oauth_token(request)
 
     resp = jsonify(flickrapi.login_test(full_token))
+    resp.status_code = status.HTTP_200_OK
+
+    return resp  
+
+@application.route("/api/flickr/get-logged-in-user", methods = ['POST'])
+def flickr_get_logged_in_user():
+
+    # When the frontend calls our auth function, all they get back is a token. It's vue-authenticate
+    # doing the calling, so we can't return anything else in the response. We don't want the frontend
+    # to have to know how to parse the token to get the user's ID and name, so let's add a function
+    # here instead to do it so that all the knowledge of how the token is constructed is in one place.
+    #
+    # Note that we tried using the flickr/test/login API function to do this, which would give us
+    # a bit of extra feeling that we've done everything right because it would be testing the token for us.
+    # However, as you can see above, this function appears to be broken on the Flickr side and can return
+    # the wrong token for a given user in some circumstances.
+
+    full_token = _get_and_test_full_user_oauth_token(request)
+
+    response_object = {
+        'user_nsid': full_token.user_nsid,
+        'username': full_token.username, 
+        'fullname': full_token.fullname
+    }
+
+    resp = jsonify(response_object)
     resp.status_code = status.HTTP_200_OK
 
     return resp  
@@ -612,6 +643,33 @@ def get_flickr_get_contacts():
         return parameter_not_specified("user-id")
 
     resp = jsonify(flickrapi.get_contacts(user_id=user_id, max_contacts_per_call=1000))
+    resp.status_code = status.HTTP_200_OK
+
+    return resp
+
+@application.route("/api/flickr/groups/get-info", methods = ['GET'])
+def get_flickr_get_group_info():
+
+    group_id = request.args.get("group-id")
+
+    if not group_id:
+        return parameter_not_specified("group-id")
+
+    resp = jsonify(flickrapi.get_group_info(group_id=group_id))
+    resp.status_code = status.HTTP_200_OK
+
+    return resp
+
+@application.route("/api/flickr/groups/pools/get-photos", methods = ['GET'])
+def get_flickr_get_group_photos():
+
+    group_id    = request.args.get("group-id")
+    num_photos  = int(request.args.get('num-photos', default_num_photos_from_group))
+
+    if not group_id:
+        return parameter_not_specified("group-id")
+
+    resp = jsonify(flickrapi.get_group_photos(group_id=group_id, num_photos=num_photos))
     resp.status_code = status.HTTP_200_OK
 
     return resp

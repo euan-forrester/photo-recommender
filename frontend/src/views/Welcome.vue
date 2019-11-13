@@ -149,7 +149,7 @@
 <script>
 import { validationMixin } from 'vuelidate';
 import { required, url, numeric } from 'vuelidate/lib/validators';
-import vueAuth from '../auth';
+import config from '../config';
 
 export default {
   mixins: [validationMixin],
@@ -171,13 +171,6 @@ export default {
         && (this.currentState !== 'none');
     },
     processingInitialDataProgressCurrentValue() {
-      // A request isn't completely finished until it's both been pulled from the external API and
-      // ingested into our database, so pick the minimum here.
-      const numRequestsCompleted = Math.min(
-        this.$store.state.welcome.user.numPullerRequestsFinished,
-        this.$store.state.welcome.user.numIngesterRequestsFinished,
-      );
-
       if (this.processingInitialDataProgressMaxValue <= 2) {
         // We initially make 2 requests for a given user: for their favorites and for their contacts.
         // Once the initial request for their favorites comes back, we know how many neighbors they
@@ -188,15 +181,10 @@ export default {
         return 0;
       }
 
-      return numRequestsCompleted;
+      return this.$store.getters.numRequestsCompleted;
     },
     processingInitialDataProgressMaxValue() {
-      // These 2 numbers should be the same (we have a one-to-one mapping of puller requests to
-      // ingester requests), but pick the max just to be safe.
-      return Math.max(
-        this.$store.state.welcome.user.numPullerRequestsMade,
-        this.$store.state.welcome.user.numIngesterRequestsMade,
-      );
+      return this.$store.getters.numRequestsMade;
     },
   },
   validations: {
@@ -222,7 +210,7 @@ export default {
         // Refreshing can empty our store but leave our local storage with the token, so we still need to refresh our
         // store by calling getUserIdCurrentlyLoggedIn, even if we've already authenticated
 
-        if (!vueAuth.isAuthenticated()) {
+        if (!this.$store.getters.isAuthenticated()) {
           await this.$store.dispatch('login');
         }
 
@@ -250,7 +238,6 @@ export default {
 
       // Before do anything, log out our current user (if any) because we want to be in
       // unauthenticated mode to display our results
-
       try {
         await this.$store.dispatch('logout');
       } catch (error) {
@@ -324,13 +311,22 @@ export default {
         }
       }
 
-      // We have their data, so display their recommendations
+      // Next check if they have enough favorites to generate a good set of recommendations.
+      // If not, take them to an onboarding screen where they can add some favorites first.
 
-      this.$router.push({
-        name: 'recommendations',
-        params: { userId: this.$store.state.welcome.user.id },
-        query: { 'num-photos': this.numPhotos, 'num-users': this.numUsers },
-      });
+      if ((this.$store.state.welcome.user.numFavorites >= config.minNumFavoritesForRecommendations)
+        && (this.$store.state.welcome.user.numNeighbors >= config.minNumNeighborsForRecommendations)) {
+        this.$router.push({
+          name: 'recommendations',
+          params: { userId: this.$store.state.welcome.user.id },
+          query: { 'num-photos': this.numPhotos, 'num-users': this.numUsers },
+        }); // Note that the navigation can "fail" if there's a router guard that redirects it elsewhere. May want to add .catch(() => {}) here. See https://github.com/vuejs/vue-router/issues/2881#issuecomment-520554378
+      } else {
+        this.$router.push({
+          name: 'add-favorites',
+          params: { userId: this.$store.state.welcome.user.id },
+        }); // Note that the navigation can "fail" if there's a router guard that redirects it elsewhere. May want to add .catch(() => {}) here. See https://github.com/vuejs/vue-router/issues/2881#issuecomment-520554378
+      }
     },
     dismissPopovers() {
       // When we disable the button it won't receive mouse events anymore and so its popover will stay forever.

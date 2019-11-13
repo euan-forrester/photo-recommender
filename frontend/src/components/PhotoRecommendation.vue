@@ -8,16 +8,18 @@
       </b-col>
       <b-col cols=1>
         <div v-if="this.userAuthenticated">
-          <DismissButton
-            @click="onDismiss()"
-            :class="$mq | mq({
-              xs: 'dismissbutton-sm',
-              sm: 'dismissbutton-sm',
-              md: 'dismissbutton-sm',
-              lg: 'dismissbutton-lg',
-              xl: 'dismissbutton-lg',
-            })"
-          ></DismissButton>
+          <div v-if="this.dismissButton">
+            <DismissButton
+              @click="onDismiss()"
+              :class="$mq | mq({
+                xs: 'dismissbutton-sm',
+                sm: 'dismissbutton-sm',
+                md: 'dismissbutton-sm',
+                lg: 'dismissbutton-lg',
+                xl: 'dismissbutton-lg',
+              })"
+            ></DismissButton>
+          </div>
           <AddButton
             @click="onAddFavorite()"
             :class="$mq | mq({
@@ -152,6 +154,10 @@ export default {
     imageOwner: String,
     imageUrl: String,
     userAuthenticated: Boolean,
+    dismissButton: {
+      type: Boolean,
+      default: true,
+    },
   },
   data() {
     return {
@@ -178,8 +184,13 @@ export default {
       // This call hides all popovers: there should be only one, just at the mouse cursor
       // https://github.com/bootstrap-vue/bootstrap-vue/issues/1161
       this.$root.$emit('bv::hide::popover');
-      await FlickrRepository.addFavorite(this.imageId, this.imageOwner, this.imageUrl);
+      try {
+        await FlickrRepository.addFavorite(this.imageId, this.imageOwner, this.imageUrl);
+      } catch (e) {
+        // TODO: Display a nice message saying we can't talk to the server
+      }
       this.photoFavedState = 'checked';
+      this.$emit('added-favorite');
     },
     async onAddComment() {
       this.commentAddedState = 'loading';

@@ -57,8 +57,12 @@ export default {
   async mounted() {
     this.userId = this.$route.params.userId;
     this.userAuthenticated = (this.$store.getters.isAuthenticated());// && (this.userId === this.$store.state.welcome.user.id)); // Make sure that our route matches the user we authenticated with. Otherwise, if someone cheeky entered a different user into the URL bar just show the unauthenticated view
-    const numPhotos = this.$route.query && this.$route.query['num-photos'] ? this.$route.query['num-photos'] : 50;
-    const numUsers = this.$route.query && this.$route.query['num-users'] ? this.$route.query['num-users'] : 5;
+    const numPhotos = this.$route.query && this.$route.query['num-photos']
+      ? this.$route.query['num-photos']
+      : this.appConfig.defaultNumPhotoRecommendations;
+    const numUsers = this.$route.query && this.$route.query['num-users']
+      ? this.$route.query['num-users']
+      : this.appConfig.defaultNumUserRecommendations;
 
     try {
       await this.$store.dispatch('getRecommendationsForUser', { userId: this.userId, numPhotos, numUsers });

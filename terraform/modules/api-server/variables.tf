@@ -31,6 +31,7 @@ variable "bucketname_user_string" {}
 variable "retain_load_balancer_access_logs_after_destroy" {}
 variable "default_num_photo_recommendations" {}
 variable "default_num_user_recommendations" {}
+variable "default_num_photos_from_group" {}
 variable "flickr_api_key" {}
 variable "flickr_secret_key" {}
 variable "flickr_api_retries" {}
