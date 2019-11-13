@@ -330,7 +330,7 @@ module "frontend" {
     retain_frontend_access_logs_after_destroy = "false" # For dev, we don't care about retaining these logs after doing a terraform destroy
     days_to_keep_frontend_access_logs = 30
 
-    use_https                   = "true"
+    use_custom_domain           = "true"
     ssl_certificate_body        = "${var.ssl_certificate_body}"
     ssl_certificate_private_key = "${var.ssl_certificate_private_key}"
     ssl_certificate_chain       = "${var.ssl_certificate_chain}"

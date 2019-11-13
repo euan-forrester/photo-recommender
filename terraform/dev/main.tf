@@ -33,9 +33,9 @@ module "elastic_container_service" {
     extra_security_groups = ["${module.api_server.security_group_id}"]
 
     instance_type = "t2.micro"#"c5.large"#"t2.micro"
-    cluster_desired_size = 0#2#20
+    cluster_desired_size = 2#0#2#20
     cluster_min_size = 0
-    cluster_max_size = 0#2#20
+    cluster_max_size = 2#0#2#20
     instances_log_retention_days = 1
 }
 
@@ -330,7 +330,7 @@ module "frontend" {
     retain_frontend_access_logs_after_destroy = "false" # For dev, we don't care about retaining these logs after doing a terraform destroy
     days_to_keep_frontend_access_logs = 1
 
-    use_https                   = "false"
+    use_custom_domain           = "false"
     ssl_certificate_body        = "${var.ssl_certificate_body}"
     ssl_certificate_private_key = "${var.ssl_certificate_private_key}"
     ssl_certificate_chain       = "${var.ssl_certificate_chain}"
