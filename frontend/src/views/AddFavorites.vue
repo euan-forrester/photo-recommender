@@ -136,7 +136,7 @@ export default {
     },
     userProcessingStatusIsDirty() {
       return this.$store.state.welcome.user.processingStatusIsDirty;
-    }
+    },
   },
   async mounted() {
     this.userName = this.$store.state.welcome.user.name;
@@ -146,8 +146,10 @@ export default {
     this.groupIds = this.appConfig.recommendedGroupsToFindFavorites;
     this.numPhotosPerGroup = this.appConfig.recommendedGroupsNumPhotosToShow;
 
-    // Refresh our store so we know how many favorites/neighbors we have
-    await this.$store.dispatch('getUserInfo', this.userId); // eslint-disable-line no-await-in-loop
+    if (this.userProcessingStatusIsDirty) {
+      // Refresh our store so we know how many favorites/neighbors we have
+      await this.$store.dispatch('getUserInfo', this.userId);
+    }
   },
   methods: {
     toRecommendations() {

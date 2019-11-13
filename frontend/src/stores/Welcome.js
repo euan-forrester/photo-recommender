@@ -52,7 +52,7 @@ export default {
       state.user.numPullerRequestsFinished = numPullerRequestsFinished;
       state.user.numIngesterRequestsMade = numIngesterRequestsMade;
       state.user.numIngesterRequestsFinished = numIngesterRequestsFinished;
-      state.user.processingStatusIsDirty = false
+      state.user.processingStatusIsDirty = false;
     },
   },
   actions: {
