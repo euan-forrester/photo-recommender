@@ -8,15 +8,17 @@
           </h3>
         </b-col>
       </b-row>
-      <b-row align-h="center">
-        <b-col xs=12 sm=8 md=6 class="minnumfavorites">
-          <h4>
-            They have {{ this.numFavorites }} favorites from {{ this.numNeighbors }} different users, but need at least
-            {{ appConfig.minNumFavoritesForRecommendations }} favorites from at least
-            {{ appConfig.minNumNeighborsForRecommendations }} different users.
-          </h4>
-        </b-col>
-      </b-row>
+      <div v-if="!userProcessingStatusIsDirty">
+        <b-row align-h="center">
+          <b-col xs=12 sm=8 md=6 class="minnumfavorites">
+            <h4>
+              They have {{ this.numFavorites }} favorites from {{ this.numNeighbors }} different users, but need at least
+              {{ appConfig.minNumFavoritesForRecommendations }} favorites from at least
+              {{ appConfig.minNumNeighborsForRecommendations }} different users.
+            </h4>
+          </b-col>
+        </b-row>
+      </div>
       <b-row align-h="center">
         <b-col xs=12 sm=8 md=6 class="backtowelcome">
           <h4>
@@ -26,33 +28,35 @@
       </b-row>
     </div>
     <div v-else>
-      <div v-if="!hasEnoughRecommendations">
+      <div v-if="!userProcessingStatusIsDirty">
+        <div v-if="!hasEnoughRecommendations">
+          <b-row align-h="center">
+            <b-col xs=12 sm=8 md=6 class="notenoughfavorites">
+              <h3>
+                Sorry, you don't have enough favorites to generate any recommendations.
+              </h3>
+            </b-col>
+          </b-row>
+        </div>
+        <div v-else>
+          <b-row align-h="center">
+            <b-col cols=8>
+              <b-button block variant='primary' class="torecommendations" @click="toRecommendations()">
+                  Take me to my recommendations
+              </b-button>
+            </b-col>
+          </b-row>
+        </div>
         <b-row align-h="center">
-          <b-col xs=12 sm=8 md=6 class="notenoughfavorites">
-            <h3>
-              Sorry, you don't have enough favorites to generate any recommendations.
-            </h3>
+          <b-col xs=12 sm=8 md=6 class="minnumfavorites">
+            <h4>
+              You have {{ this.numFavorites }} favorites from {{ this.numNeighbors }} different users, and need at least
+              {{ appConfig.minNumFavoritesForRecommendations }} favorites from at least
+              {{ appConfig.minNumNeighborsForRecommendations }} different users.
+            </h4>
           </b-col>
         </b-row>
       </div>
-      <div v-else>
-        <b-row align-h="center">
-          <b-col cols=8>
-            <b-button block variant='primary' class="torecommendations" @click="toRecommendations()">
-                Take me to my recommendations
-            </b-button>
-          </b-col>
-        </b-row>
-      </div>
-      <b-row align-h="center">
-        <b-col xs=12 sm=8 md=6 class="minnumfavorites">
-          <h4>
-            You have {{ this.numFavorites }} favorites from {{ this.numNeighbors }} different users, and need at least
-            {{ appConfig.minNumFavoritesForRecommendations }} favorites from at least
-            {{ appConfig.minNumNeighborsForRecommendations }} different users.
-          </h4>
-        </b-col>
-      </b-row>
       <b-row align-h="center">
         <b-col xs=12 sm=8 md=6 class="minnumfavorites">
           <h4>
@@ -130,6 +134,9 @@ export default {
       return (this.numFavorites >= this.appConfig.minNumFavoritesForRecommendations)
         && (this.numNeighbors >= this.appConfig.minNumNeighborsForRecommendations);
     },
+    userProcessingStatusIsDirty() {
+      return this.$store.state.welcome.user.processingStatusIsDirty;
+    }
   },
   async mounted() {
     this.userName = this.$store.state.welcome.user.name;
@@ -138,6 +145,9 @@ export default {
     this.userAuthenticated = this.$store.getters.isAuthenticated();
     this.groupIds = this.appConfig.recommendedGroupsToFindFavorites;
     this.numPhotosPerGroup = this.appConfig.recommendedGroupsNumPhotosToShow;
+
+    // Refresh our store so we know how many favorites/neighbors we have
+    await this.$store.dispatch('getUserInfo', this.userId); // eslint-disable-line no-await-in-loop
   },
   methods: {
     toRecommendations() {

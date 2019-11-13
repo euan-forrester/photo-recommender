@@ -18,6 +18,7 @@ export default {
       numPullerRequestsFinished: 0,
       numIngesterRequestsMade: 0,
       numIngesterRequestsFinished: 0,
+      processingStatusIsDirty: true, // If true, then the above numbers are not reflective of the state of the database
     },
   },
   getters: {
@@ -51,6 +52,7 @@ export default {
       state.user.numPullerRequestsFinished = numPullerRequestsFinished;
       state.user.numIngesterRequestsMade = numIngesterRequestsMade;
       state.user.numIngesterRequestsFinished = numIngesterRequestsFinished;
+      state.user.processingStatusIsDirty = false
     },
   },
   actions: {
@@ -69,6 +71,7 @@ export default {
         numPullerRequestsFinished: 0,
         numIngesterRequestsMade: 0,
         numIngesterRequestsFinished: 0,
+        processingStatusIsDirty: true,
       };
 
       commit('setUser', user);
@@ -88,6 +91,7 @@ export default {
         numPullerRequestsFinished: 0,
         numIngesterRequestsMade: 0,
         numIngesterRequestsFinished: 0,
+        processingStatusIsDirty: true,
       };
 
       commit('setUser', user);
