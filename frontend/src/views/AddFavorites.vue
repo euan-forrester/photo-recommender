@@ -1,5 +1,8 @@
 <template>
   <div>
+    <b-alert variant="danger" :show="this.encounteredApiError">
+      Encountered an error trying to get the requested information. Please try again later.
+    </b-alert>
     <div v-if="!userAuthenticated">
       <b-row align-h="center">
         <b-col xs=12 sm=8 md=6 class="notenoughfavorites">
@@ -71,6 +74,7 @@
         v-bind:groupId="groupId"
         v-bind:numPhotos="numPhotosPerGroup"
         v-bind:userAuthenticated="userAuthenticated"
+        v-on:added-favorite="onAddedFavorite()"
         class="groupphoto"
       >
       </GroupPhotos>
@@ -121,6 +125,7 @@ export default {
       userAuthenticated: false,
       groupIds: [],
       numPhotosPerGroup: 0,
+      encounteredApiError: false,
     };
   },
   computed: {
@@ -136,7 +141,7 @@ export default {
     },
     userProcessingStatusIsDirty() {
       return this.$store.state.welcome.user.processingStatusIsDirty;
-    }
+    },
   },
   async mounted() {
     this.userName = this.$store.state.welcome.user.name;
@@ -146,8 +151,10 @@ export default {
     this.groupIds = this.appConfig.recommendedGroupsToFindFavorites;
     this.numPhotosPerGroup = this.appConfig.recommendedGroupsNumPhotosToShow;
 
-    // Refresh our store so we know how many favorites/neighbors we have
-    await this.$store.dispatch('getUserInfo', this.userId); // eslint-disable-line no-await-in-loop
+    if (this.userProcessingStatusIsDirty) {
+      // Refresh our store so we know how many favorites/neighbors we have
+      await this.getUserInfo();
+    }
   },
   methods: {
     toRecommendations() {
@@ -155,6 +162,32 @@ export default {
         name: 'recommendations',
         params: { userId: this.$store.state.welcome.user.id },
       }).catch(() => {}); // This might throw an error if the navigation "fails" because a router guard intercepts it
+    },
+    async onAddedFavorite() {
+      // Keep calling getUserInfo until the data for this latest favorite has been pulled, and thus our
+      // counts of how many faves & neighbors they have are updated
+
+      // TODO: Had to disble a lint error to get this to work, which seems to indicate that this is not the best approach.
+      // Need to do more googling.
+      // The lint error is intended to encourage better performance by having people await multiple things rather than one at a time.
+
+      async function delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+      }
+
+      await this.getUserInfo();
+
+      while (this.$store.getters.numRequestsCompleted < this.$store.getters.numRequestsMade) {
+        await delay(1000); // eslint-disable-line no-await-in-loop
+        await this.getUserInfo(); // eslint-disable-line no-await-in-loop
+      }
+    },
+    async getUserInfo() {
+      try {
+        await this.$store.dispatch('getUserInfo', this.userId);
+      } catch (error) {
+        this.encounteredApiError = true;
+      }
     },
   },
 };
