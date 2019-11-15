@@ -2,9 +2,16 @@
   <div role="tablist">
     <b-card no-body class="mb-1">
       <b-card-header header-tag="header" class="p-1" role="tab">
-        <b-button block href="#" v-b-toggle="`accordion-${this.groupId}`" variant="info">
-          {{ this.groupInfo.groupName }}
-        </b-button>
+        <div v-if="this.encounteredApiError">
+          <b-alert variant="danger" :show="true">
+            Could not get the requested information. Please try again later.
+          </b-alert>
+        </div>
+        <div v-else>
+          <b-button block href="#" v-b-toggle="`accordion-${this.groupId}`" variant="info">
+            {{ this.groupInfo.groupName }}
+          </b-button>
+        </div>
       </b-card-header>
       <b-collapse :id="`accordion-${this.groupId}`" accordion="groups-accordion" role="tabpanel">
         <b-card-body>
@@ -60,36 +67,20 @@ export default {
         groupName: '',
       },
       visible: true,
+      encounteredApiError: false,
     };
   },
   async mounted() {
-    await this.$store.dispatch('getGroupInfo', { groupId: this.groupId, numPhotos: this.numPhotos });
-    this.groupInfo = this.$store.state.addfavorites.groupInfo[this.groupId];
+    try {
+      await this.$store.dispatch('getGroupInfo', { groupId: this.groupId, numPhotos: this.numPhotos });
+      this.groupInfo = this.$store.state.addfavorites.groupInfo[this.groupId];
+    } catch (error) {
+      this.encounteredApiError = true;
+    }
   },
   methods: {
     async onAddedFavorite() {
-      // Keep calling getUserInfo until the data for this latest favorite has been pulled, and thus our
-      // counts of how many faves & neighbors they have are updated
-
-      // TODO: Had to disble a lint error to get this to work, which seems to indicate that this is not the best approach.
-      // Need to do more googling.
-      // The lint error is intended to encourage better performance by having people await multiple things rather than one at a time.
-
-      async function delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-      }
-
-      await this.$store.dispatch('getUserInfo', this.userId); // eslint-disable-line no-await-in-loop
-
-      while (this.$store.getters.numRequestsCompleted < this.$store.getters.numRequestsMade) {
-        await delay(1000); // eslint-disable-line no-await-in-loop
-
-        try {
-          await this.$store.dispatch('getUserInfo', this.userId); // eslint-disable-line no-await-in-loop
-        } catch (error) {
-          // TODO: Display an error message to the user saying the API server is unavailable
-        }
-      }
+      this.$emit('added-favorite');
     },
   },
 };
