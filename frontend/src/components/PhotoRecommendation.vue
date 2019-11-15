@@ -36,6 +36,9 @@
         </div>
       </b-col>
     </b-row>
+    <b-alert variant="danger" :show="this.encounteredApiError">
+      Encountered a problem sending the requested information. Please try again later.
+    </b-alert>
     <div v-if="this.userAuthenticated">
       <b-row class="commentbox">
         <b-col cols=7 lg=4>
@@ -167,6 +170,7 @@ export default {
       commentAddedState: 'unchecked',
       commentText: '',
       commentTextHasFocus: false,
+      encounteredApiError: false,
     };
   },
   async mounted() {
@@ -174,9 +178,12 @@ export default {
   },
   methods: {
     async onDismiss() {
-      this.visible = false;
-
-      await this.$store.dispatch('dismissPhotoRecommendation', { userId: this.userId, dismissedImageId: this.imageId });
+      try {
+        this.visible = false;
+        await this.$store.dispatch('dismissPhotoRecommendation', { userId: this.userId, dismissedImageId: this.imageId });
+      } catch (e) {
+        this.encounteredApiError = true;
+      }
     },
     async onAddFavorite() {
       this.photoFavedState = 'loading';
@@ -187,15 +194,19 @@ export default {
       try {
         await FlickrRepository.addFavorite(this.imageId, this.imageOwner, this.imageUrl);
       } catch (e) {
-        // TODO: Display a nice message saying we can't talk to the server
+        this.encounteredApiError = true;
       }
       this.photoFavedState = 'checked';
       this.$emit('added-favorite');
     },
     async onAddComment() {
-      this.commentAddedState = 'loading';
-      await FlickrRepository.addComment(this.imageId, this.commentText);
-      this.commentAddedState = 'checked';
+      try {
+        this.commentAddedState = 'loading';
+        await FlickrRepository.addComment(this.imageId, this.commentText);
+        this.commentAddedState = 'checked';
+      } catch (e) {
+        this.encounteredApiError = true;
+      }
     },
   },
 };
