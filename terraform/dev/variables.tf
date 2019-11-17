@@ -14,3 +14,4 @@ variable "api_server_session_encryption_key_dev" {}
 variable "ssl_certificate_body" {}
 variable "ssl_certificate_private_key" {}
 variable "ssl_certificate_chain" {}
+variable "project_github_location" {}

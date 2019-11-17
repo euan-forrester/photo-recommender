@@ -4,6 +4,9 @@ local_machine_cidr = "A.B.C.D/32"
 # Replace this with the public key for your local machine, to allow it to log into EC2 instances
 local_machine_public_key = "ssh-rsa blahblahblah a@b.com"
 
+# Replace with the location of your fork of this project
+project_github_location = "https://github.com/euan-forrester/photo-recommender.git"
+
 flickr_api_key = ""
 flickr_secret_key = "" 
 
