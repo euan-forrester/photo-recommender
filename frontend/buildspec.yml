@@ -1,0 +1,11 @@
+phases:
+  install:
+    commands:
+      - cd /frontend
+      - yarn install
+  build:
+    commands:
+      - yarn build --mode=production
+  post_build:
+    commands:
+      - yarn deploy --mode=$ENVIRONMENT
