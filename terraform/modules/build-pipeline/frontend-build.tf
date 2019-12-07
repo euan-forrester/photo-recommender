@@ -19,6 +19,11 @@ resource "aws_codebuild_project" "frontend" {
     image                       = "aws/codebuild/standard:1.0"
     type                        = "LINUX_CONTAINER"
     image_pull_credentials_type = "CODEBUILD"
+  
+    environment_variable {
+      name  = "ENVIRONMENT"
+      value = "development"
+    }
   }
 
   logs_config {
@@ -36,18 +41,17 @@ resource "aws_codebuild_project" "frontend" {
   source {
     type            = "GITHUB"
     location        = "${var.project_github_location}"
+    buildspec       = "frontend/buildspec.yml"
     git_clone_depth = 1
-  }
-
-  vpc_config {
-    vpc_id = "${var.vpc_id}"
-    subnets = ["${var.vpc_subnet_ids}"]
-    security_group_ids = ["${aws_security_group.code_build.id}"]
   }
 
   tags = {
     Environment = "${var.environment}"
   }
+
+  # It would be preferable to have these builds happen in our own VPC, but the machines have to
+  # be on a private subnet with access to the Internet, which requires a NAT, which incurs billing charges.
+  # So just have them be in the default VPC instead
 }
 
 resource "aws_codebuild_webhook" "example" {

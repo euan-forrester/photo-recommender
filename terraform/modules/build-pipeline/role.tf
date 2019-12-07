@@ -1,4 +1,5 @@
 # Copied from https://www.terraform.io/docs/providers/aws/r/codebuild_project.html
+# The policy is also detailed here: https://docs.aws.amazon.com/codebuild/latest/userguide/auth-and-access-control-iam-identity-based-access-control.html#customer-managed-policies-example-create-vpc-network-interface
 
 data "aws_caller_identity" "build_pipeline" {
   
@@ -40,34 +41,6 @@ resource "aws_iam_role_policy" "build_pipeline" {
         "logs:CreateLogStream",
         "logs:PutLogEvents"
       ]
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "ec2:CreateNetworkInterface",
-        "ec2:DescribeDhcpOptions",
-        "ec2:DescribeNetworkInterfaces",
-        "ec2:DeleteNetworkInterface",
-        "ec2:DescribeSubnets",
-        "ec2:DescribeSecurityGroups",
-        "ec2:DescribeVpcs"
-      ],
-      "Resource": "*"
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "ec2:CreateNetworkInterfacePermission"
-      ],
-      "Resource": [
-        "arn:aws:ec2:${var.region}:${data.aws_caller_identity.build_pipeline.account_id}:network-interface/*"
-      ],
-      "Condition": {
-        "StringEquals": {
-          "ec2:Subnet": ${jsonencode(var.vpc_subnet_ids)},
-          "ec2:AuthorizedService": "codebuild.amazonaws.com"
-        }
-      }
     },
     {
       "Effect": "Allow",

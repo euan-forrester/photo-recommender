@@ -23,10 +23,6 @@ module "build-pipeline" {
     environment = "${var.environment}"
     region = "${var.region}"
 
-    vpc_id           = "${module.vpc.vpc_id}"
-    vpc_subnet_ids   = "${module.vpc.vpc_public_subnet_ids}"
-    local_machine_cidr = "${var.local_machine_cidr}"
-
     project_github_location = "${var.project_github_location}"
 
     build_logs_bucket = "build-logs"
