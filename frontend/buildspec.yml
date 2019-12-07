@@ -3,7 +3,7 @@ version: 0.1
 phases:
   install:
     commands:
-      - cd /frontend
+      - cd frontend
       - yarn install
   build:
     commands:
