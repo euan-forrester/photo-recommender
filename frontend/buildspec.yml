@@ -10,14 +10,17 @@ phases:
     commands:
       - echo Entered the pre_build phase...
       - cd frontend
+      - pwd
       - yarn install
   build:
     commands:
       - echo Entered the build phase...
       - cd frontend
+      - pwd
       - yarn build --mode=production
   post_build:
     commands:
       - echo Entered the post_build phase...
       - cd frontend
+      - pwd
       - yarn deploy --mode=$ENVIRONMENT
