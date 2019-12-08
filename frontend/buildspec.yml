@@ -14,8 +14,10 @@ phases:
   build:
     commands:
       - echo Entered the build phase...
+      - cd frontend
       - yarn build --mode=production
   post_build:
     commands:
       - echo Entered the post_build phase...
+      - cd frontend
       - yarn deploy --mode=$ENVIRONMENT
