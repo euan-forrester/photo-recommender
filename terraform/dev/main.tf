@@ -24,6 +24,7 @@ module "build-pipeline" {
     region = "${var.region}"
 
     project_github_location = "${var.project_github_location}"
+    s3_deployment_bucket_arn = "${module.frontend.s3_deployment_bucket_arn}"
 
     build_logs_bucket = "build-logs"
     bucketname_user_string  = "${var.bucketname_user_string}"
