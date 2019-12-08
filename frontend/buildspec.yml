@@ -3,22 +3,15 @@ version: 0.2
 phases:
   install:
     commands:
-      - echo Entered the install phase...
       - apt-get update -y
       - apt-get install -y yarn
   pre_build:
     commands:
-      - echo Entered the pre_build phase...
       - cd frontend
-      - pwd
       - yarn install
   build:
     commands:
-      - echo Entered the build phase...
-      - pwd
       - yarn build --mode=production
   post_build:
     commands:
-      - echo Entered the post_build phase...
-      - pwd
       - yarn deploy --mode=$ENVIRONMENT
