@@ -15,3 +15,8 @@ phases:
   post_build:
     commands:
       - yarn deploy --mode=$ENVIRONMENT
+artifacts:
+  files:
+    - '**/*'
+  discard-paths: no
+  base-directory: dist
