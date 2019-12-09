@@ -43,9 +43,13 @@ resource "aws_iam_role_policy" "build_pipeline" {
       ]
     },
     {
+      "Sid": "S3AccessPolicy",
       "Effect": "Allow",
       "Action": [
-        "s3:*"
+        "s3:CreateBucket",
+        "s3:GetObject",
+        "s3:List*",
+        "s3:PutObject"
       ],
       "Resource": [
         "${aws_s3_bucket.build_logs.arn}",
@@ -53,11 +57,25 @@ resource "aws_iam_role_policy" "build_pipeline" {
       ]
     },
     {
+      "Sid": "S3BucketIdentity",
       "Effect": "Allow",
       "Action": [
-        "s3:PutObject"
+        "s3:GetBucketAcl",
+        "s3:GetBucketLocation"
       ],
       "Resource": [
+        "${aws_s3_bucket.build_logs.arn}"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:ListBucket",
+        "s3:PutObject*",
+        "s3:PutBucketWebsite"
+      ],
+      "Resource": [
+        "${var.s3_deployment_bucket_arn}",
         "${var.s3_deployment_bucket_arn}/*"
       ]
     },
