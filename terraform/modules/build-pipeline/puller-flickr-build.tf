@@ -34,6 +34,8 @@ resource "aws_codebuild_project" "puller-flickr" {
 
     # These needed for building docker images
 
+    # FIXME: Make these dynamic blocks after upgrading to terraform 0.12
+
     environment_variable {
       name  = "AWS_DEFAULT_REGION"
       value = "${var.region}"
