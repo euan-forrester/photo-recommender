@@ -49,8 +49,15 @@ resource "aws_iam_role_policy" "build_pipeline" {
       ],
       "Resource": [
         "${aws_s3_bucket.build_logs.arn}",
-        "${aws_s3_bucket.build_logs.arn}/*",
-        "${var.s3_deployment_bucket_arn}",
+        "${aws_s3_bucket.build_logs.arn}/*"
+      ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject"
+      ],
+      "Resource": [
         "${var.s3_deployment_bucket_arn}/*"
       ]
     },
