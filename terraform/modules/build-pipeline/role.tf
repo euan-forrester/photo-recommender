@@ -53,6 +53,18 @@ resource "aws_iam_role_policy" "build_pipeline" {
         "${var.s3_deployment_bucket_arn}",
         "${var.s3_deployment_bucket_arn}/*"
       ]
+    },
+    {
+      "Action": [
+        "ecr:BatchCheckLayerAvailability",
+        "ecr:CompleteLayerUpload",
+        "ecr:GetAuthorizationToken",
+        "ecr:InitiateLayerUpload",
+        "ecr:PutImage",
+        "ecr:UploadLayerPart"
+      ],
+      "Resource": "*",
+      "Effect": "Allow"
     }
   ]
 }

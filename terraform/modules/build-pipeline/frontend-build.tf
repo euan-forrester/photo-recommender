@@ -16,13 +16,13 @@ resource "aws_codebuild_project" "frontend" {
 
   environment {
     compute_type                = "BUILD_GENERAL1_SMALL"
-    image                       = "aws/codebuild/standard:1.0"
+    image                       = "aws/codebuild/standard:3.0"
     type                        = "LINUX_CONTAINER"
     image_pull_credentials_type = "CODEBUILD"
   
     environment_variable {
       name  = "ENVIRONMENT"
-      value = "development"
+      value = "${var.environment_long_name}"
     }
   }
 
@@ -54,7 +54,7 @@ resource "aws_codebuild_project" "frontend" {
   # So just have them be in the default VPC instead
 }
 
-resource "aws_codebuild_webhook" "example" {
+resource "aws_codebuild_webhook" "frontend" {
   project_name = "${aws_codebuild_project.frontend.name}"
 
   filter_group {
@@ -70,7 +70,7 @@ resource "aws_codebuild_webhook" "example" {
 
     filter {
       type = "FILE_PATH"
-      pattern = "/frontend/*"
+      pattern = "frontend/*"
     }
   }
 }

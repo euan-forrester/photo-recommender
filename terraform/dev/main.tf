@@ -21,6 +21,7 @@ module "build-pipeline" {
     source = "../modules/build-pipeline"
 
     environment = "${var.environment}"
+    environment_long_name = "${var.environment_long_name}"
     region = "${var.region}"
 
     project_github_location = "${var.project_github_location}"
@@ -30,6 +31,10 @@ module "build-pipeline" {
     bucketname_user_string  = "${var.bucketname_user_string}"
     retain_build_logs_after_destroy = "false" # For dev, we don't care about retaining these logs after doing a terraform destroy
     days_to_keep_build_logs = 1
+
+    # Temp, for refactor
+
+    puller_flickr_ecr_repo_name = "${module.puller_flickr.repository_name}" # Also delete outputs.tf from puller-flickr module
 }
 
 module "elastic_container_service" {

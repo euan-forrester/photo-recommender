@@ -22,6 +22,8 @@ from flickrapiwrapper import FlickrApiNotFoundException
 # Read in commandline arguments
 #
 
+print "blah blah blah blah"
+
 parser = argparse.ArgumentParser(description="Pull favorites data from Flickr and send it to SQS")
 
 parser.add_argument("-d", "--debug", action="store_true", dest="debug", default=False, help="Display debug information")
