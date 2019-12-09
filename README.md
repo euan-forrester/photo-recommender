@@ -73,6 +73,10 @@ brew install terraform
 brew install mysql
 ```
 
+#### Create a fork of this project
+
+In order to create the pipeline used to build this project, you must have your own fork so that you can connect AWS Code Build to your github account to receive events from it. If you don't create this fork, you can't connect Code Build to my github account :)
+
 #### Create an AWS account
 
 Go to https://aws.amazon.com/ and click on "Create an AWS Account"
@@ -85,6 +89,7 @@ Copy the file `terraform/aws_credentials.example` to `terraform/aws_credentials`
 Copy the file `terraform/terraform.tfvars.example` to `terraform/terraform.tfvars` 
 - Enter the CIDR of your local machine/network
 - Copy your ssh public key (contained in `~/.ssh/id_rsa.pub`. If that file doesn't exist, run `ssh-keygen -t rsa` to generate it)
+- Enter the github address of your fork of this project
 - Fill in your Flickr API key and secret: https://www.flickr.com/services/apps/create/apply
 - Fill in a master password for the various databases
 - If you're going to make a prod instance with a real domain, create an SSL certificate and fill in the details. There's good instructions here: https://itnext.io/using-letsencrypt-ssl-certificates-in-aws-certificate-manager-c2bc3c6ae10
@@ -110,6 +115,14 @@ cd terraform/dev
 ln -s ../terraform.tfvars terraform.tfvars
 terraform init
 terraform plan
+terraform apply
+```
+
+You will eventually get an error saying something similar to `"Could not find access token for server type github"`. Go into Code Build in the AWS console, choose each of the projects that was created, and connect them to your github account (where you have the fork of this project). This manual step cannot be automated. See https://docs.aws.amazon.com/codebuild/latest/userguide/sample-github-pull-request.html for more details.
+
+Then run terraform again:
+
+```
 terraform apply
 ```
 
@@ -209,7 +222,6 @@ Point your browser there and enjoy!
 ## To do
 
 - Upgrade to terraform v0.12
-- Make a build pipeline
 - Consider moving MySQL passwords into config files rather than passing on command line from terraform script
 - Add tests
 - Look into how to lock versions of python dependencies of our dependencies (rather than just the packages we explicitly reference)

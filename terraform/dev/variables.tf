@@ -1,5 +1,6 @@
 variable "region" { default = "us-west-2" }
 variable "environment" { default = "dev" }
+variable "environment_long_name" { default = "development" }
 variable "alarms_email" {}
 variable "metrics_namespace" { default = "Photo Recommender" }
 variable "local_machine_cidr" {}
@@ -14,3 +15,4 @@ variable "api_server_session_encryption_key_dev" {}
 variable "ssl_certificate_body" {}
 variable "ssl_certificate_private_key" {}
 variable "ssl_certificate_chain" {}
+variable "project_github_location" {}

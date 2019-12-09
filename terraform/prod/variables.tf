@@ -1,5 +1,6 @@
 variable "region" { default = "us-west-2" }
 variable "environment" { default = "prod" }
+variable "environment_long_name" { default = "production" }
 variable "alarms_email" {}
 variable "metrics_namespace" { default = "Photo Recommender" }
 variable "local_machine_cidr" {}
