@@ -8,7 +8,7 @@ resource "aws_codebuild_project" "puller-flickr" {
   name          = "puller-flickr-${var.environment}"
   description   = "Builds the ${var.environment} puller-flickr container"
   build_timeout = "5"
-  service_role  = "${aws_iam_role.build_pipeline.arn}"
+  service_role  = "${aws_iam_role.build_common_infrastructure.arn}"
   badge_enabled = true
 
   artifacts {

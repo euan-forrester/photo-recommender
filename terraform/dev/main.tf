@@ -17,8 +17,8 @@ module "vpc" {
     }
 }
 
-module "build-pipeline" {
-    source = "../modules/build-pipeline"
+module "build-common-infrastructure" {
+    source = "../modules/build-common-infrastructure"
 
     environment = "${var.environment}"
     environment_long_name = "${var.environment_long_name}"

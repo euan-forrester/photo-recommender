@@ -2,7 +2,7 @@ resource "aws_codebuild_project" "frontend" {
   name          = "frontend-${var.environment}"
   description   = "Builds the ${var.environment} frontend"
   build_timeout = "5"
-  service_role  = "${aws_iam_role.build_pipeline.arn}"
+  service_role  = "${aws_iam_role.build_common_infrastructure.arn}"
   badge_enabled = true
 
   artifacts {
