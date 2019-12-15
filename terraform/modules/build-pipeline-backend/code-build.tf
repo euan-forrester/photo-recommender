@@ -114,7 +114,7 @@ resource "aws_codebuild_webhook" "backend" {
 
     filter {
       type = "FILE_PATH"
-      pattern = "backend/common/*"
+      pattern = "${var.file_path_common}"
     }
   }
 }

@@ -240,6 +240,7 @@ module "puller_flickr" {
     build_logs_bucket_id        = "${module.build-common-infrastructure.build_logs_bucket_id}"
     buildspec_location          = "backend/buildspec.yml"
     file_path                   = "backend/puller-flickr/*"
+    file_path_common            = "backend/common/*"
     build_service_role_arn      = "${module.build-common-infrastructure.build_service_role_arn}"
 }
 
