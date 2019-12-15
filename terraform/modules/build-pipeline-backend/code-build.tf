@@ -53,6 +53,11 @@ resource "aws_codebuild_project" "backend" {
       name  = "IMAGE_REPO_NAME"
       value = "${var.container_repository_name}"
     }
+
+    environment_variable {
+      name  = "PROCESS_NAME"
+      value = "${var.process_name}"
+    }
   }
 
   logs_config {

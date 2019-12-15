@@ -239,7 +239,7 @@ module "puller_flickr" {
     process_name                = "puller-flickr"
     project_github_location     = "${var.project_github_location}"
     build_logs_bucket_id        = "${module.build-common-infrastructure.build_logs_bucket_id}"
-    buildspec_location          = "backend/puller-flickr/buildspec.yml"
+    buildspec_location          = "backend/buildspec.yml"
     file_path                   = "backend/puller-flickr/*"
     build_service_role_arn      = "${module.build-common-infrastructure.build_service_role_arn}"
 }
