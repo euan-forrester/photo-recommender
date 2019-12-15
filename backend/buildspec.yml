@@ -9,7 +9,7 @@ phases:
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
   build:
     commands:
-      - cd backend/puller-flickr
+      - cd backend/$PROCESS_NAME
       - docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME:$IMAGE_TAG -f ./Dockerfile ..   
   post_build:
     commands:
