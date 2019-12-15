@@ -198,7 +198,6 @@ module "puller_flickr" {
     source = "../modules/puller-flickr"
 
     environment = "${var.environment}"
-    environment_long_name = "${var.environment_long_name}"
     region = "${var.region}"
     metrics_namespace = "${var.metrics_namespace}"
 

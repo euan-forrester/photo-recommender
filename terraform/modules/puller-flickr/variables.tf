@@ -1,5 +1,4 @@
 variable "environment" {}
-variable "environment_long_name" {}
 variable "region" {}
 variable "metrics_namespace" {}
 variable "parameter_memcached_location" {}
@@ -29,7 +28,6 @@ variable "puller_queue_max_items_to_process" {}
 variable "puller_response_queue_url" {}
 variable "puller_response_queue_arn" {}
 variable "puller_response_queue_batch_size" {}
-
 variable "process_name" {}
 variable "project_github_location" {}
 variable "build_logs_bucket_id" {}

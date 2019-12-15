@@ -1,5 +1,4 @@
 variable "environment" {}
-variable "environment_long_name" {}
 variable "region" {}
 variable "process_name" {}
 variable "project_github_location" {}

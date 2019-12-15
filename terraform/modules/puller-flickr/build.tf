@@ -2,7 +2,6 @@ module "build" {
   source = "../build-pipeline-backend"
 
   environment               = "${var.environment}"
-  environment_long_name     = "${var.environment_long_name}"
   region                    = "${var.region}"
   process_name              = "${var.process_name}"
   project_github_location   = "${var.project_github_location}"

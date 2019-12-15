@@ -28,13 +28,6 @@ resource "aws_codebuild_project" "backend" {
     privileged_mode             = true # For building docker images
   
     environment_variable {
-      name  = "ENVIRONMENT"
-      value = "${var.environment_long_name}"
-    }
-
-    # These needed for building docker images
-
-    environment_variable {
       name  = "AWS_DEFAULT_REGION"
       value = "${var.region}"
     }
