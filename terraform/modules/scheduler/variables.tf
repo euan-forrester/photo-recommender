@@ -20,3 +20,10 @@ variable "sleep_ms_between_iterations" {}
 variable "duration_to_request_lock_seconds" {}
 variable "puller_queue_long_polling_seconds" {}
 variable "puller_response_queue_long_polling_seconds" {}
+variable "process_name" {}
+variable "project_github_location" {}
+variable "build_logs_bucket_id" {}
+variable "buildspec_location" {}
+variable "file_path" {}
+variable "file_path_common" {}
+variable "build_service_role_arn" {}

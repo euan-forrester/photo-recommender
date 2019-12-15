@@ -2,7 +2,7 @@ resource "aws_codebuild_project" "frontend" {
   name          = "frontend-${var.environment}"
   description   = "Builds the ${var.environment} frontend"
   build_timeout = "5"
-  service_role  = "${aws_iam_role.build_pipeline.arn}"
+  service_role  = "${var.build_service_role_arn}"
   badge_enabled = true
 
   artifacts {
@@ -34,14 +34,14 @@ resource "aws_codebuild_project" "frontend" {
 
     s3_logs {
       status = "ENABLED"
-      location = "${aws_s3_bucket.build_logs.id}/frontend"
+      location = "${var.build_logs_bucket_id}/frontend"
     }
   }
 
   source {
     type            = "GITHUB"
     location        = "${var.project_github_location}"
-    buildspec       = "frontend/buildspec.yml"
+    buildspec       = "${var.buildspec_location}"
     git_clone_depth = 1
   }
 
@@ -70,7 +70,7 @@ resource "aws_codebuild_webhook" "frontend" {
 
     filter {
       type = "FILE_PATH"
-      pattern = "frontend/*"
+      pattern = "${var.file_path}"
     }
   }
 }

@@ -28,3 +28,10 @@ variable "puller_queue_max_items_to_process" {}
 variable "puller_response_queue_url" {}
 variable "puller_response_queue_arn" {}
 variable "puller_response_queue_batch_size" {}
+variable "process_name" {}
+variable "project_github_location" {}
+variable "build_logs_bucket_id" {}
+variable "buildspec_location" {}
+variable "file_path" {}
+variable "file_path_common" {}
+variable "build_service_role_arn" {}

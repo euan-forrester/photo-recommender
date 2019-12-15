@@ -21,3 +21,10 @@ variable "input_queue_max_items_to_process" {}
 variable "input_queue_long_polling_seconds" {}
 variable "output_queue_long_polling_seconds" {}
 variable "output_queue_batch_size" {}
+variable "process_name" {}
+variable "project_github_location" {}
+variable "build_logs_bucket_id" {}
+variable "buildspec_location" {}
+variable "file_path" {}
+variable "file_path_common" {}
+variable "build_service_role_arn" {}

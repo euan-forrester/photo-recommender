@@ -1,14 +1,14 @@
 # Sample for building docker images: https://docs.aws.amazon.com/codebuild/latest/userguide/sample-docker.html
 
-data "aws_caller_identity" "build-pipeline" {
+data "aws_caller_identity" "build-pipeline-backend" {
   
 }
 
-resource "aws_codebuild_project" "puller-flickr" {
-  name          = "puller-flickr-${var.environment}"
-  description   = "Builds the ${var.environment} puller-flickr container"
+resource "aws_codebuild_project" "backend" {
+  name          = "${var.process_name}-${var.environment}"
+  description   = "Builds the ${var.environment} ${var.process_name} container"
   build_timeout = "5"
-  service_role  = "${aws_iam_role.build_pipeline.arn}"
+  service_role  = "${var.build_service_role_arn}"
   badge_enabled = true
 
   artifacts {
@@ -28,22 +28,13 @@ resource "aws_codebuild_project" "puller-flickr" {
     privileged_mode             = true # For building docker images
   
     environment_variable {
-      name  = "ENVIRONMENT"
-      value = "${var.environment_long_name}"
-    }
-
-    # These needed for building docker images
-
-    # FIXME: Make these dynamic blocks after upgrading to terraform 0.12
-
-    environment_variable {
       name  = "AWS_DEFAULT_REGION"
       value = "${var.region}"
     }
 
     environment_variable {
       name  = "AWS_ACCOUNT_ID"
-      value = "${data.aws_caller_identity.build-pipeline.account_id}"
+      value = "${data.aws_caller_identity.build-pipeline-backend.account_id}"
     }
 
     environment_variable {
@@ -53,7 +44,12 @@ resource "aws_codebuild_project" "puller-flickr" {
 
     environment_variable {
       name  = "IMAGE_REPO_NAME"
-      value = "${var.puller_flickr_ecr_repo_name}"
+      value = "${var.container_repository_name}"
+    }
+
+    environment_variable {
+      name  = "PROCESS_NAME"
+      value = "${var.process_name}"
     }
   }
 
@@ -65,14 +61,14 @@ resource "aws_codebuild_project" "puller-flickr" {
 
     s3_logs {
       status = "ENABLED"
-      location = "${aws_s3_bucket.build_logs.id}/puller-flickr"
+      location = "${var.build_logs_bucket_id}/${var.process_name}"
     }
   }
 
   source {
     type            = "GITHUB"
     location        = "${var.project_github_location}"
-    buildspec       = "backend/puller-flickr/buildspec.yml"
+    buildspec       = "${var.buildspec_location}"
     git_clone_depth = 1
   }
 
@@ -85,8 +81,8 @@ resource "aws_codebuild_project" "puller-flickr" {
   # So just have them be in the default VPC instead
 }
 
-resource "aws_codebuild_webhook" "puller-flickr" {
-  project_name = "${aws_codebuild_project.puller-flickr.name}"
+resource "aws_codebuild_webhook" "backend" {
+  project_name = "${aws_codebuild_project.backend.name}"
 
   filter_group {
     filter {
@@ -101,7 +97,7 @@ resource "aws_codebuild_webhook" "puller-flickr" {
 
     filter {
       type = "FILE_PATH"
-      pattern = "backend/puller-flickr/*"
+      pattern = "${var.file_path}"
     }
   }
 
@@ -118,7 +114,7 @@ resource "aws_codebuild_webhook" "puller-flickr" {
 
     filter {
       type = "FILE_PATH"
-      pattern = "backend/common/*"
+      pattern = "${var.file_path_common}"
     }
   }
 }

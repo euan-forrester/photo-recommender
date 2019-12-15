@@ -1,4 +1,5 @@
 variable "environment" {}
+variable "environment_long_name" {}
 variable "region" {}
 variable "days_to_keep_old_versions" {}
 variable "load_balancer_dns_name" {}
@@ -15,3 +16,8 @@ variable "use_custom_domain" {}
 variable "ssl_certificate_body" {}
 variable "ssl_certificate_private_key" {}
 variable "ssl_certificate_chain" {}
+variable "project_github_location" {}
+variable "build_logs_bucket_id" {}
+variable "buildspec_location" {}
+variable "file_path" {}
+variable "build_service_role_arn" {}
