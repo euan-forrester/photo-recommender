@@ -198,6 +198,7 @@ module "puller_flickr" {
     source = "../modules/puller-flickr"
 
     environment = "${var.environment}"
+    environment_long_name = "${var.environment_long_name}"
     region = "${var.region}"
     metrics_namespace = "${var.metrics_namespace}"
 
@@ -234,6 +235,13 @@ module "puller_flickr" {
     puller_response_queue_url = "${module.scheduler.puller_response_queue_url}"
     puller_response_queue_arn = "${module.scheduler.puller_response_queue_arn}"
     puller_response_queue_batch_size = 10
+
+    process_name                = "puller-flickr"
+    project_github_location     = "${var.project_github_location}"
+    build_logs_bucket_id        = "${module.build-common-infrastructure.build_logs_bucket_id}"
+    buildspec_location          = "backend/puller-flickr/buildspec.yml"
+    file_path                   = "backend/puller-flickr/*"
+    build_service_role_arn      = "${module.build-common-infrastructure.build_service_role_arn}"
 }
 
 module "ingester_database" {
@@ -332,6 +340,7 @@ module "frontend" {
     source = "../modules/frontend"
 
     environment             = "${var.environment}"
+    environment_long_name   = "${var.environment_long_name}"
     region                  = "${var.region}"
 
     bucketname_user_string  = "${var.bucketname_user_string}"
@@ -354,6 +363,12 @@ module "frontend" {
     ssl_certificate_body        = "${var.ssl_certificate_body}"
     ssl_certificate_private_key = "${var.ssl_certificate_private_key}"
     ssl_certificate_chain       = "${var.ssl_certificate_chain}"
+
+    project_github_location     = "${var.project_github_location}"
+    build_logs_bucket_id        = "${module.build-common-infrastructure.build_logs_bucket_id}"
+    buildspec_location          = "frontend/buildspec.yml"
+    file_path                   = "frontend/*"
+    build_service_role_arn      = "${module.build-common-infrastructure.build_service_role_arn}"
 }
 
 module "dashboard" {
