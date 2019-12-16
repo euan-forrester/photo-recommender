@@ -7,4 +7,3 @@ variable "bucketname_user_string" {}
 variable "retain_build_logs_after_destroy" {}
 variable "days_to_keep_build_logs" {}
 variable "s3_deployment_bucket_arn" {}
-variable "puller_flickr_ecr_repo_name" {}

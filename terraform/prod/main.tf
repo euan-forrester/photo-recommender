@@ -17,6 +17,22 @@ module "vpc" {
     }
 }
 
+module "build-common-infrastructure" {
+    source = "../modules/build-common-infrastructure"
+
+    environment = "${var.environment}"
+    environment_long_name = "${var.environment_long_name}"
+    region = "${var.region}"
+
+    project_github_location = "${var.project_github_location}"
+    s3_deployment_bucket_arn = "${module.frontend.s3_deployment_bucket_arn}"
+
+    build_logs_bucket = "build-logs"
+    bucketname_user_string  = "${var.bucketname_user_string}"
+    retain_build_logs_after_destroy = "false" # For dev, we don't care about retaining these logs after doing a terraform destroy
+    days_to_keep_build_logs = 90
+}
+
 module "elastic_container_service" {
     source = "../modules/elastic-container-service"
 
@@ -114,6 +130,14 @@ module "scheduler" {
     sleep_ms_between_iterations = 500
 
     duration_to_request_lock_seconds = 10
+
+    process_name                = "scheduler"
+    project_github_location     = "${var.project_github_location}"
+    build_logs_bucket_id        = "${module.build-common-infrastructure.build_logs_bucket_id}"
+    buildspec_location          = "backend/buildspec.yml"
+    file_path                   = "backend/scheduler/*"
+    file_path_common            = "backend/common/*"
+    build_service_role_arn      = "${module.build-common-infrastructure.build_service_role_arn}"
 }
 
 module "puller-response-reader" {
@@ -145,6 +169,14 @@ module "puller-response-reader" {
 
     puller_response_queue_batch_size = 1 # Each message takes a while to process, so hoarding a bunch of messages in an individual instance means that other instances may be underutilized
     puller_response_queue_max_items_to_process = 10000
+
+    process_name                = "puller-response-reader"
+    project_github_location     = "${var.project_github_location}"
+    build_logs_bucket_id        = "${module.build-common-infrastructure.build_logs_bucket_id}"
+    buildspec_location          = "backend/buildspec.yml"
+    file_path                   = "backend/puller-response-reader/*"
+    file_path_common            = "backend/common/*"
+    build_service_role_arn      = "${module.build-common-infrastructure.build_service_role_arn}"
 }
 
 module "ingester_response_reader" {
@@ -172,6 +204,14 @@ module "ingester_response_reader" {
 
     ingester_response_queue_batch_size = 1 # Each message takes a while to process, so hoarding a bunch of messages in an individual instance means that other instances may be underutilized
     ingester_response_queue_max_items_to_process = 10000
+
+    process_name                = "ingester-response-reader"
+    project_github_location     = "${var.project_github_location}"
+    build_logs_bucket_id        = "${module.build-common-infrastructure.build_logs_bucket_id}"
+    buildspec_location          = "backend/buildspec.yml"
+    file_path                   = "backend/ingester-response-reader/*"
+    file_path_common            = "backend/common/*"
+    build_service_role_arn      = "${module.build-common-infrastructure.build_service_role_arn}"
 }
 
 module "puller_flickr" {
@@ -214,6 +254,14 @@ module "puller_flickr" {
     puller_response_queue_url = "${module.scheduler.puller_response_queue_url}"
     puller_response_queue_arn = "${module.scheduler.puller_response_queue_arn}"
     puller_response_queue_batch_size = 10
+
+    process_name                = "puller-flickr"
+    project_github_location     = "${var.project_github_location}"
+    build_logs_bucket_id        = "${module.build-common-infrastructure.build_logs_bucket_id}"
+    buildspec_location          = "backend/buildspec.yml"
+    file_path                   = "backend/puller-flickr/*"
+    file_path_common            = "backend/common/*"
+    build_service_role_arn      = "${module.build-common-infrastructure.build_service_role_arn}"
 }
 
 module "ingester_database" {
@@ -247,6 +295,14 @@ module "ingester_database" {
 
     output_queue_long_polling_seconds = 1 # Don't do long polling for too long: the ingester response reader can only write to the API server after finding no more new messages
     output_queue_batch_size = 10
+
+    process_name                = "ingester-database"
+    project_github_location     = "${var.project_github_location}"
+    build_logs_bucket_id        = "${module.build-common-infrastructure.build_logs_bucket_id}"
+    buildspec_location          = "backend/buildspec.yml"
+    file_path                   = "backend/ingester-database/*"
+    file_path_common            = "backend/common/*"
+    build_service_role_arn      = "${module.build-common-infrastructure.build_service_role_arn}"
 }
 
 module "api_server" {
@@ -306,12 +362,21 @@ module "api_server" {
     default_num_photo_recommendations = 10
     default_num_user_recommendations = 5
     default_num_photos_from_group = 20
+
+    process_name                = "api-server"
+    project_github_location     = "${var.project_github_location}"
+    build_logs_bucket_id        = "${module.build-common-infrastructure.build_logs_bucket_id}"
+    buildspec_location          = "backend/buildspec.yml"
+    file_path                   = "backend/api-server/*"
+    file_path_common            = "backend/common/*"
+    build_service_role_arn      = "${module.build-common-infrastructure.build_service_role_arn}"
 }
 
 module "frontend" {
     source = "../modules/frontend"
 
     environment             = "${var.environment}"
+    environment_long_name   = "${var.environment_long_name}"
     region                  = "${var.region}"
 
     bucketname_user_string  = "${var.bucketname_user_string}"
@@ -334,6 +399,12 @@ module "frontend" {
     ssl_certificate_body        = "${var.ssl_certificate_body}"
     ssl_certificate_private_key = "${var.ssl_certificate_private_key}"
     ssl_certificate_chain       = "${var.ssl_certificate_chain}"
+
+    project_github_location     = "${var.project_github_location}"
+    build_logs_bucket_id        = "${module.build-common-infrastructure.build_logs_bucket_id}"
+    buildspec_location          = "frontend/buildspec.yml"
+    file_path                   = "frontend/*"
+    build_service_role_arn      = "${module.build-common-infrastructure.build_service_role_arn}"
 }
 
 module "dashboard" {
