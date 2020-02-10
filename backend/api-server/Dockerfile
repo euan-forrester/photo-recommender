@@ -14,7 +14,7 @@ ADD common/queuewriter.py /common/
 # Our OAuth lib needs the C compiler to install itself
 # https://stackoverflow.com/a/58028091
 # Cleanup taken from: https://spectrum.chat/zeit/now/best-dockerfile-for-building-a-python-container-with-compiled-dependencies~308b60c7-77fc-43de-b42a-8d14f9956ccd
-RUN apk add --no-cache --virtual .build-deps gcc=8.3.0-r0 musl-dev=1.1.22-r3 libffi-dev=3.2.1-r6 openssl-dev=1.1.1d-r0
+RUN apk add --no-cache --virtual .build-deps gcc=8.3.0-r0 musl-dev=1.1.22-r3 libffi-dev=3.2.1-r6 openssl-dev=1.1.1d-r2
 # Take advantage of layer cacheing, so that everything referenced by this file is cached if the file doesn't change:
 # https://blog.realkinetic.com/building-minimal-docker-containers-for-python-applications-37d0272c52f3
 COPY api-server/requirements.txt /
