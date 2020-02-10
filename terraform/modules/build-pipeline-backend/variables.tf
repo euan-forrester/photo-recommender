@@ -8,3 +8,8 @@ variable "buildspec_location" {}
 variable "file_path" {}
 variable "file_path_common" {}
 variable "build_service_role_arn" {}
+variable "pipeline_service_role_arn" {}
+variable "build_artifacts_bucket_id" {}
+variable "build_artifacts_encryption_key_id" {}
+variable "ecs_cluster_name" {}
+variable "ecs_service_name" {}

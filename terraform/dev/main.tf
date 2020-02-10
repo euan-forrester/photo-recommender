@@ -27,10 +27,12 @@ module "build-common-infrastructure" {
     project_github_location = "${var.project_github_location}"
     s3_deployment_bucket_arn = "${module.frontend.s3_deployment_bucket_arn}"
 
-    build_logs_bucket = "build-logs"
+    build_logs_bucket = "photo-recommender-build-logs"
+    build_artifacts_bucket = "photo-recommender-build-artifacts"
     bucketname_user_string  = "${var.bucketname_user_string}"
     retain_build_logs_after_destroy = "false" # For dev, we don't care about retaining these logs after doing a terraform destroy
     days_to_keep_build_logs = 1
+    days_to_keep_build_artifacts = 1
 }
 
 module "elastic_container_service" {
@@ -138,6 +140,10 @@ module "scheduler" {
     file_path                   = "backend/scheduler/*"
     file_path_common            = "backend/common/*"
     build_service_role_arn      = "${module.build-common-infrastructure.build_service_role_arn}"
+    pipeline_service_role_arn   = "${module.build-common-infrastructure.pipeline_service_role_arn}"
+    ecs_cluster_name            = "${module.elastic_container_service.cluster_full_name}"
+    build_artifacts_encryption_key_id = "${module.build-common-infrastructure.build_artifacts_encryption_key_id}"
+    build_artifacts_bucket_id   = "${module.build-common-infrastructure.build_artifacts_bucket_id}"
 }
 
 module "puller-response-reader" {
@@ -177,6 +183,10 @@ module "puller-response-reader" {
     file_path                   = "backend/puller-response-reader/*"
     file_path_common            = "backend/common/*"
     build_service_role_arn      = "${module.build-common-infrastructure.build_service_role_arn}"
+    pipeline_service_role_arn   = "${module.build-common-infrastructure.pipeline_service_role_arn}"
+    ecs_cluster_name            = "${module.elastic_container_service.cluster_full_name}"
+    build_artifacts_encryption_key_id = "${module.build-common-infrastructure.build_artifacts_encryption_key_id}"
+    build_artifacts_bucket_id   = "${module.build-common-infrastructure.build_artifacts_bucket_id}"
 }
 
 module "ingester_response_reader" {
@@ -212,6 +222,10 @@ module "ingester_response_reader" {
     file_path                   = "backend/ingester-response-reader/*"
     file_path_common            = "backend/common/*"
     build_service_role_arn      = "${module.build-common-infrastructure.build_service_role_arn}"
+    pipeline_service_role_arn   = "${module.build-common-infrastructure.pipeline_service_role_arn}"
+    ecs_cluster_name            = "${module.elastic_container_service.cluster_full_name}"
+    build_artifacts_encryption_key_id = "${module.build-common-infrastructure.build_artifacts_encryption_key_id}"
+    build_artifacts_bucket_id   = "${module.build-common-infrastructure.build_artifacts_bucket_id}"
 }
 
 module "puller_flickr" {
@@ -262,6 +276,10 @@ module "puller_flickr" {
     file_path                   = "backend/puller-flickr/*"
     file_path_common            = "backend/common/*"
     build_service_role_arn      = "${module.build-common-infrastructure.build_service_role_arn}"
+    pipeline_service_role_arn   = "${module.build-common-infrastructure.pipeline_service_role_arn}"
+    ecs_cluster_name            = "${module.elastic_container_service.cluster_full_name}"
+    build_artifacts_encryption_key_id = "${module.build-common-infrastructure.build_artifacts_encryption_key_id}"
+    build_artifacts_bucket_id   = "${module.build-common-infrastructure.build_artifacts_bucket_id}"
 }
 
 module "ingester_database" {
@@ -303,6 +321,10 @@ module "ingester_database" {
     file_path                   = "backend/ingester-database/*"
     file_path_common            = "backend/common/*"
     build_service_role_arn      = "${module.build-common-infrastructure.build_service_role_arn}"
+    pipeline_service_role_arn   = "${module.build-common-infrastructure.pipeline_service_role_arn}"
+    ecs_cluster_name            = "${module.elastic_container_service.cluster_full_name}"
+    build_artifacts_encryption_key_id = "${module.build-common-infrastructure.build_artifacts_encryption_key_id}"
+    build_artifacts_bucket_id   = "${module.build-common-infrastructure.build_artifacts_bucket_id}"
 }
 
 module "api_server" {
@@ -370,6 +392,10 @@ module "api_server" {
     file_path                   = "backend/api-server/*"
     file_path_common            = "backend/common/*"
     build_service_role_arn      = "${module.build-common-infrastructure.build_service_role_arn}"
+    pipeline_service_role_arn   = "${module.build-common-infrastructure.pipeline_service_role_arn}"
+    ecs_cluster_name            = "${module.elastic_container_service.cluster_full_name}"
+    build_artifacts_encryption_key_id = "${module.build-common-infrastructure.build_artifacts_encryption_key_id}"
+    build_artifacts_bucket_id   = "${module.build-common-infrastructure.build_artifacts_bucket_id}"
 }
 
 module "frontend" {

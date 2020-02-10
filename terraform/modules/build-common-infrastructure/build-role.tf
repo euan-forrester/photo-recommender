@@ -1,7 +1,7 @@
 # Copied from https://www.terraform.io/docs/providers/aws/r/codebuild_project.html
 # The policy is also detailed here: https://docs.aws.amazon.com/codebuild/latest/userguide/auth-and-access-control-iam-identity-based-access-control.html#customer-managed-policies-example-create-vpc-network-interface
 
-resource "aws_iam_role" "build_common_infrastructure" {
+resource "aws_iam_role" "build_role" {
   name = "codebuild-${var.environment}"
 
   assume_role_policy = <<EOF
@@ -20,8 +20,8 @@ resource "aws_iam_role" "build_common_infrastructure" {
 EOF
 }
 
-resource "aws_iam_role_policy" "build_common_infrastructure" {
-  role = "${aws_iam_role.build_common_infrastructure.name}"
+resource "aws_iam_role_policy" "build_role" {
+  role = "${aws_iam_role.build_role.name}"
 
   policy = <<POLICY
 {
