@@ -28,7 +28,7 @@ module.exports = {
       enableCloudfront: false, // Invalidates a CloudFront distribution
       cloudfrontId: 'E156TT79QZCNSR',
       uploadConcurrency: 5,
-      pluginVersion: '3.0.0',
+      pluginVersion: '4.0.0',
     },
   },
 
