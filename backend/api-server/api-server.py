@@ -683,6 +683,10 @@ def get_favicon():
 def user_not_specified(error=None):
     return "User not specified", status.HTTP_400_BAD_REQUEST
 
+@application.errorhandler(status.HTTP_404_NOT_FOUND)
+def path_not_found(error=None):
+    return "404 not found", status.HTTP_404_NOT_FOUND
+
 @application.errorhandler(status.HTTP_400_BAD_REQUEST)
 def parameter_not_specified(param_name, error=None):
     return f"Parameter {param_name} not specified", status.HTTP_400_BAD_REQUEST
