@@ -9,7 +9,7 @@ import vueAuth from '../auth';
 
 const resource = '/flickr';
 
-const getProfileUrl = userId => `https://www.flickr.com/photos/${userId}/`;
+const getProfileUrl = (userId) => `https://www.flickr.com/photos/${userId}/`;
 
 export default {
   async getUserIdFromUrl(userUrl) {
@@ -68,7 +68,7 @@ export default {
     const response = await repository.get(`${resource}/groups/pools/get-photos`, { params: { 'group-id': groupId, 'num-photos': numPhotos } });
 
     const photos = response.data.photos.photo.map(
-      photo => ({
+      (photo) => ({
         imageId: photo.id,
         imageOwner: photo.owner,
         imageUrl: 'url_l' in photo ? photo.url_l : ('url_m' in photo ? photo.url_m : ''), // eslint-disable-line no-nested-ternary

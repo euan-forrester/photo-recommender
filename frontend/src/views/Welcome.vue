@@ -295,7 +295,7 @@ export default {
       // The lint error is intended to encourage better performance by having people await multiple things rather than one at a time.
 
       async function delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+        return new Promise((resolve) => setTimeout(resolve, ms));
       }
 
       while (!this.$store.state.welcome.user.haveInitiallyProcessedData) {
