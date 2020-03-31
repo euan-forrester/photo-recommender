@@ -54,11 +54,11 @@ resource "aws_ssm_parameter" "max_iterations_before_exit" {
     value       = "${var.max_iterations_before_exit}"
 }
 
-resource "aws_ssm_parameter" "sleep_ms_between_iterations" {
-    name        = "/${var.environment}/scheduler/sleep-ms-between-iterations"
-    description = "Number of milliseconds we sleep between iterations"
+resource "aws_ssm_parameter" "min_sleep_ms_between_iterations" {
+    name        = "/${var.environment}/scheduler/min-sleep-ms-between-iterations"
+    description = "Minimum number of milliseconds we sleep between iterations"
     type        = "String"
-    value       = "${var.sleep_ms_between_iterations}"
+    value       = "${var.min_sleep_ms_between_iterations}"
 }
 
 resource "aws_ssm_parameter" "duration_to_request_lock_seconds" {

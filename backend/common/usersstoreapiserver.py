@@ -26,6 +26,22 @@ class UsersStoreAPIServer:
         except HTTPError as http_err:
             raise UsersStoreException from http_err
 
+    def get_max_seconds_since_last_update(self):
+
+        try:
+            response = requests.get(f"{self.url_prefix}/users/max-seconds-since-last-update")
+
+            response.raise_for_status()
+
+            response.encoding = "utf-8"
+
+            response_object = response.json()
+
+            return int(response_object['max-seconds-since-last-update'])
+
+        except HTTPError as http_err:
+            raise UsersStoreException from http_err
+
     def get_users_that_are_currently_updating(self):
 
         try:
