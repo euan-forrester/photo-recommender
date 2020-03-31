@@ -373,13 +373,13 @@ def create_user(user_id=None):
     # Request the puller get all favorites data for this user right away rather than waiting for the Scheduler to wake up and ask for us.
     # This allows us to let the Scheduler sleep for long periods of time rather than constantly polling for new users.
 
-    logging.info(f"About to make a puller request to {puller_queue_url} to get the favorites of the favorited image {image_owner}")
+    logging.info(f"About to make a puller request to {puller_queue_url} to get the favorites of new user {user_id}")
 
     puller_requests_for_user = PullerQueueItem.get_messages_to_request_all_data_for_user(user_id)
 
     flickr_puller_queue.send_messages(objects=puller_requests_for_user, to_string=lambda queue_item : queue_item.to_json())
 
-    favorites_store.data_requested(user_id, len(puller_requests_for_user))
+    favorites_store.user_data_requested(user_id, len(puller_requests_for_user))
 
     user_info = favorites_store.get_user_info(user_id)
 
