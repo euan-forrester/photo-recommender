@@ -455,7 +455,7 @@ class FavoritesStoreDatabase:
 
             row = self._get_first_row(cursor)
 
-            if row is not None:
+            if (row is not None) and (row[0] is not None):
                 seconds = int(row[0])
 
             return seconds

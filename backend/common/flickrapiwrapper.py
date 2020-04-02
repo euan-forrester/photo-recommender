@@ -169,8 +169,13 @@ class FlickrApiWrapper:
         while not got_all_favorites and (len(favorites) < max_favorites_to_get) and (current_page <= max_calls_to_make):
             favorites_subset = self._get_favorites_page(user_id, current_page, max_favorites_per_call)
 
-            if len(favorites_subset['photos']['photo']) > 0: # We can't just check if the number we got back == the number we requested, because frequently we can get back < the number we requested but there's still more available. This is likely due to not having permission to be able to view all of the ones we requested
-                favorites.extend(favorites_subset['photos']['photo'])
+            favorites_subset_found = []
+
+            if 'photo' in favorites_subset['photos']:
+                favorites_subset_found = favorites_subset['photos']['photo']
+
+            if len(favorites_subset_found) > 0: # We can't just check if the number we got back == the number we requested, because frequently we can get back < the number we requested but there's still more available. This is likely due to not having permission to be able to view all of the ones we requested
+                favorites.extend(favorites_subset_found)
             else:
                 got_all_favorites = True
 
