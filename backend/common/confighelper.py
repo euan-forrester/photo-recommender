@@ -169,10 +169,17 @@ class ConfigHelperParameterStore(ConfigHelper):
             ConfigHelper._log(full_path, value_from_memcached, is_secret, cache_type="memcached")
             return value_from_memcached
 
+        value_from_disc_cache = self._get_from_disc_cache(full_path)
+
+        if value_from_disc_cache is not None:
+            ConfigHelper._log(full_path, value_from_disc_cache, is_secret, cache_type="disc")
+            return value_from_disc_cache
+
         value = self._get_from_parameter_store(full_path, is_secret)
 
         ConfigHelper._log(full_path, value, is_secret, cache_type="none")
 
+        self._write_to_disc_cache(full_path, value)
         self._write_to_memcached(full_path, value)
 
         return value
@@ -197,11 +204,20 @@ class ConfigHelperParameterStore(ConfigHelper):
 
     def _get_from_memcached(self, full_path):
 
-        return self.memcached_client.get(full_path)
+        try:
+            return self.memcached_client.get(full_path)
+
+        except ConnectionRefusedError as e:
+            logging.debug("Trying to get from memcached and received connection refused error. Continuing.")
+            return None
 
     def _write_to_memcached(self, full_path, value):
 
-        self.memcached_client.set(full_path, value, ConfigHelperParameterStore.CACHE_TTL)        
+        try:
+            self.memcached_client.set(full_path, value, ConfigHelperParameterStore.CACHE_TTL)        
+
+        except ConnectionRefusedError as e:
+            logging.debug("Trying to write to memcached and received connection refused error. Continuing.")
 
     def _get_from_parameter_store(self, full_path, is_secret=False):
         
