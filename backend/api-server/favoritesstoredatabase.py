@@ -656,7 +656,7 @@ class FavoritesStoreDatabase:
             num_ingester_requests_made      = row[2]
             num_ingester_requests_finished  = row[3]
 
-            if (num_puller_requests_made >= num_puller_requests_finished) and (num_ingester_requests_finished >= num_ingester_requests_made):
+            if (num_puller_requests_finished >= num_puller_requests_made) and (num_ingester_requests_finished >= num_ingester_requests_made):
                 
                 finished_processing = True
 
