@@ -92,7 +92,7 @@ module "memcached" {
     vpc_cidr                = "${module.vpc.vpc_cidr_block}"
 
     memcached_node_type = "cache.t2.micro"
-    memcached_num_cache_nodes = 1 # Set to 0 to disable memcached in dev to save billing charges
+    memcached_num_cache_nodes = 0 # Set to 0 to disable memcached in dev to save billing charges
     memcached_az_mode = "single-az" # Single az in dev to save billing charges
 }
 
