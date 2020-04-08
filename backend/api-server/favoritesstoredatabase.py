@@ -437,6 +437,36 @@ class FavoritesStoreDatabase:
             cursor.close()
             cnx.close()            
 
+    def get_max_seconds_since_last_update(self):
+        cnx = self.cnxpool.get_connection()
+
+        cursor = cnx.cursor() 
+
+        try:
+            cursor.execute("""
+                SELECT
+                    MAX(TIMESTAMPDIFF(SECOND, IFNULL(data_last_requested_at, TIMESTAMP('1970-01-01')), NOW())) AS seconds 
+                FROM
+                    registered_users;
+                ;
+            """)
+
+            seconds = -1
+
+            row = self._get_first_row(cursor)
+
+            if (row is not None) and (row[0] is not None):
+                seconds = int(row[0])
+
+            return seconds
+
+        except Exception as e:
+            raise FavoritesStoreException from e
+
+        finally:
+            cursor.close()
+            cnx.close()   
+
     def get_users_that_are_currently_updating(self):
         cnx = self.cnxpool.get_connection()
 

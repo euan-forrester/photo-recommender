@@ -235,9 +235,6 @@ Point your browser there and enjoy!
 - Make batch messages for both types of response readers, rather than sending each message individually
 - Have dismissed photos + users feed back into recommendations with negative scores
 - Make visualization of how many instances of each process are doing work at a given time - send task ID to metics and get a count of distinct IDs?
-- Have Scheduler ask for the number of seconds until the next user needs updating, then sleep for that long
-  - Note that would miss new users that get added in the meantime
-  - We can have the API server request data for a new user when it is created
 - Need to have the browser authenticate with the API server to prevent API abuse of users whose tokens we have 
   - Same as CSRF prevention or different?
   - AWS API Gateway?
@@ -248,3 +245,4 @@ Point your browser there and enjoy!
 - Investigate why puller-flickr often has such a long max time to process a single user
 - Remove already-favorited images from the AddFavorites screen
 - Add logout to the navigation bar
+- Upgrade to Python 3.8 (especially updating the unhandled exception handler)

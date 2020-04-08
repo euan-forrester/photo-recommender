@@ -92,7 +92,7 @@ try:
 
         if processing_status['finished_processing']:
             time_in_seconds = users_store.get_time_to_update_all_data(initial_requesting_user_id)
-            logging.info(f"We have finished processing user {initial_requesting_user_id}. It took {time_in_seconds}")
+            logging.info(f"We have finished processing user {initial_requesting_user_id}. It took {time_in_seconds} seconds")
             metrics_helper.send_time("time_to_get_all_data", time_in_seconds)
 
 except UsersStoreException as e:

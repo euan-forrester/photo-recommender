@@ -50,7 +50,7 @@ puller_queue_batch_size             = config_helper.getInt("puller-queue-batchsi
 scheduler_seconds_between_user_data_updates = config_helper.getInt("seconds-between-user-data-updates")
 
 max_iterations_before_exit          = config_helper.getInt("max-iterations-before-exit")
-sleep_ms_between_iterations         = config_helper.getInt("sleep-ms-between-iterations")
+min_sleep_ms_between_iterations     = config_helper.getInt("min-sleep-ms-between-iterations")
 
 duration_to_request_lock_seconds    = config_helper.getInt("duration-to-request-lock-seconds")
 
@@ -121,14 +121,7 @@ while lock_acquired:
 
         for user_id in users_ids_to_request_data_for:
 
-            # We can't necessarily fit a user's favorites + their contacts in a single message to the ingester queue, so split them up. 
-            # A user's favorites barely fit as is, and also that'll let us request the two datasets concurrently in 2 processes, 
-            # rather than one then the other in a single process
-
-            puller_requests_for_user = []
-
-            puller_requests_for_user.append(PullerQueueItem(user_id=user_id, initial_requesting_user_id=user_id, request_favorites=True, request_contacts=False, request_neighbor_list=True))
-            puller_requests_for_user.append(PullerQueueItem(user_id=user_id, initial_requesting_user_id=user_id, request_favorites=False, request_contacts=True, request_neighbor_list=False))
+            puller_requests_for_user = PullerQueueItem.get_messages_to_request_all_data_for_user(user_id)
 
             logging.info(f"Requesting data for user {user_id}")
             users_store.data_requested(user_id, len(puller_requests_for_user))
@@ -156,9 +149,51 @@ while lock_acquired:
         logging.info(f"Max iterations of {max_iterations_before_exit} reached. Exiting.")
         break
 
-    logging.info(f"Finished iteration {num_iterations} of {max_iterations_before_exit}. Sleeping for {sleep_ms_between_iterations} ms")
+    # Figure out how long to sleep based on how long it is until we request data for the next user
 
-    time.sleep(sleep_ms_between_iterations / 1000.0)
+    try:
+
+        seconds_to_sleep = 0
+
+        max_seconds_since_last_update = users_store.get_max_seconds_since_last_update()
+
+        # If we got back a number < 0, it means we have no users. So just sleep for a while. Any new users will have
+        # their data requested when they are created, so we're guaranteed not to miss their next update if we sleep
+        # for the number of seconds between updates
+        if max_seconds_since_last_update < 0:
+            seconds_to_sleep = scheduler_seconds_between_user_data_updates
+
+        seconds_to_sleep = max(scheduler_seconds_between_user_data_updates - max_seconds_since_last_update, min_sleep_ms_between_iterations / 1000.0) + 1.0 # Sleep an extra second so we're sure to pick up the users when we wake up, rather than just missing them due to some imprecision in the length of time we sleep
+
+        seconds_to_lock_while_sleeping = seconds_to_sleep + duration_to_request_lock_seconds
+
+        logging.info(f"Finished iteration {num_iterations} of {max_iterations_before_exit}")
+        logging.info(f"Max seconds since a user was updated: {max_seconds_since_last_update}. Desired seconds between user updates: {scheduler_seconds_between_user_data_updates}. Requesting lock for {seconds_to_lock_while_sleeping} seconds so we can sleep for {seconds_to_sleep} seconds")
+
+        # We need to extend our lock while we sleep. Otherwise another scheduler process will acquire the lock, find no users to update, and then
+        # sleep. Until all the processes are sleeping for a long time. Having all of our redundant schedulers asleep doesn't really help us.
+        # So we'll keep the lock on this process so that the others are still awake and able to take over if this one dies
+
+        lock_acquired_to_sleep = users_store.request_lock("scheduler", task_id, seconds_to_lock_while_sleeping)
+
+        if lock_acquired_to_sleep:
+            logging.info("Successfully able to acquire lock to sleep.")
+        else:
+            logging.info("Unable to re-acquire lock to sleep. Exiting")
+            break
+
+        logging.info(f"Sleeping for {seconds_to_sleep} seconds")
+
+        time.sleep(seconds_to_sleep)
+
+    except UsersStoreException as e:
+        logging.error("Unable to talk to our users store. Exiting.", e)
+        metrics_helper.increment_count("UsersStoreException")
+        sys.exit()
+
+    # We've woken up again, so now try to re-acquire our lock
+
+    logging.info("Woke up, trying to acquire lock again")
 
     lock_acquired = users_store.request_lock("scheduler", task_id, duration_to_request_lock_seconds)
 

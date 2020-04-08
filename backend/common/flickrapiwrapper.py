@@ -169,8 +169,13 @@ class FlickrApiWrapper:
         while not got_all_favorites and (len(favorites) < max_favorites_to_get) and (current_page <= max_calls_to_make):
             favorites_subset = self._get_favorites_page(user_id, current_page, max_favorites_per_call)
 
-            if len(favorites_subset['photos']['photo']) > 0: # We can't just check if the number we got back == the number we requested, because frequently we can get back < the number we requested but there's still more available. This is likely due to not having permission to be able to view all of the ones we requested
-                favorites.extend(favorites_subset['photos']['photo'])
+            favorites_subset_found = []
+
+            if 'photo' in favorites_subset['photos']:
+                favorites_subset_found = favorites_subset['photos']['photo']
+
+            if len(favorites_subset_found) > 0: # We can't just check if the number we got back == the number we requested, because frequently we can get back < the number we requested but there's still more available. This is likely due to not having permission to be able to view all of the ones we requested
+                favorites.extend(favorites_subset_found)
             else:
                 got_all_favorites = True
 
@@ -287,16 +292,18 @@ class FlickrApiWrapper:
 
             except flickrapi.exceptions.FlickrError as e:
 
-                # For known error numbers, the caller needs to deal with the exception because
-                # the same number can mean something different depending on what the original call was.
-                # 
-                # For example, error code 1 usually means "<user|grouop|photo|etc> ID not found", except
-                # for flickr.contacts.getList() where it means "Invalid sort parameter".
-                # Note that we instead call flickr.contacts.getPublicList() where it *does* in fact mean
-                # "user ID not found", but it seems like a frustrating gotcha to assume it always means
-                # that for every call. Better to force the programmer to check each time a new call is added.
-                if e.code <= 116:
-                    raise e
+                if e.code is not None: # For some calls that are returned status 500, the error code is not set
+
+                    # For known error numbers, the caller needs to deal with the exception because
+                    # the same number can mean something different depending on what the original call was.
+                    # 
+                    # For example, error code 1 usually means "<user|grouop|photo|etc> ID not found", except
+                    # for flickr.contacts.getList() where it means "Invalid sort parameter".
+                    # Note that we instead call flickr.contacts.getPublicList() where it *does* in fact mean
+                    # "user ID not found", but it seems like a frustrating gotcha to assume it always means
+                    # that for every call. Better to force the programmer to check each time a new call is added.
+                    if e.code <= 116:
+                        raise e
 
                 # You get random 502s when making lots of calls to this API, which apparently indicate rate limiting: 
                 # https://www.flickr.com/groups/51035612836@N01/discuss/72157646430151464/ 

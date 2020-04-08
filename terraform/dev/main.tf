@@ -49,9 +49,9 @@ module "elastic_container_service" {
     extra_security_groups = ["${module.api_server.security_group_id}"]
 
     instance_type = "t2.micro"#"c5.large"#"t2.micro"
-    cluster_desired_size = 0#2#20
+    cluster_desired_size = 2#0#2#20
     cluster_min_size = 0
-    cluster_max_size = 0#2#20
+    cluster_max_size = 2#0#2#20
     instances_log_retention_days = 1
 }
 
@@ -92,7 +92,7 @@ module "memcached" {
     vpc_cidr                = "${module.vpc.vpc_cidr_block}"
 
     memcached_node_type = "cache.t2.micro"
-    memcached_num_cache_nodes = 1 # Set to 0 to disable memcached in dev to save billing charges
+    memcached_num_cache_nodes = 0 # Set to 0 to disable memcached in dev to save billing charges
     memcached_az_mode = "single-az" # Single az in dev to save billing charges
 }
 
@@ -107,7 +107,7 @@ module "scheduler" {
 
     ecs_cluster_id = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
-    ecs_instances_desired_count = 0
+    ecs_instances_desired_count = 1
     ecs_instances_memory = 64
     ecs_instances_cpu = 200
     ecs_instances_log_configuration = "${module.elastic_container_service.cluster_log_configuration}"
@@ -127,7 +127,7 @@ module "scheduler" {
     puller_response_queue_long_polling_seconds = 1 # Don't do long polling for too long: we can only write out our batches to the API server after we find no more new messages
 
     max_iterations_before_exit = 1000
-    sleep_ms_between_iterations = 500
+    min_sleep_ms_between_iterations = 500
 
     duration_to_request_lock_seconds = 10
 

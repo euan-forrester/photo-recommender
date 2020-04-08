@@ -163,7 +163,7 @@ def flickr_auth():
         return_value = {
             'oauth_token': request_token['oauth_token']
             # The example shows passing back the secret as well, but it's ignored
-            # by the vue-authenticate library
+            # by the vue-authenticate library. Plus we really don't want to be passing around secrets to the user
         }
 
         return jsonify(return_value)
@@ -200,7 +200,7 @@ def flickr_auth():
         return_value = {
             'access_token': flickr_auth_wrapper.get_flickr_access_token_as_string_no_secret(access_token) # Return a version of the token that doesn't include the secret. We'll fill it in from the database on subsequent calls
             # The example shows passing back the secret as well, but it's ignored
-            # by the vue-authenticate library
+            # by the vue-authenticate library. Plus we really don't want to be passing around secrets to the user
         }
 
         return jsonify(return_value)
@@ -370,6 +370,17 @@ def create_user(user_id=None):
 
     favorites_store.create_user(user_id)
 
+    # Request the puller get all favorites data for this user right away rather than waiting for the Scheduler to wake up and ask for us.
+    # This allows us to let the Scheduler sleep for long periods of time rather than constantly polling for new users.
+
+    logging.info(f"About to make a puller request to {puller_queue_url} to get the favorites of new user {user_id}")
+
+    puller_requests_for_user = PullerQueueItem.get_messages_to_request_all_data_for_user(user_id)
+
+    flickr_puller_queue.send_messages(objects=puller_requests_for_user, to_string=lambda queue_item : queue_item.to_json())
+
+    favorites_store.user_data_requested(user_id, len(puller_requests_for_user))
+
     user_info = favorites_store.get_user_info(user_id)
 
     resp = jsonify(user_info)
@@ -446,6 +457,18 @@ def get_users_that_need_update():
     users = favorites_store.get_users_that_need_updated(int(num_seconds_between_updates))
 
     resp = jsonify(users)
+    resp.status_code = status.HTTP_200_OK
+
+    return resp
+
+# Gets the number of seconds since the least recent user had their data refreshed
+@application.route("/api/users/max-seconds-since-last-update", methods = ['GET'])
+def get_max_seconds_since_last_update():
+    num_seconds = favorites_store.get_max_seconds_since_last_update()
+
+    resp = jsonify({
+        'max-seconds-since-last-update': num_seconds
+    })
     resp.status_code = status.HTTP_200_OK
 
     return resp
