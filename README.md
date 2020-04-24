@@ -245,4 +245,3 @@ Point your browser there and enjoy!
 - Investigate why puller-flickr often has such a long max time to process a single user
 - Remove already-favorited images from the AddFavorites screen
 - Add logout to the navigation bar
-- Upgrade to Python 3.8 (especially updating the unhandled exception handler)
