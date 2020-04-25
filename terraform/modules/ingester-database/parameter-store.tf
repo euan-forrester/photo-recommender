@@ -1,10 +1,3 @@
-resource "aws_kms_key" "parameter_secrets" {
-    description             = "Used to encrypt/decrypt ingester-database secrets in the Parameter Store"
-    key_usage               = "ENCRYPT_DECRYPT"
-    enable_key_rotation     = true
-    deletion_window_in_days = 7
-}
-
 resource "aws_ssm_parameter" "metrics_namespace" {
     name        = "/${var.environment}/ingester-database/metrics-namespace"
     description = "Namespace that our metrics go in"
@@ -44,7 +37,7 @@ resource "aws_ssm_parameter" "output_database_password" {
     name        = "/${var.environment}/ingester-database/output-database-password"
     description = "Password for the database into which we ingest data from the queue"
     type        = "SecureString"
-    key_id      = "${aws_kms_key.parameter_secrets.id}"
+    key_id      = "${var.kms_key_id}"
     value       = "${var.mysql_database_password}"
 }
 

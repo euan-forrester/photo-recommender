@@ -13,6 +13,7 @@ module "mysql" {
     database_name         = "${var.mysql_database_name}"
     multi_az              = "${var.mysql_multi_az}"
     database_password     = "${var.mysql_database_password}"
+    kms_key_arn           = "${var.kms_key_arn}"
     backup_retention_period_days = "${var.mysql_backup_retention_period_days}"
     deletion_protection   = "${var.mysql_deletion_protection}"
     init_script_file      = "database/photo_recommender_init.sql"

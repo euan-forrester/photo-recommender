@@ -42,7 +42,7 @@ resource "aws_iam_policy" "ecs-instance-ingester-database-extra-policy" {
         "kms:Decrypt"
       ],
       "Effect": "Allow",
-      "Resource": "${aws_kms_key.parameter_secrets.arn}"
+      "Resource": "${var.kms_key_arn}"
     },
     {
       "Action": [

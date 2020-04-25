@@ -48,3 +48,5 @@ variable "buildspec_location" {}
 variable "file_path" {}
 variable "file_path_common" {}
 variable "build_service_role_arn" {}
+variable "kms_key_id" {}
+variable "kms_key_arn" {}

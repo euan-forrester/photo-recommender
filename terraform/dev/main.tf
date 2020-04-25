@@ -17,6 +17,12 @@ module "vpc" {
     }
 }
 
+module "encryption" {
+    source = "../modules/encryption"
+
+    environment = "${var.environment}"
+}
+
 module "build-common-infrastructure" {
     source = "../modules/build-common-infrastructure"
 
@@ -76,6 +82,7 @@ module "database" {
     mysql_deletion_protection = false # No need for deletion protection in dev
 
     mysql_database_password = "${var.database_password_dev}"
+    kms_key_arn             = "${module.encryption.kms_key_arn}"
 }
 
 module "memcached" {
@@ -222,6 +229,8 @@ module "puller_flickr" {
     metrics_namespace = "${var.metrics_namespace}"
 
     parameter_memcached_location = "${module.memcached.location}"
+    kms_key_id              = "${module.encryption.kms_key_id}"
+    kms_key_arn             = "${module.encryption.kms_key_arn}"
 
     memcached_location = "localhost:11211" # Disable cacheing Flickr API responses for now, so we can test performance
     memcached_ttl = 7200
@@ -272,6 +281,8 @@ module "ingester_database" {
     metrics_namespace       = "${var.metrics_namespace}"
 
     parameter_memcached_location = "${module.memcached.location}"
+    kms_key_id              = "${module.encryption.kms_key_id}"
+    kms_key_arn             = "${module.encryption.kms_key_arn}"
 
     ecs_cluster_id          = "${module.elastic_container_service.cluster_id}"
     ecs_instances_role_name = "${module.elastic_container_service.instance_role_name}"
@@ -313,6 +324,8 @@ module "api_server" {
     metrics_namespace       = "${var.metrics_namespace}"
 
     parameter_memcached_location = "${module.memcached.location}"
+    kms_key_id              = "${module.encryption.kms_key_id}"
+    kms_key_arn             = "${module.encryption.kms_key_arn}"
 
     vpc_id                  = "${module.vpc.vpc_id}"
     vpc_public_subnet_ids   = "${module.vpc.vpc_public_subnet_ids}"
