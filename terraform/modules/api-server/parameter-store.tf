@@ -1,10 +1,3 @@
-resource "aws_kms_key" "parameter_secrets" {
-    description             = "Used to encrypt/decrypt api-server secrets in the Parameter Store"
-    key_usage               = "ENCRYPT_DECRYPT"
-    enable_key_rotation     = true
-    deletion_window_in_days = 7
-}
-
 resource "aws_ssm_parameter" "metrics_namespace" {
     name        = "/${var.environment}/api-server/metrics-namespace"
     description = "Namespace that our metrics go in"
@@ -44,7 +37,7 @@ resource "aws_ssm_parameter" "database_password" {
     name        = "/${var.environment}/api-server/database-password"
     description = "Password for the database from which we read our data"
     type        = "SecureString"
-    key_id      = "${aws_kms_key.parameter_secrets.id}"
+    key_id      = "${var.kms_key_id}"
     value       = "${var.mysql_database_password}"
 }
 
@@ -73,7 +66,7 @@ resource "aws_ssm_parameter" "database_user_data_encryption_key" {
     name        = "/${var.environment}/api-server/database-user-data-encryption-key"
     description = "256-bit AES encryption key used to encrypt user access tokens stored in the database"
     type        = "SecureString"
-    key_id      = "${aws_kms_key.parameter_secrets.id}"
+    key_id      = "${var.kms_key_id}"
     value       = "${var.mysql_database_user_data_encryption_key}"
 }
 
@@ -95,7 +88,7 @@ resource "aws_ssm_parameter" "session_encryption_key" {
     name        = "/${var.environment}/api-server/session-encryption-key"
     description = "Encryption key used to sign the session data we return to the user"
     type        = "SecureString"
-    key_id      = "${aws_kms_key.parameter_secrets.id}"
+    key_id      = "${var.kms_key_id}"
     value       = "${var.session_encryption_key}"
 }
 
@@ -110,7 +103,7 @@ resource "aws_ssm_parameter" "flickr_secret_key" {
     name        = "/${var.environment}/api-server/flickr-api-secret"
     description = "Flickr API secret key"
     type        = "SecureString"
-    key_id      = "${aws_kms_key.parameter_secrets.id}"
+    key_id      = "${var.kms_key_id}"
     value       = "${var.flickr_secret_key}"
 }
 

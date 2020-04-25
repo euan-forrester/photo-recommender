@@ -1,10 +1,3 @@
-resource "aws_kms_key" "mysql_encryption" {
-    description             = "Used to encrypt the contents of the ${var.database_name}-${var.environment} mysql database"
-    key_usage               = "ENCRYPT_DECRYPT"
-    enable_key_rotation     = true
-    deletion_window_in_days = 7
-}
-
 resource "aws_db_subnet_group" "public_subnet_group" {
     name       = "db-subnet-group-${var.database_name}-${var.environment}"
     subnet_ids = ["${var.vpc_public_subnet_ids}"]
@@ -25,7 +18,7 @@ resource "aws_db_instance" "mysql_database" {
     storage_type                    = "${var.storage_type}"
 
     storage_encrypted               = "${var.storage_encrypted}"
-    kms_key_id                      = "${var.storage_encrypted ? "${aws_kms_key.mysql_encryption.arn}" : ""}" # Luckily we're able to use "" here to denote an empty field. Support for a null value is coming in terraform 0.12: https://github.com/hashicorp/terraform/issues/14037
+    kms_key_id                      = "${var.storage_encrypted ? "${var.kms_key_arn}" : ""}" # Luckily we're able to use "" here to denote an empty field. Support for a null value is coming in terraform 0.12: https://github.com/hashicorp/terraform/issues/14037
 
     engine                          = "mysql"
     engine_version                  = "8.0"
