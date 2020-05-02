@@ -225,7 +225,6 @@ Point your browser there and enjoy!
 - Consider moving MySQL passwords into config files rather than passing on command line from terraform script
 - Add tests
 - Look into how to lock versions of python dependencies of our dependencies (rather than just the packages we explicitly reference)
-- Have the prod load balancer only listen on https
 - Encrypt SQS messages in prod
 - Centralize logging and make it searchable. Maybe like this: https://aws.amazon.com/solutions/centralized-logging/
 - Make puller-flickr only get incremental updates since the last time it ran, rather than pulling all data every time
