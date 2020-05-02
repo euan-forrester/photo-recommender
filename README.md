@@ -230,8 +230,12 @@ Point your browser there and enjoy!
 - Make puller-flickr only get incremental updates since the last time it ran, rather than pulling all data every time
 - Make puller-flickr look for deletions of favorites
 - Add CSRF token
-- Add versioning to the front end, so that old versions of file (with different hashes) don't live in S3 forever: https://stackoverflow.com/questions/46166337/how-can-i-deploy-a-new-cloudfront-s3-version-without-a-small-period-of-unavailab?rq=1
+- Prevent our website bucket from becoming cluttered with old versions of files
+  - End each deploy by tagging all current items in the bucket, which aren't in our dist/ directory, as "DeleteMe"
+    - Must do it at the end, because if we do it first and then the deploy fails we could have all our files deleted
+  - Add a lifecycle rule to delete all items tagged DeleteMe after N days
 - Make batch messages for both types of response readers, rather than sending each message individually
+  - Does this reduce the performance of the system from the users' perspective?
 - Have dismissed photos + users feed back into recommendations with negative scores
 - Make visualization of how many instances of each process are doing work at a given time - send task ID to metics and get a count of distinct IDs?
 - Need to have the browser authenticate with the API server to prevent API abuse of users whose tokens we have 
