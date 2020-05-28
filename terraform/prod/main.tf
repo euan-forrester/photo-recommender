@@ -33,7 +33,7 @@ module "build-common-infrastructure" {
   project_github_location  = var.project_github_location
   s3_deployment_bucket_arn = module.frontend.s3_deployment_bucket_arn
 
-  build_logs_bucket               = "build-logs"
+  build_logs_bucket               = "photo-recommender-build-logs"
   bucketname_user_string          = var.bucketname_user_string
   retain_build_logs_after_destroy = "false" # For dev, we don't care about retaining these logs after doing a terraform destroy
   days_to_keep_build_logs         = 90
@@ -345,7 +345,7 @@ module "api_server" {
 
   retain_load_balancer_access_logs_after_destroy = "false" # For dev, we don't care about retaining these logs after doing a terraform destroy
   load_balancer_days_to_keep_access_logs         = 30
-  load_balancer_access_logs_bucket               = "load-balancer-access-logs"
+  load_balancer_access_logs_bucket               = "photo-recommender-load-balancer-access-logs"
   load_balancer_access_logs_prefix               = "api-server-lb"
   bucketname_user_string                         = var.bucketname_user_string
 
@@ -404,7 +404,7 @@ module "frontend" {
   load_balancer_port     = module.api_server.load_balancer_port
   load_balancer_zone_id  = module.api_server.load_balancer_zone_id
 
-  frontend_access_logs_bucket               = "frontend-access-logs"
+  frontend_access_logs_bucket               = "photo-recommender-frontend-access-logs"
   retain_frontend_access_logs_after_destroy = "false" # For dev, we don't care about retaining these logs after doing a terraform destroy
   days_to_keep_frontend_access_logs         = 30
 
