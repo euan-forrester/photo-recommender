@@ -18,10 +18,11 @@ resource "aws_iam_role" "build_common_infrastructure" {
   ]
 }
 EOF
+
 }
 
 resource "aws_iam_role_policy" "build_common_infrastructure" {
-  role = "${aws_iam_role.build_common_infrastructure.name}"
+  role = aws_iam_role.build_common_infrastructure.name
 
   policy = <<POLICY
 {
@@ -90,4 +91,6 @@ resource "aws_iam_role_policy" "build_common_infrastructure" {
   ]
 }
 POLICY
+
 }
+

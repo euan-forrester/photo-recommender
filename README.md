@@ -221,7 +221,6 @@ Point your browser there and enjoy!
 
 ## To do
 
-- Upgrade to terraform v0.12
 - Consider moving MySQL passwords into config files rather than passing on command line from terraform script
 - Add tests
 - Look into how to lock versions of python dependencies of our dependencies (rather than just the packages we explicitly reference)

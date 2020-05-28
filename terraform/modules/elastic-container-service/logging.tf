@@ -1,14 +1,13 @@
 data "aws_caller_identity" "logging" {
-  
 }
 
 # NOTE: See https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/encrypt-log-data-kms.html
 resource "aws_kms_key" "logs" {
-    description             = "Used to encrypt/decrypt logs"
-    key_usage               = "ENCRYPT_DECRYPT"
-    enable_key_rotation     = true
-    deletion_window_in_days = 30
-    policy              = <<POLICY
+  description             = "Used to encrypt/decrypt logs"
+  key_usage               = "ENCRYPT_DECRYPT"
+  enable_key_rotation     = true
+  deletion_window_in_days = 30
+  policy                  = <<POLICY
 {
   "Version" : "2012-10-17",
   "Id" : "key-default-1",
@@ -35,19 +34,21 @@ resource "aws_kms_key" "logs" {
     }  
   ]
 }
-    POLICY
+    
+POLICY
+
 }
 
 resource "aws_cloudwatch_log_group" "log_group" {
-    name                = "${var.cluster_name}-${var.environment}"
-    retention_in_days   = "${var.instances_log_retention_days}"
-    kms_key_id          = "${aws_kms_key.logs.arn}"
+  name              = "${var.cluster_name}-${var.environment}"
+  retention_in_days = var.instances_log_retention_days
+  kms_key_id        = aws_kms_key.logs.arn
 }
 
 # Part of a task definition, used in task-definition.tf
 # TODO: Consider sending all logs to a single region so they can all be viewed together
 data "template_file" "log_configuration" {
-    template = <<EOF
+  template = <<EOF
     "logConfiguration": {
       "logDriver": "awslogs",
       "options": {
@@ -58,4 +59,6 @@ data "template_file" "log_configuration" {
       }
     }
 EOF
+
 }
+

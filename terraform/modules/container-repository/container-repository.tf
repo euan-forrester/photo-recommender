@@ -1,9 +1,9 @@
 resource "aws_ecr_repository" "ecr" {
-    name = "${var.name}-${var.environment}"
-} 
+  name = "${var.name}-${var.environment}"
+}
 
 resource "aws_ecr_lifecycle_policy" "lifecycle_policy" {
-  repository = "${aws_ecr_repository.ecr.name}"
+  repository = aws_ecr_repository.ecr.name
 
   policy = <<EOF
 {
@@ -24,4 +24,6 @@ resource "aws_ecr_lifecycle_policy" "lifecycle_policy" {
     ]
 }
 EOF
+
 }
+

@@ -1,10 +1,25 @@
-variable "environment" {}
-variable "region" {}
+variable "environment" {
+}
 
-variable "vpc_id" {}
-variable "vpc_public_subnet_ids" { type = "list" }
-variable "vpc_cidr" {}
+variable "region" {
+}
 
-variable "memcached_node_type" {}
-variable "memcached_num_cache_nodes" {}
-variable "memcached_az_mode" {}
+variable "vpc_id" {
+}
+
+variable "vpc_public_subnet_ids" {
+  type = list(string)
+}
+
+variable "vpc_cidr" {
+}
+
+variable "memcached_node_type" {
+}
+
+variable "memcached_num_cache_nodes" {
+}
+
+variable "memcached_az_mode" {
+}
+

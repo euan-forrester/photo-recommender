@@ -111,155 +111,158 @@ resource "aws_cloudwatch_dashboard" "main" {
        }
     ]
   }
-  EOF
+  
+EOF
+
 }
 
 data "template_file" "time_to_get_all_data" {
-    vars = {
-        environment                 = "${var.environment}"
-        region                      = "${var.region}"
-    }
+  vars = {
+    environment = var.environment
+    region      = var.region
+  }
 
-    template = "${file("${path.module}/time_to_get_all_data.tpl")}"
+  template = file("${path.module}/time_to_get_all_data.tpl")
 }
 
 data "template_file" "puller_queue" {
-    vars = {
-        queue_full_name             = "${var.puller_queue_full_name}"
-        queue_base_name             = "${var.puller_queue_base_name}"
-        queue_dead_letter_full_name = "${var.puller_queue_dead_letter_full_name}"
-        region                      = "${var.region}"
-    }
+  vars = {
+    queue_full_name             = var.puller_queue_full_name
+    queue_base_name             = var.puller_queue_base_name
+    queue_dead_letter_full_name = var.puller_queue_dead_letter_full_name
+    region                      = var.region
+  }
 
-    template = "${file("${path.module}/sqs_queue.tpl")}"
+  template = file("${path.module}/sqs_queue.tpl")
 }
 
 data "template_file" "puller_response_queue" {
-    vars = {
-        queue_full_name             = "${var.puller_response_queue_full_name}"
-        queue_base_name             = "${var.puller_response_queue_base_name}"
-        queue_dead_letter_full_name = "${var.puller_response_queue_dead_letter_full_name}"
-        region                      = "${var.region}"
-    }
+  vars = {
+    queue_full_name             = var.puller_response_queue_full_name
+    queue_base_name             = var.puller_response_queue_base_name
+    queue_dead_letter_full_name = var.puller_response_queue_dead_letter_full_name
+    region                      = var.region
+  }
 
-    template = "${file("${path.module}/sqs_queue.tpl")}"
+  template = file("${path.module}/sqs_queue.tpl")
 }
 
 data "template_file" "ingester_queue" {
-    vars = {
-        queue_full_name             = "${var.ingester_queue_full_name}"
-        queue_base_name             = "${var.ingester_queue_base_name}"
-        queue_dead_letter_full_name = "${var.ingester_queue_dead_letter_full_name}"
-        region                      = "${var.region}"
-    }
+  vars = {
+    queue_full_name             = var.ingester_queue_full_name
+    queue_base_name             = var.ingester_queue_base_name
+    queue_dead_letter_full_name = var.ingester_queue_dead_letter_full_name
+    region                      = var.region
+  }
 
-    template = "${file("${path.module}/sqs_queue.tpl")}"
+  template = file("${path.module}/sqs_queue.tpl")
 }
 
 data "template_file" "ingester_response_queue" {
-    vars = {
-        queue_full_name             = "${var.ingester_response_queue_full_name}"
-        queue_base_name             = "${var.ingester_response_queue_base_name}"
-        queue_dead_letter_full_name = "${var.ingester_response_queue_dead_letter_full_name}"
-        region                      = "${var.region}"
-    }
+  vars = {
+    queue_full_name             = var.ingester_response_queue_full_name
+    queue_base_name             = var.ingester_response_queue_base_name
+    queue_dead_letter_full_name = var.ingester_response_queue_dead_letter_full_name
+    region                      = var.region
+  }
 
-    template = "${file("${path.module}/sqs_queue.tpl")}"
+  template = file("${path.module}/sqs_queue.tpl")
 }
 
 data "template_file" "ec2_network" {
-    vars = {
-        autoscaling_group_name      = "${var.ecs_autoscaling_group_name}"
-        region                      = "${var.region}"
-    }
+  vars = {
+    autoscaling_group_name = var.ecs_autoscaling_group_name
+    region                 = var.region
+  }
 
-    template = "${file("${path.module}/ec2_network.tpl")}"
+  template = file("${path.module}/ec2_network.tpl")
 }
 
 data "template_file" "ec2_cpu" {
-    vars = {
-        autoscaling_group_name      = "${var.ecs_autoscaling_group_name}"
-        region                      = "${var.region}"
-    }
+  vars = {
+    autoscaling_group_name = var.ecs_autoscaling_group_name
+    region                 = var.region
+  }
 
-    template = "${file("${path.module}/ec2_cpu.tpl")}"
+  template = file("${path.module}/ec2_cpu.tpl")
 }
 
 data "template_file" "database_io" {
-    vars = {
-        database_identifier         = "${var.database_identifier}"
-        region                      = "${var.region}"
-    }
+  vars = {
+    database_identifier = var.database_identifier
+    region              = var.region
+  }
 
-    template = "${file("${path.module}/database_io.tpl")}"
+  template = file("${path.module}/database_io.tpl")
 }
 
 data "template_file" "database_cpu" {
-    vars = {
-        database_identifier         = "${var.database_identifier}"
-        region                      = "${var.region}"
-    }
+  vars = {
+    database_identifier = var.database_identifier
+    region              = var.region
+  }
 
-    template = "${file("${path.module}/database_cpu.tpl")}"
+  template = file("${path.module}/database_cpu.tpl")
 }
 
 data "template_file" "database_disc" {
-    vars = {
-        database_identifier         = "${var.database_identifier}"
-        region                      = "${var.region}"
-    }
+  vars = {
+    database_identifier = var.database_identifier
+    region              = var.region
+  }
 
-    template = "${file("${path.module}/database_disc.tpl")}"
+  template = file("${path.module}/database_disc.tpl")
 }
 
 data "template_file" "database_memory" {
-    vars = {
-        database_identifier         = "${var.database_identifier}"
-        region                      = "${var.region}"
-    }
+  vars = {
+    database_identifier = var.database_identifier
+    region              = var.region
+  }
 
-    template = "${file("${path.module}/database_memory.tpl")}"
+  template = file("${path.module}/database_memory.tpl")
 }
 
 data "template_file" "ecs_cpu" {
-    vars = {
-        cluster_name                = "${var.ecs_cluster_name}"
-        region                      = "${var.region}"
-        environment                 = "${var.environment}"
-    }
+  vars = {
+    cluster_name = var.ecs_cluster_name
+    region       = var.region
+    environment  = var.environment
+  }
 
-    template = "${file("${path.module}/ecs_cpu.tpl")}"
+  template = file("${path.module}/ecs_cpu.tpl")
 }
 
 data "template_file" "ecs_memory" {
-    vars = {
-        cluster_name                = "${var.ecs_cluster_name}"
-        region                      = "${var.region}"
-        environment                 = "${var.environment}"
-    }
+  vars = {
+    cluster_name = var.ecs_cluster_name
+    region       = var.region
+    environment  = var.environment
+  }
 
-    template = "${file("${path.module}/ecs_memory.tpl")}"
+  template = file("${path.module}/ecs_memory.tpl")
 }
 
 data "template_file" "unhandled_exceptions" {
-    vars = {
-        title                       = "Unhandled exceptions"
-        environment                 = "${var.environment}"
-        metrics_namespace           = "${var.metrics_namespace}"
-        metric_name                 = "UnhandledException"
-        region                      = "${var.region}"
-    }
+  vars = {
+    title             = "Unhandled exceptions"
+    environment       = var.environment
+    metrics_namespace = var.metrics_namespace
+    metric_name       = "UnhandledException"
+    region            = var.region
+  }
 
-    template = "${file("${path.module}/unhandled_exceptions.tpl")}"
+  template = file("${path.module}/unhandled_exceptions.tpl")
 }
 
 data "template_file" "timing" {
-    vars = {
-        title                       = "Timing"
-        environment                 = "${var.environment}"
-        metrics_namespace           = "${var.metrics_namespace}"
-        region                      = "${var.region}"
-    }
+  vars = {
+    title             = "Timing"
+    environment       = var.environment
+    metrics_namespace = var.metrics_namespace
+    region            = var.region
+  }
 
-    template = "${file("${path.module}/timing.tpl")}"
+  template = file("${path.module}/timing.tpl")
 }
+
