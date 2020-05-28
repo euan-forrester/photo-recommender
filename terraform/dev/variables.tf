@@ -32,6 +32,9 @@ variable "flickr_secret_key" {
 variable "database_password_dev" {
 }
 
+variable "database_password_prod" {
+}
+
 variable "dns_address" {
 }
 
@@ -42,6 +45,12 @@ variable "database_user_data_encryption_key_dev" {
 }
 
 variable "api_server_session_encryption_key_dev" {
+}
+
+variable "database_user_data_encryption_key_prod" {
+}
+
+variable "api_server_session_encryption_key_prod" {
 }
 
 variable "ssl_certificate_body" {
