@@ -1,24 +1,54 @@
-variable "environment" {}
-variable "region" {}
-variable "metrics_namespace" {}
+variable "environment" {
+}
 
-variable "puller_queue_base_name" {}
-variable "puller_queue_full_name" {}
-variable "puller_queue_dead_letter_full_name" {}
+variable "region" {
+}
 
-variable "puller_response_queue_base_name" {}
-variable "puller_response_queue_full_name" {}
-variable "puller_response_queue_dead_letter_full_name" {}
+variable "metrics_namespace" {
+}
 
-variable "ingester_queue_base_name" {}
-variable "ingester_queue_full_name" {}
-variable "ingester_queue_dead_letter_full_name" {}
+variable "puller_queue_base_name" {
+}
 
-variable "ingester_response_queue_base_name" {}
-variable "ingester_response_queue_full_name" {}
-variable "ingester_response_queue_dead_letter_full_name" {}
+variable "puller_queue_full_name" {
+}
 
-variable "database_identifier" {}
+variable "puller_queue_dead_letter_full_name" {
+}
 
-variable "ecs_autoscaling_group_name" {}
-variable "ecs_cluster_name" {}
+variable "puller_response_queue_base_name" {
+}
+
+variable "puller_response_queue_full_name" {
+}
+
+variable "puller_response_queue_dead_letter_full_name" {
+}
+
+variable "ingester_queue_base_name" {
+}
+
+variable "ingester_queue_full_name" {
+}
+
+variable "ingester_queue_dead_letter_full_name" {
+}
+
+variable "ingester_response_queue_base_name" {
+}
+
+variable "ingester_response_queue_full_name" {
+}
+
+variable "ingester_response_queue_dead_letter_full_name" {
+}
+
+variable "database_identifier" {
+}
+
+variable "ecs_autoscaling_group_name" {
+}
+
+variable "ecs_cluster_name" {
+}
+
