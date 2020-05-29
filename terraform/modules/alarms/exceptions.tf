@@ -1,5 +1,5 @@
 resource "aws_cloudwatch_metric_alarm" "unhandled_exceptions" {
-  count = var.enable_alarms == "true" ? length(var.process_names) : 0 # Don't create this if we turn off alarms (e.g. for dev)
+  count = var.enable_alarms ? length(var.process_names) : 0 # Don't create this if we turn off alarms (e.g. for dev)
 
   alarm_name                = "Unhandled exceptions in ${element(var.process_names, count.index)} ${var.environment}" # Need to have a different name for each one, or else we only see one in the UI
   comparison_operator       = "GreaterThanOrEqualToThreshold"
@@ -22,7 +22,7 @@ resource "aws_cloudwatch_metric_alarm" "unhandled_exceptions" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "queue_reader_error" {
-  count = var.enable_alarms == "true" ? length(var.process_names_that_read_from_queues) : 0 # Don't create this if we turn off alarms (e.g. for dev)
+  count = var.enable_alarms ? length(var.process_names_that_read_from_queues) : 0 # Don't create this if we turn off alarms (e.g. for dev)
 
   alarm_name                = "QueueReaderError in ${element(var.process_names_that_read_from_queues, count.index)} ${var.environment}" # Need to have a different name for each one, or else we only see one in the UI
   comparison_operator       = "GreaterThanOrEqualToThreshold"
@@ -45,7 +45,7 @@ resource "aws_cloudwatch_metric_alarm" "queue_reader_error" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "queue_writer_error" {
-  count = var.enable_alarms == "true" ? length(var.process_names_that_write_to_queues) : 0 # Don't create this if we turn off alarms (e.g. for dev)
+  count = var.enable_alarms ? length(var.process_names_that_write_to_queues) : 0 # Don't create this if we turn off alarms (e.g. for dev)
 
   alarm_name                = "QueueWriterError in ${element(var.process_names_that_write_to_queues, count.index)} ${var.environment}" # Need to have a different name for each one, or else we only see one in the UI
   comparison_operator       = "GreaterThanOrEqualToThreshold"
@@ -68,7 +68,7 @@ resource "aws_cloudwatch_metric_alarm" "queue_writer_error" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "users_store_exception" {
-  count = var.enable_alarms == "true" ? length(var.process_names_that_use_api_server) : 0 # Don't create this if we turn off alarms (e.g. for dev)
+  count = var.enable_alarms ? length(var.process_names_that_use_api_server) : 0 # Don't create this if we turn off alarms (e.g. for dev)
 
   alarm_name                = "UsersStoreException in ${element(var.process_names_that_use_api_server, count.index)} ${var.environment}" # Need to have a different name for each one, or else we only see one in the UI
   comparison_operator       = "GreaterThanOrEqualToThreshold"
@@ -91,7 +91,7 @@ resource "aws_cloudwatch_metric_alarm" "users_store_exception" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "favorites_store_exception" {
-  count = var.enable_alarms == "true" ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
+  count = var.enable_alarms ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
 
   alarm_name                = "API server encountered FavoritesStoreException ${var.environment}"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
@@ -114,7 +114,7 @@ resource "aws_cloudwatch_metric_alarm" "favorites_store_exception" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "api_server_exception" {
-  count = var.enable_alarms == "true" ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
+  count = var.enable_alarms ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
 
   alarm_name                = "API server encountered a generic Exception ${var.environment}"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
@@ -137,7 +137,7 @@ resource "aws_cloudwatch_metric_alarm" "api_server_exception" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "database_batch_writer_exception" {
-  count = var.enable_alarms == "true" ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
+  count = var.enable_alarms ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
 
   alarm_name                = "ingester-database encountered a DatabaseBatchWriterException ${var.environment}"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
@@ -160,7 +160,7 @@ resource "aws_cloudwatch_metric_alarm" "database_batch_writer_exception" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "puller_flickr_max_batch_size_exceeded" {
-  count = var.enable_alarms == "true" ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
+  count = var.enable_alarms ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
 
   alarm_name                = "puller-flickr encountered a MaxBatchSizeExceeded error ${var.environment}"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
@@ -183,7 +183,7 @@ resource "aws_cloudwatch_metric_alarm" "puller_flickr_max_batch_size_exceeded" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "puller_flickr_max_neighbors_exceeded" {
-  count = var.enable_alarms == "true" ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
+  count = var.enable_alarms ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
 
   alarm_name                = "puller-flickr encountered a MaxNeighborsExceeded error ${var.environment}"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
@@ -206,7 +206,7 @@ resource "aws_cloudwatch_metric_alarm" "puller_flickr_max_neighbors_exceeded" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "puller_flickr_max_flickr_api_exceptions_exceeded" {
-  count = var.enable_alarms == "true" ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
+  count = var.enable_alarms ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
 
   alarm_name                = "puller-flickr encountered a FlickrApiException error ${var.environment}"
   comparison_operator       = "GreaterThanOrEqualToThreshold"

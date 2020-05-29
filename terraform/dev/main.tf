@@ -35,7 +35,7 @@ module "build-common-infrastructure" {
 
   build_logs_bucket               = "photo-recommender-build-logs"
   bucketname_user_string          = var.bucketname_user_string
-  retain_build_logs_after_destroy = "false" # For dev, we don't care about retaining these logs after doing a terraform destroy
+  retain_build_logs_after_destroy = false # For dev, we don't care about retaining these logs after doing a terraform destroy
   days_to_keep_build_logs         = 1
 }
 
@@ -343,7 +343,7 @@ module "api_server" {
   flickr_api_memcached_ttl       = 7200
   flickr_auth_memcached_location = module.memcached.location
 
-  retain_load_balancer_access_logs_after_destroy = "false" # For dev, we don't care about retaining these logs after doing a terraform destroy
+  retain_load_balancer_access_logs_after_destroy = false # For dev, we don't care about retaining these logs after doing a terraform destroy
   load_balancer_days_to_keep_access_logs         = 1
   load_balancer_access_logs_bucket               = "photo-recommender-load-balancer-access-logs"
   load_balancer_access_logs_prefix               = "api-server-lb"
@@ -405,10 +405,10 @@ module "frontend" {
   load_balancer_zone_id  = module.api_server.load_balancer_zone_id
 
   frontend_access_logs_bucket               = "photo-recommender-frontend-access-logs"
-  retain_frontend_access_logs_after_destroy = "false" # For dev, we don't care about retaining these logs after doing a terraform destroy
+  retain_frontend_access_logs_after_destroy = false # For dev, we don't care about retaining these logs after doing a terraform destroy
   days_to_keep_frontend_access_logs         = 1
 
-  use_custom_domain           = "false"
+  use_custom_domain           = false
   ssl_certificate_body        = var.ssl_certificate_body
   ssl_certificate_private_key = var.ssl_certificate_private_key
   ssl_certificate_chain       = var.ssl_certificate_chain
@@ -455,7 +455,7 @@ module "alarms" {
   environment = var.environment
   region      = var.region
 
-  enable_alarms = "true"
+  enable_alarms = true
 
   metrics_namespace = var.metrics_namespace
   topic_name        = "photo-recommender"
