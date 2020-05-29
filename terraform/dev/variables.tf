@@ -13,6 +13,14 @@ variable "environment_long_name" {
 variable "alarms_email" {
 }
 
+variable "application_name" {
+  default = "photo-recommender"
+}
+
+variable "application_name_no_hyphens" {
+  default = "photorecommender"
+}
+
 variable "metrics_namespace" {
   default = "Photo Recommender"
 }
