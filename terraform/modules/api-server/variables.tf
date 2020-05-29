@@ -90,6 +90,7 @@ variable "bucketname_user_string" {
 }
 
 variable "retain_load_balancer_access_logs_after_destroy" {
+  type = bool
 }
 
 variable "default_num_photo_recommendations" {

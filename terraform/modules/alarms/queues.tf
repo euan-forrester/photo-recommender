@@ -1,5 +1,5 @@
 resource "aws_cloudwatch_metric_alarm" "dead_letter_queue_items" {
-  count = var.enable_alarms == "true" ? length(var.dead_letter_queue_names) : 0 # Don't create this if we turn off alarms (e.g. for dev)
+  count = var.enable_alarms ? length(var.dead_letter_queue_names) : 0 # Don't create this if we turn off alarms (e.g. for dev)
 
   alarm_name                = "${element(var.dead_letter_queue_names, count.index)} items" # Need to have a different name for each one, or else we only see one in the UI
   comparison_operator       = "GreaterThanOrEqualToThreshold"
@@ -21,7 +21,7 @@ resource "aws_cloudwatch_metric_alarm" "dead_letter_queue_items" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "queue_item_size" {
-  count = var.enable_alarms == "true" ? length(var.queue_names) : 0 # Don't create this if we turn off alarms (e.g. for dev)
+  count = var.enable_alarms ? length(var.queue_names) : 0 # Don't create this if we turn off alarms (e.g. for dev)
 
   alarm_name                = "${element(var.queue_names, count.index)} item size" # Need to have a different name for each one, or else we only see one in the UI
   comparison_operator       = "GreaterThanOrEqualToThreshold"
@@ -43,7 +43,7 @@ resource "aws_cloudwatch_metric_alarm" "queue_item_size" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "queue_item_age" {
-  count = var.enable_alarms == "true" ? length(var.queue_names) : 0 # Don't create this if we turn off alarms (e.g. for dev)
+  count = var.enable_alarms ? length(var.queue_names) : 0 # Don't create this if we turn off alarms (e.g. for dev)
 
   alarm_name                = "${element(var.queue_names, count.index)} item age" # Need to have a different name for each one, or else we only see one in the UI
   comparison_operator       = "GreaterThanOrEqualToThreshold"

@@ -14,6 +14,7 @@ variable "alarms_email" {
 }
 
 variable "enable_alarms" {
+  type = bool
 }
 
 variable "unhandled_exceptions_threshold" {

@@ -17,6 +17,7 @@ variable "bucketname_user_string" {
 }
 
 variable "retain_build_logs_after_destroy" {
+  type = bool
 }
 
 variable "days_to_keep_build_logs" {

@@ -1,7 +1,7 @@
 module "vpc" {
   source = "../modules/vpc"
 
-  vpc_name    = "photo-recommender"
+  vpc_name    = var.application_name
   environment = var.environment
 
   cidr_block = "10.10.0.0/16"
@@ -33,9 +33,9 @@ module "build-common-infrastructure" {
   project_github_location  = var.project_github_location
   s3_deployment_bucket_arn = module.frontend.s3_deployment_bucket_arn
 
-  build_logs_bucket               = "photo-recommender-build-logs"
+  build_logs_bucket               = "${var.application_name}-build-logs"
   bucketname_user_string          = var.bucketname_user_string
-  retain_build_logs_after_destroy = "false" # For dev, we don't care about retaining these logs after doing a terraform destroy
+  retain_build_logs_after_destroy = false # For dev, we don't care about retaining these logs after doing a terraform destroy
   days_to_keep_build_logs         = 1
 }
 
@@ -44,7 +44,7 @@ module "elastic_container_service" {
 
   environment  = var.environment
   region       = var.region
-  cluster_name = "photo-recommender"
+  cluster_name = var.application_name
 
   vpc_id                = module.vpc.vpc_id
   vpc_public_subnet_ids = module.vpc.vpc_public_subnet_ids
@@ -72,7 +72,7 @@ module "database" {
   vpc_cidr              = module.vpc.vpc_cidr_block
   local_machine_cidr    = var.local_machine_cidr
 
-  mysql_database_name                = "photorecommender"
+  mysql_database_name                = var.application_name_no_hyphens
   mysql_instance_type                = "db.t2.micro" #"db.m5.large"#"db.t2.micro" 
   mysql_storage_encrypted            = false         # db.t2.micro doesn't support encryption at rest -- needs to be at least db.t2.small
   mysql_storage_type                 = "gp2"         # General purpose SSD
@@ -343,9 +343,9 @@ module "api_server" {
   flickr_api_memcached_ttl       = 7200
   flickr_auth_memcached_location = module.memcached.location
 
-  retain_load_balancer_access_logs_after_destroy = "false" # For dev, we don't care about retaining these logs after doing a terraform destroy
+  retain_load_balancer_access_logs_after_destroy = false # For dev, we don't care about retaining these logs after doing a terraform destroy
   load_balancer_days_to_keep_access_logs         = 1
-  load_balancer_access_logs_bucket               = "photo-recommender-load-balancer-access-logs"
+  load_balancer_access_logs_bucket               = "${var.application_name}-load-balancer-access-logs"
   load_balancer_access_logs_prefix               = "api-server-lb"
   bucketname_user_string                         = var.bucketname_user_string
 
@@ -395,7 +395,7 @@ module "frontend" {
   bucketname_user_string = var.bucketname_user_string
 
   application_domain = "dev.${var.dns_address}"
-  application_name   = "photo-recommender"
+  application_name   = var.application_name
 
   days_to_keep_old_versions = 1
 
@@ -404,11 +404,11 @@ module "frontend" {
   load_balancer_port     = module.api_server.load_balancer_port
   load_balancer_zone_id  = module.api_server.load_balancer_zone_id
 
-  frontend_access_logs_bucket               = "photo-recommender-frontend-access-logs"
-  retain_frontend_access_logs_after_destroy = "false" # For dev, we don't care about retaining these logs after doing a terraform destroy
+  frontend_access_logs_bucket               = "${var.application_name}-frontend-access-logs"
+  retain_frontend_access_logs_after_destroy = false # For dev, we don't care about retaining these logs after doing a terraform destroy
   days_to_keep_frontend_access_logs         = 1
 
-  use_custom_domain           = "false"
+  use_custom_domain           = false
   ssl_certificate_body        = var.ssl_certificate_body
   ssl_certificate_private_key = var.ssl_certificate_private_key
   ssl_certificate_chain       = var.ssl_certificate_chain
@@ -455,10 +455,10 @@ module "alarms" {
   environment = var.environment
   region      = var.region
 
-  enable_alarms = "true"
+  enable_alarms = true
 
   metrics_namespace = var.metrics_namespace
-  topic_name        = "photo-recommender"
+  topic_name        = var.application_name
   alarms_email      = var.alarms_email
 
   unhandled_exceptions_threshold = 1
