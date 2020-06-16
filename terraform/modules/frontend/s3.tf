@@ -13,13 +13,28 @@ resource "aws_s3_bucket" "frontend" {
     target_prefix = "access-log/"
   }
 
+  versioning {
+    enabled = true
+  }
+
   lifecycle_rule {
     id      = "expire-old-versions-after-N-days"
     enabled = true
 
-    prefix = "*"
-
     noncurrent_version_expiration {
+      days = var.days_to_keep_old_versions
+    }
+  }
+
+  lifecycle_rule {
+    id      = "expire-tagged-files-after-N-days"
+    enabled = true
+
+    tags = {
+      "DeployLifecycle" = "DeleteMe"
+    }
+
+    expiration {
       days = var.days_to_keep_old_versions
     }
   }
