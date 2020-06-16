@@ -17,3 +17,4 @@ phases:
   post_build:
     commands:
       - yarn deploy --mode=$ENVIRONMENT
+      - yarn deploy:cleanup --mode=$ENVIRONMENT

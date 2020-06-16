@@ -5,9 +5,10 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
+    "test:unit": "vue-cli-service test:unit",
     "lint": "vue-cli-service lint",
     "deploy": "vue-cli-service s3-deploy",
-    "test:unit": "vue-cli-service test:unit"
+    "deploy:cleanup": "vue-cli-service s3-deploy-cleanup"
   },
   "dependencies": {
     "@babel/polyfill": "^7.4.4",
@@ -47,6 +48,7 @@
     "portal-vue": "^2.1.4",
     "sass-loader": "^7.1.0",
     "vue-cli-plugin-bootstrap-vue": "^0.4.0",
+    "vue-cli-plugin-s3-deploy-cleanup": "~1.0.1",
     "vue-template-compiler": "^2.6.10"
   },
   "eslintConfig": {
