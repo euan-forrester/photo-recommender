@@ -16,5 +16,4 @@ phases:
       - yarn build --mode=production
   post_build:
     commands:
-      - yarn deploy --mode=$ENVIRONMENT
-      - yarn deploy:cleanup --mode=$ENVIRONMENT
+      - yarn deploy --mode=$ENVIRONMENT && yarn deploy:cleanup --mode=$ENVIRONMENT
