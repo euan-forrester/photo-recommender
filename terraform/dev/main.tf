@@ -409,9 +409,6 @@ module "frontend" {
   days_to_keep_frontend_access_logs         = 1
 
   use_custom_domain           = false
-  ssl_certificate_body        = var.ssl_certificate_body
-  ssl_certificate_private_key = var.ssl_certificate_private_key
-  ssl_certificate_chain       = var.ssl_certificate_chain
 
   project_github_location = var.project_github_location
   build_logs_bucket_id    = module.build-common-infrastructure.build_logs_bucket_id

@@ -31,13 +31,3 @@ api_server_session_encryption_key_prod = ""
 
 # The domain under which instances (dev, prod) of the application will run as subdomains
 dns_address = "abc123.com"
-
-# ssl certificate. Good instructions on getting one from LetsEncrypt here: https://itnext.io/using-letsencrypt-ssl-certificates-in-aws-certificate-manager-c2bc3c6ae10
-ssl_certificate_body = <<EOF
-EOF
-
-ssl_certificate_private_key = <<EOF
-EOF
-
-ssl_certificate_chain = <<EOF
-EOF

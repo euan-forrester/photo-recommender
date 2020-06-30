@@ -54,10 +54,10 @@ module "elastic_container_service" {
 
   extra_security_groups = [module.api_server.security_group_id]
 
-  instance_type                = "c5.large" #"t2.micro"
-  cluster_desired_size         = 20         #0#2#20
+  instance_type                = "t2.micro" #"c5.large" #"t2.micro"
+  cluster_desired_size         = 2#20         #0#2#20
   cluster_min_size             = 0
-  cluster_max_size             = 20 #0#2#20
+  cluster_max_size             = 2#20 #0#2#20
   instances_log_retention_days = 1
 }
 
@@ -134,7 +134,7 @@ module "scheduler" {
   puller_response_queue_long_polling_seconds = 1  # Don't do long polling for too long: we can only write out our batches to the API server after we find no more new messages
 
   max_iterations_before_exit  = 1000
-  sleep_ms_between_iterations = 500
+  min_sleep_ms_between_iterations = 500
 
   duration_to_request_lock_seconds = 10
 
@@ -409,9 +409,6 @@ module "frontend" {
   days_to_keep_frontend_access_logs         = 30
 
   use_custom_domain           = true
-  ssl_certificate_body        = var.ssl_certificate_body
-  ssl_certificate_private_key = var.ssl_certificate_private_key
-  ssl_certificate_chain       = var.ssl_certificate_chain
 
   project_github_location = var.project_github_location
   build_logs_bucket_id    = module.build-common-infrastructure.build_logs_bucket_id

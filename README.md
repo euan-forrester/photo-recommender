@@ -92,7 +92,7 @@ Copy the file `terraform/terraform.tfvars.example` to `terraform/terraform.tfvar
 - Enter the github address of your fork of this project
 - Fill in your Flickr API key and secret: https://www.flickr.com/services/apps/create/apply
 - Fill in a master password for the various databases
-- If you're going to make a prod instance with a real domain, create an SSL certificate and fill in the details. There's good instructions here: https://itnext.io/using-letsencrypt-ssl-certificates-in-aws-certificate-manager-c2bc3c6ae10
+- If you're going to make a prod instance with a real domain, register that domain using AWS's Route53 manually and fill in the domain name in this file.
 - Fill in a 256-bit AES encryption key, used to encrypt user session data. Can be obtained from https://www.allkeysgenerator.com/Random/Security-Encryption-Key-Generator.aspx for example
 - Fill in a 256-bit AES encryption key, used to encrypt user access tokens in the database. Can be obtained from the same place as the above
 
@@ -239,7 +239,6 @@ Point your browser there and enjoy!
 - Consider normalizing the `favorites` table by splitting it into a table that just has the photos, and another table of who's favorited them
   - What is the impact on write throughput of this change?
 - Highlight new recommendations by moving them to the top of the list. Maybe have a "first recommended on" field per user, and use that to boost score?
-- Move the domain into route53 and the SSL certificate into the AWS certificate manager
 - Investigate why puller-flickr often has such a long max time to process a single user
 - Remove already-favorited images from the AddFavorites screen
 - Add logout to the navigation bar
