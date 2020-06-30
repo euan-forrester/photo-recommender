@@ -45,15 +45,6 @@ variable "use_custom_domain" {
   type = bool
 }
 
-variable "ssl_certificate_body" {
-}
-
-variable "ssl_certificate_private_key" {
-}
-
-variable "ssl_certificate_chain" {
-}
-
 variable "project_github_location" {
 }
 

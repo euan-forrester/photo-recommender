@@ -13,21 +13,6 @@ locals {
   application_domains     = [var.application_domain]
 }
 
-provider "aws" {
-  # Certificates need to be in us-east-1
-  # https://github.com/hashicorp/terraform/issues/10957
-  region = "us-east-1"
-  alias  = "use1"
-}
-
-resource "aws_acm_certificate" "cert" {
-  provider          = aws.use1
-  count             = var.use_custom_domain ? 1 : 0
-  certificate_body  = var.ssl_certificate_body
-  private_key       = var.ssl_certificate_private_key
-  certificate_chain = var.ssl_certificate_chain
-}
-
 resource "aws_cloudfront_distribution" "application" {
   enabled             = true
   default_root_object = "index.html"
@@ -123,7 +108,7 @@ resource "aws_cloudfront_distribution" "application" {
 
   viewer_certificate {
     cloudfront_default_certificate = var.use_custom_domain == false                           # In dev, for now, we can just visit our site through cloudfront directly rather than through a domain
-    acm_certificate_arn            = element(concat(aws_acm_certificate.cert.*.arn, [""]), 0) # There's either 1 or 0 certs, so the 0th element is either the cert or empty string
+    acm_certificate_arn            = element(concat(aws_acm_certificate_validation.cert.*.certificate_arn, [""]), 0) # There's either 1 or 0 certs, so the 0th element is either the cert or empty string
     ssl_support_method             = var.use_custom_domain ? "sni-only" : ""                  # If cloudfront_default_certificate is set then this won't be set. But terraform will try to set it everytime it runs, which takes a good 15 minutes each time
   }
 }
