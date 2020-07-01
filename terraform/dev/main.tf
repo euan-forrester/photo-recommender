@@ -61,6 +61,34 @@ module "elastic_container_service" {
   instances_log_retention_days = 1
 }
 
+module "centralized-logs" {
+  source = "../modules/centralized-logs"
+
+  centralized_logs_enabled = true
+
+  environment  = var.environment
+  region       = var.region
+
+  vpc_id                      = module.vpc.vpc_id
+  elastic_search_subnet_ids   = [element(module.vpc.vpc_private_subnet_ids, 0)] # No multi-az for dev = can only specify one subnet
+  local_machine_cidr          = var.local_machine_cidr
+
+  elastic_search_domain_name  = "${var.application_name}-${var.environment}"
+  elastic_search_ebs_volume_size = 10
+  elastic_search_encryption_enabled = false # t2.small.elasticsearch doesn't support encryption at rest
+  elastic_search_storage_encryption_kms_key_id = module.encryption.kms_key_id
+
+  elastic_search_multi_az      = false
+  elastic_search_instance_type = "t2.small.elasticsearch" # r5.large.elasticsearch is the default instance type for ElasticSearch
+  elastic_search_instance_count = 1
+  elastic_search_dedicated_master_enabled = false # Want minimal deployment for dev
+  elastic_search_dedicated_master_type = "t2.small.elasticsearch"
+  elastic_search_dedicated_master_count = 1
+
+
+
+}
+
 module "database" {
   source = "../modules/database"
 
