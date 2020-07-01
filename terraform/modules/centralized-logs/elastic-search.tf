@@ -120,6 +120,6 @@ resource "aws_elasticsearch_domain" "es" {
   }
 
   depends_on = [
-      "aws_iam_service_linked_role.es", # See https://www.terraform.io/docs/providers/aws/r/elasticsearch_domain.html: Must have service linked role to allow ES in VPC
+      aws_iam_service_linked_role.es, # See https://www.terraform.io/docs/providers/aws/r/elasticsearch_domain.html: Must have service linked role to allow ES in VPC
   ]
 }

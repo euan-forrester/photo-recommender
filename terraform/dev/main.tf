@@ -69,6 +69,9 @@ module "centralized-logs" {
   environment  = var.environment
   region       = var.region
 
+  alarms_sns_topic_arn = module.alarms.sns_topic_arn
+  enable_alarms = module.alarms.enable_alarms
+
   vpc_id                      = module.vpc.vpc_id
   elastic_search_subnet_ids   = [element(module.vpc.vpc_private_subnet_ids, 0)] # No multi-az for dev = can only specify one subnet
   local_machine_cidr          = var.local_machine_cidr
