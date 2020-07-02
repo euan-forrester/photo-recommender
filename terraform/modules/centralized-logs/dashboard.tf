@@ -1,4 +1,6 @@
 resource "aws_cloudwatch_dashboard" "main" {
+  count = var.centralized_logs_enabled ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
+
   dashboard_name = "${var.application_name}-centralized-logs-${var.environment}"
 
   dashboard_body = <<EOF

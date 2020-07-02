@@ -1,7 +1,7 @@
 # Copied from the AWS centralized logging template: https://docs.aws.amazon.com/solutions/latest/centralized-logging/templates.html
 
 resource "aws_cloudwatch_metric_alarm" "status_yellow_alarm" {
-  count = var.enable_alarms ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
+  count = var.enable_alarms && var.centralized_logs_enabled ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
 
   alarm_name                = "Centralized Logging ${var.environment} cluster status yellow"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
@@ -24,7 +24,7 @@ resource "aws_cloudwatch_metric_alarm" "status_yellow_alarm" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "status_red_alarm" {
-  count = var.enable_alarms ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
+  count = var.enable_alarms && var.centralized_logs_enabled ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
 
   alarm_name                = "Centralized Logging ${var.environment} cluster status red"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
@@ -47,7 +47,7 @@ resource "aws_cloudwatch_metric_alarm" "status_red_alarm" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "cpu_utilization_too_high" {
-  count = var.enable_alarms ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
+  count = var.enable_alarms && var.centralized_logs_enabled ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
 
   alarm_name                = "Centralized Logging ${var.environment} cpu utilization"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
@@ -70,7 +70,7 @@ resource "aws_cloudwatch_metric_alarm" "cpu_utilization_too_high" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "master_cpu_utilization_too_high" {
-  count = var.enable_alarms ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
+  count = var.enable_alarms && var.centralized_logs_enabled ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
 
   alarm_name                = "Centralized Logging ${var.environment} master cpu utilization"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
@@ -93,7 +93,7 @@ resource "aws_cloudwatch_metric_alarm" "master_cpu_utilization_too_high" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "free_storage_space_too_low_alarm" {
-  count = var.enable_alarms ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
+  count = var.enable_alarms && var.centralized_logs_enabled ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
 
   alarm_name                = "Centralized Logging ${var.environment} free storage space too low"
   comparison_operator       = "LessThanOrEqualToThreshold"
@@ -116,7 +116,7 @@ resource "aws_cloudwatch_metric_alarm" "free_storage_space_too_low_alarm" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "index_write_blocked_too_high" {
-  count = var.enable_alarms ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
+  count = var.enable_alarms && var.centralized_logs_enabled ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
 
   alarm_name                = "Centralized Logging ${var.environment} index write blocked"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
@@ -139,7 +139,7 @@ resource "aws_cloudwatch_metric_alarm" "index_write_blocked_too_high" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "jvm_memory_pressure_too_high" {
-  count = var.enable_alarms ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
+  count = var.enable_alarms && var.centralized_logs_enabled ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
 
   alarm_name                = "Centralized Logging ${var.environment} jvm memory pressure"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
@@ -162,7 +162,7 @@ resource "aws_cloudwatch_metric_alarm" "jvm_memory_pressure_too_high" {
 }  
 
 resource "aws_cloudwatch_metric_alarm" "master_jvm_memory_pressure_too_high" {
-  count = var.enable_alarms ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
+  count = var.enable_alarms && var.centralized_logs_enabled ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
 
   alarm_name                = "Centralized Logging ${var.environment} master jvm memory pressure"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
@@ -185,7 +185,7 @@ resource "aws_cloudwatch_metric_alarm" "master_jvm_memory_pressure_too_high" {
 } 
 
 resource "aws_cloudwatch_metric_alarm" "master_not_reachable_from_node" {
-  count = var.enable_alarms ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
+  count = var.enable_alarms && var.centralized_logs_enabled ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
 
   alarm_name                = "Centralized Logging ${var.environment} master node not reachable"
   comparison_operator       = "LessThanThreshold"
@@ -208,7 +208,7 @@ resource "aws_cloudwatch_metric_alarm" "master_not_reachable_from_node" {
 } 
 
 resource "aws_cloudwatch_metric_alarm" "automated_snapshot_failure_too_high" {
-  count = var.enable_alarms ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
+  count = var.enable_alarms && var.centralized_logs_enabled ? 1 : 0 # Don't create this if we turn off alarms (e.g. for dev)
 
   alarm_name                = "Centralized Logging ${var.environment} automated snapshot failure too high"
   comparison_operator       = "GreaterThanOrEqualToThreshold"
