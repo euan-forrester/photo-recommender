@@ -66,17 +66,18 @@ module "centralized-logs" {
 
   centralized_logs_enabled = true
 
-  environment  = var.environment
-  region       = var.region
+  environment       = var.environment
+  region            = var.region
+  application_name  = var.application_name
 
-  alarms_sns_topic_arn = module.alarms.sns_topic_arn
-  enable_alarms = module.alarms.enable_alarms
+  alarms_sns_topic_arn  = module.alarms.sns_topic_arn
+  enable_alarms         = module.alarms.enable_alarms
 
   vpc_id                      = module.vpc.vpc_id
-  elastic_search_subnet_ids   = [element(module.vpc.vpc_private_subnet_ids, 0)] # No multi-az for dev = can only specify one subnet
+  elastic_search_subnet_ids   = [element(module.vpc.vpc_public_subnet_ids, 0)] # No multi-az for dev = can only specify one subnet
   local_machine_cidr          = var.local_machine_cidr
 
-  elastic_search_domain_name  = "${var.application_name}-${var.environment}"
+  elastic_search_domain_name  = "${var.application_name}-logs-${var.environment}"
   elastic_search_ebs_volume_size = 10
   elastic_search_encryption_enabled = false # t2.small.elasticsearch doesn't support encryption at rest
   elastic_search_storage_encryption_kms_key_id = module.encryption.kms_key_id

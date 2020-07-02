@@ -4,6 +4,10 @@ variable "environment" {
 variable "region" {
 }
 
+variable "application_name" {
+  
+}
+
 variable "centralized_logs_enabled" {
   type = bool
 }
@@ -13,7 +17,7 @@ variable "alarms_sns_topic_arn" {
 }
 
 variable "enable_alarms" {
-  
+
 }
 
 variable "vpc_id" {
