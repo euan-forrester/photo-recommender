@@ -24,6 +24,14 @@ variable "vpc_id" {
   description = "VPC ID where to launch ElasticSearch cluster"
 }
 
+variable "cloudwatch_log_group_name" {
+
+}
+
+variable "cloudwatch_log_group_arn" {
+  
+}
+
 variable "local_machine_cidr" {
 }
 

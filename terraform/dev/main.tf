@@ -70,6 +70,9 @@ module "centralized-logs" {
   region            = var.region
   application_name  = var.application_name
 
+  cloudwatch_log_group_name = module.elastic_container_service.cloudwatch_log_group_name
+  cloudwatch_log_group_arn  = module.elastic_container_service.cloudwatch_log_group_arn
+
   alarms_sns_topic_arn  = module.alarms.sns_topic_arn
   enable_alarms         = module.alarms.enable_alarms
 
