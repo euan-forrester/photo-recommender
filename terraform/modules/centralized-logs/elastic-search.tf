@@ -15,6 +15,25 @@ resource "aws_security_group" "es_sg" {
           var.local_machine_cidr
       ]
   }
+
+  # Allow lamba to talk to us
+  ingress {
+      from_port   = 443
+      to_port     = 443
+      protocol    = "tcp"
+      security_groups = [
+        aws_security_group.cloudwatch-lambda-elasticsearch.id
+      ]
+  }
+
+  egress {
+    from_port = 0
+    to_port   = 0
+    protocol  = "-1"
+    cidr_blocks = [
+      "0.0.0.0/0",
+    ]
+  }
 }
 
 resource "aws_cloudwatch_log_group" "elastic_search" {

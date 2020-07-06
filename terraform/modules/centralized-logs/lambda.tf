@@ -1,5 +1,7 @@
 # IAM role stuff gotten from: https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CWL_ES_Stream.html
 
+# Terraform based on https://stackoverflow.com/questions/38407660/terraform-configuring-cloudwatch-log-subscription-delivery-to-lambda
+
 resource "aws_iam_role" "cloudwatch-lambda-role" {
   name = "cloudwatch-lambda-role"
 
@@ -45,23 +47,45 @@ resource "aws_iam_role_policy_attachment" "attach-vpc-access" {
 }
 
 resource "aws_cloudwatch_log_subscription_filter" "log-filter" {
+  count           = var.centralized_logs_enabled ? 1 : 0
+
   name            = "log-filter"
   log_group_name  = var.cloudwatch_log_group_name
   filter_pattern  = ""
-  destination_arn = aws_lambda_function.cloudwatch-to-elasticsearch.arn
+  destination_arn = aws_lambda_function.cloudwatch-to-elasticsearch[count.index].arn
 
   depends_on      = [aws_lambda_permission.allow-cloudwatch] # https://stackoverflow.com/questions/38407660/terraform-configuring-cloudwatch-log-subscription-delivery-to-lambda/38428834#38428834
 }
 
 resource "aws_lambda_permission" "allow-cloudwatch" {
+  count           = var.centralized_logs_enabled ? 1 : 0
+
   statement_id  = "allow-cloudwatch"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.cloudwatch-to-elasticsearch.arn
+  function_name = aws_lambda_function.cloudwatch-to-elasticsearch[count.index].arn
   principal     = "logs.${var.region}.amazonaws.com"
   source_arn    = var.cloudwatch_log_group_arn
 }
 
+resource "aws_security_group" "cloudwatch-lambda-elasticsearch" {
+  name = "cloudwatch-lambda"
+
+  description = "Security group for lambda to move logs from Cloud Watch Logs to ElasticSearch"
+  vpc_id      = var.vpc_id
+
+  egress {
+    from_port = 443
+    to_port   = 443
+    protocol  = "tcp"
+    cidr_blocks = [
+      "0.0.0.0/0",
+    ]
+  }
+}
+
 resource "aws_lambda_function" "cloudwatch-to-elasticsearch" {
+  count         = var.centralized_logs_enabled ? 1 : 0
+
   description   = "CloudWatch Logs to Amazon ES streaming"
   filename      = "${path.module}/lambda-src/cloudwatch-to-elasticsearch.zip"
   function_name = "cloudwatch-to-elasticsearch"
@@ -77,5 +101,10 @@ resource "aws_lambda_function" "cloudwatch-to-elasticsearch" {
     variables = {
       ELASTIC_SEARCH_ENDPOINT = aws_elasticsearch_domain.es.endpoint
     }
+  }
+
+  vpc_config {
+    subnet_ids         = var.elastic_search_subnet_ids
+    security_group_ids = [aws_security_group.cloudwatch-lambda-elasticsearch.id]
   }
 }

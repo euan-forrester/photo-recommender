@@ -17,7 +17,7 @@ variable "alarms_sns_topic_arn" {
 }
 
 variable "enable_alarms" {
-
+  type = bool
 }
 
 variable "vpc_id" {
