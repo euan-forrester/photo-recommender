@@ -47,3 +47,6 @@ variable "deletion_protection" {
 variable "kms_key_arn" {
 }
 
+variable "log_retention_days" {
+  
+}

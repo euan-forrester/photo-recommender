@@ -91,7 +91,7 @@ Copy the file `terraform/terraform.tfvars.example` to `terraform/terraform.tfvar
 - Copy your ssh public key (contained in `~/.ssh/id_rsa.pub`. If that file doesn't exist, run `ssh-keygen -t rsa` to generate it)
 - Enter the github address of your fork of this project
 - Fill in your Flickr API key and secret: https://www.flickr.com/services/apps/create/apply
-- Fill in a master password for the various databases
+- Fill in a master password for the various databases (note that terraform will create a file called `mysql_password` in the directory from which you run terraform, containing the password you enter here. This file is listed in `.gitignore`)
 - If you're going to make a prod instance with a real domain, register that domain using AWS's Route53 manually and fill in the domain name in this file.
 - Fill in a 256-bit AES encryption key, used to encrypt user session data. Can be obtained from https://www.allkeysgenerator.com/Random/Security-Encryption-Key-Generator.aspx for example
 - Fill in a 256-bit AES encryption key, used to encrypt user access tokens in the database. Can be obtained from the same place as the above
@@ -221,7 +221,6 @@ Point your browser there and enjoy!
 
 ## To do
 
-- Consider moving MySQL passwords into config files rather than passing on command line from terraform script
 - Add tests
 - Look into how to lock versions of python dependencies of our dependencies (rather than just the packages we explicitly reference)
 - Encrypt SQS messages in prod

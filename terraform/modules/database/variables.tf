@@ -47,3 +47,6 @@ variable "vpc_cidr" {
 variable "kms_key_arn" {
 }
 
+variable "mysql_log_retention_days" {
+  
+}

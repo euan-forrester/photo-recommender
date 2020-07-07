@@ -83,6 +83,11 @@ resource "aws_security_group" "cloudwatch-lambda-elasticsearch" {
   }
 }
 
+resource "aws_cloudwatch_log_group" "cloudwatch-to-elasticsearch" {
+  name              = "/aws/lambda/cloudwatch-to-elasticsearch"
+  retention_in_days = var.lamba_log_retention_days
+}
+
 resource "aws_lambda_function" "cloudwatch-to-elasticsearch" {
   count         = var.centralized_logs_enabled ? 1 : 0
 
@@ -107,4 +112,8 @@ resource "aws_lambda_function" "cloudwatch-to-elasticsearch" {
     subnet_ids         = var.elastic_search_subnet_ids
     security_group_ids = [aws_security_group.cloudwatch-lambda-elasticsearch.id]
   }
+
+  depends_on = [
+    aws_cloudwatch_log_group.cloudwatch-to-elasticsearch # The logs get put into the log group whose name matches ours, so we need to set an explicit dependency:  https://www.terraform.io/docs/providers/aws/r/lambda_function.html#cloudwatch-logging-and-permissions
+  ]
 }

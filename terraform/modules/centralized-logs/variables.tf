@@ -78,3 +78,11 @@ variable "elastic_search_storage_encryption_kms_key_id" {
 variable "elastic_search_ebs_volume_size" {
 
 }
+
+variable "elastic_search_log_retention_days" {
+
+}
+
+variable "lamba_log_retention_days" {
+  
+}

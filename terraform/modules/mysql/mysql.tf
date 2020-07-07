@@ -7,9 +7,28 @@ resource "aws_db_subnet_group" "public_subnet_group" {
   }
 }
 
+locals {
+  db_instance_identifier = "${var.database_name}-${var.environment}"
+}
+
+resource "aws_cloudwatch_log_group" "mysql_database_error" {
+  name              = "/aws/rds/instance/${local.db_instance_identifier}/error"
+  retention_in_days = var.log_retention_days
+}
+
+resource "aws_cloudwatch_log_group" "mysql_database_general" {
+  name              = "/aws/rds/instance/${local.db_instance_identifier}/general"
+  retention_in_days = var.log_retention_days
+}
+
+resource "aws_cloudwatch_log_group" "mysql_database_slowquery" {
+  name              = "/aws/rds/instance/${local.db_instance_identifier}/slowquery"
+  retention_in_days = var.log_retention_days
+}
+
 resource "aws_db_instance" "mysql_database" {
   instance_class = var.instance_type
-  identifier     = "${var.database_name}-${var.environment}"
+  identifier     = local.db_instance_identifier
   name           = var.database_name
   multi_az       = var.multi_az
 
@@ -47,9 +66,24 @@ resource "aws_db_instance" "mysql_database" {
   tags = {
     Environment = var.environment
   }
+
+  depends_on = [ # The logs get put into the log group whose name matches ours, so we need to set an explicit dependency
+    aws_cloudwatch_log_group.mysql_database_error,
+    aws_cloudwatch_log_group.mysql_database_general,
+    aws_cloudwatch_log_group.mysql_database_slowquery
+  ]
 }
 
 # Init the database with a script to create tables/indexes/etc
+
+# Put the password in a local file, readable only by us, because passing it on the command line or in an env var is insecure and can be sniffed by programs such as ps:
+# https://dev.mysql.com/doc/mysql-security-excerpt/8.0/en/password-security-user.html
+
+resource "local_file" "mysql_password" {
+  filename          = "${path.cwd}/mysql_password" # Use current working directory rather than the usual path.module so that we can have separate passwords for dev/prod
+  file_permission   = "0600"
+  sensitive_content = "[client]\npassword=${var.database_password}"
+}
 
 resource "null_resource" "init-database" {
   triggers = {
@@ -57,7 +91,6 @@ resource "null_resource" "init-database" {
   }
 
   provisioner "local-exec" {
-    command = "mysql --host=${aws_db_instance.mysql_database.address} --port=${aws_db_instance.mysql_database.port} --user=${aws_db_instance.mysql_database.username} --password=${var.database_password} --database=${aws_db_instance.mysql_database.name} < ../modules/${var.init_script_file}"
+    command = "mysql --defaults-file=${local_file.mysql_password.filename} --host=${aws_db_instance.mysql_database.address} --port=${aws_db_instance.mysql_database.port} --user=${aws_db_instance.mysql_database.username} --database=${aws_db_instance.mysql_database.name} < ../modules/${var.init_script_file}"
   }
 }
-

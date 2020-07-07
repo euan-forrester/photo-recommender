@@ -91,6 +91,8 @@ module "centralized-logs" {
   elastic_search_dedicated_master_enabled = false # Want minimal deployment for dev
   elastic_search_dedicated_master_type = "t2.small.elasticsearch"
   elastic_search_dedicated_master_count = 1
+  elastic_search_log_retention_days = 1
+  lamba_log_retention_days = 1
 
 
 
@@ -115,6 +117,7 @@ module "database" {
   mysql_multi_az                     = false # Disable database multi-AZ in dev to save billing charges
   mysql_backup_retention_period_days = 3
   mysql_deletion_protection          = false # No need for deletion protection in dev
+  mysql_log_retention_days           = 1
 
   mysql_database_password = var.database_password_dev
   kms_key_arn             = module.encryption.kms_key_arn

@@ -7,3 +7,4 @@ backend/puller-response-reader/config/secrets.ini
 backend/ingester-response-reader/config/secrets.ini
 backend/common/dummy.sh
 .DS_Store
+mysql_password

@@ -37,7 +37,8 @@ resource "aws_security_group" "es_sg" {
 }
 
 resource "aws_cloudwatch_log_group" "elastic_search" {
-    name = "elastic-search-${var.environment}"
+    name              = var.elastic_search_domain_name
+    retention_in_days = var.elastic_search_log_retention_days
 }
 
 resource "aws_cloudwatch_log_resource_policy" "example" {
@@ -118,6 +119,11 @@ resource "aws_elasticsearch_domain" "es" {
   log_publishing_options {
       cloudwatch_log_group_arn = aws_cloudwatch_log_group.elastic_search.arn
       log_type                 = "SEARCH_SLOW_LOGS"
+  }
+
+  log_publishing_options {
+      cloudwatch_log_group_arn = aws_cloudwatch_log_group.elastic_search.arn
+      log_type                 = "ES_APPLICATION_LOGS"
   }
 
   access_policies = <<CONFIG

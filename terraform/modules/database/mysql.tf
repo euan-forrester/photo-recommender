@@ -17,5 +17,6 @@ module "mysql" {
   backup_retention_period_days = var.mysql_backup_retention_period_days
   deletion_protection          = var.mysql_deletion_protection
   init_script_file             = "database/photo_recommender_init.sql"
+  log_retention_days           = var.mysql_log_retention_days
 }
 
