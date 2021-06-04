@@ -7,6 +7,6 @@ jsonpickle==1.2
 pymemcache==2.2.2
 diskcache==4.0.0
 flickrapi==2.4.0
-django==2.2.13
+django==2.2.21
 python-memcached==1.59
 Authlib[client]==0.12.1
