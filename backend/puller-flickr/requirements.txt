@@ -1,6 +1,6 @@
 flickrapi==2.4.0
 python-memcached==1.59
-django==2.2.13
+django==2.2.24
 boto3==1.9.214
 jsonpickle==1.2
 pymemcache==2.2.2
